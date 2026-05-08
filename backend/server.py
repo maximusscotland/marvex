@@ -46,6 +46,7 @@ from admin_ops import make_router as make_admin_ops_router
 from press import make_router as make_press_router
 from bugreport import make_router as make_bugreport_router
 from magic_auth import make_router as make_magic_auth_router, ensure_indexes as ensure_magic_indexes
+from apple_auth import make_router as make_apple_auth_router, ensure_indexes as ensure_apple_indexes
 from sentry_init import init_sentry
 
 # Initialise Sentry as early as possible so the FastAPI integration can
@@ -1798,6 +1799,7 @@ app.include_router(admin_ops_router)
 app.include_router(press_router)
 app.include_router(bugreport_router)
 app.include_router(make_magic_auth_router(db))
+app.include_router(make_apple_auth_router(db))
 
 app.add_middleware(
     CORSMiddleware,
@@ -1822,6 +1824,14 @@ async def on_startup_magic_indexes():
         await ensure_magic_indexes(db)
     except Exception as e:
         logger.warning("magic_tokens index creation skipped: %s", e)
+
+
+@app.on_event("startup")
+async def on_startup_apple_indexes():
+    try:
+        await ensure_apple_indexes(db)
+    except Exception as e:
+        logger.warning("apple indexes skipped: %s", e)
 
 
 @app.on_event("startup")

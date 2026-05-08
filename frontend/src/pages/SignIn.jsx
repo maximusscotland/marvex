@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import axios from "axios";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import Logo from "@/components/Logo";
 import EmailLoginForm from "@/components/EmailLoginForm";
@@ -7,32 +8,48 @@ import { useAuth } from "@/lib/auth";
 import usePageMeta from "@/lib/usePageMeta";
 
 const SITE = "https://marvex.app";
+const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
 /**
- * /signin — single sign-in surface with two equal options:
+ * /signin — single sign-in surface offering up to three equal options:
  *   1. Continue with Google  (existing Emergent-managed OAuth)
- *   2. Email me a sign-in link  (new magic-link flow)
+ *   2. Continue with Apple   (server-driven; only renders when env vars set)
+ *   3. Email me a sign-in link  (magic-link flow)
  *
- * `?next=/somepath` is preserved across both flows so post-auth the
- * user lands where they intended. Falls back to /library.
+ * `?next=/somepath` is preserved across all flows so post-auth the user
+ * lands where they intended. Falls back to /library.
  *
- * If the user is already signed in we send them to `next` immediately
- * — there's nothing for them to do here.
+ * If the user is already signed in we send them to `next` immediately —
+ * there's nothing for them to do here.
  */
 export default function SignIn() {
   const [params] = useSearchParams();
   const next = params.get("next") || "/library";
+  const appleError = params.get("apple_error") || "";
   const { user, signIn, loading } = useAuth();
+
+  // Apple Sign In is gated by env config — only render the button when
+  // the backend confirms the 4 secrets are set. Avoids dead buttons in
+  // dev/preview where Apple keys aren't configured.
+  const [appleEnabled, setAppleEnabled] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    axios.get(`${API}/auth/apple/status`)
+      .then((r) => { if (!cancelled && r.data?.enabled) setAppleEnabled(true); })
+      .catch(() => { /* keep disabled */ });
+    return () => { cancelled = true; };
+  }, []);
 
   usePageMeta({
     title: "Sign in — Marvex Studio",
-    description: "Sign in to Marvex Studio with Google or by email magic-link. No password required.",
+    description: "Sign in to Marvex Studio with Google, Apple, or email magic-link. No password required.",
     type: "website",
     url: `${SITE}/signin`,
   });
 
-  // Already signed in? Bounce straight to next.
-  React.useEffect(() => {
+  // Already signed in? Bounce to `next`.
+  useEffect(() => {
     if (!loading && user) {
       window.location.replace(next.startsWith("/") ? next : "/library");
     }
@@ -63,7 +80,7 @@ export default function SignIn() {
           we&apos;ll keep you signed in for 7 days.
         </p>
 
-        {/* Google CTA */}
+        {/* Google */}
         <button
           type="button"
           onClick={signIn}
@@ -78,6 +95,30 @@ export default function SignIn() {
           </svg>
           Continue with Google
         </button>
+
+        {/* Apple — server-driven visibility. Goes server-side so the
+            session cookie from the OAuth round-trip lands on the same
+            origin as the API. Apple's start endpoint 302s to Apple, then
+            Apple POSTs back to /api/auth/apple/callback, which sets the
+            cookie + 302s the user to the next page. */}
+        {appleEnabled && (
+          <a
+            href={`${API}/auth/apple/start?next=${encodeURIComponent(next)}`}
+            data-testid="signin-apple-btn"
+            className="w-full justify-center mb-3 px-4 py-2.5 rounded-lg bg-black text-white font-semibold text-[14px] flex items-center gap-2 hover:bg-[#1d1d1f] transition border border-white/10"
+          >
+            <svg width="14" height="16" viewBox="0 0 14 16" fill="currentColor" aria-hidden="true">
+              <path d="M11.182 8.395c-.018-1.985 1.622-2.937 1.696-2.984-.923-1.349-2.366-1.534-2.881-1.555-1.226-.124-2.4.722-3.022.722-.628 0-1.586-.704-2.605-.685-1.34.02-2.572.78-3.262 1.98-1.39 2.413-.355 5.987.997 7.946.66.96 1.448 2.034 2.481 1.996.998-.04 1.376-.642 2.583-.642 1.207 0 1.55.642 2.605.622 1.077-.02 1.76-.974 2.42-1.937.762-1.108 1.075-2.184 1.092-2.24-.025-.011-2.094-.804-2.114-3.193zm-1.967-5.86c.55-.668.92-1.595.82-2.515-.79.032-1.748.526-2.317 1.193-.51.59-.957 1.535-.838 2.439.881.067 1.785-.448 2.335-1.117z"/>
+            </svg>
+            Continue with Apple
+          </a>
+        )}
+
+        {appleError && (
+          <div data-testid="signin-apple-error" className="mb-3 text-[12px] text-rose-300">
+            Apple sign-in didn&apos;t complete ({appleError}). You can try again or use email below.
+          </div>
+        )}
 
         {/* Divider */}
         <div className="flex items-center gap-3 my-6" aria-hidden="true">
