@@ -115,6 +115,10 @@ const FAQ_GROUPS = [
     title: "Support & contact",
     items: [
       {
+        q: "Do you support Westlaw / LexisNexis / BAILII?",
+        a: "Yes — and you don't need a Pro plan to access them. **Westlaw UK** is built in for everyone (free) — Marvex opens Westlaw with your search query pre-filled (you'll need your own Westlaw account for full results). **BAILII full-text search** (80,000+ UK & Irish judgments) and the **LexisNexis BYOK proxy** are part of the optional [Law Pack add-on](/pricing) ($10 one-off). Plus the always-free Find Case Law service and legislation.gov.uk for primary statutes.",
+      },
+      {
         q: "Found a bug — how do I report it?",
         a: "Use the [Report a bug](/report-bug) page (or in the desktop app, Help → Report a bug…). Reports go straight to tech@marvex.app and we respond within 1 business day. Most bugs ship a fix within a few days.",
       },

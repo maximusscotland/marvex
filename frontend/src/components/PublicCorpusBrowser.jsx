@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { X, Search, Loader2, Check, Download, BookOpen, FlaskConical, Scale, Globe2, Info, Sparkles, Lock, Brain } from "lucide-react";
+import { X, Search, Loader2, Check, Download, BookOpen, FlaskConical, Scale, Globe2, Info, Sparkles, Lock, Brain, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { searchCorpus, fetchCorpusFile, searchBailii, summariseCase, startPremiumUkLawCheckout } from "@/lib/corpus";
 import { useLicense } from "@/lib/license";
 import { getApiKey } from "@/lib/settings";
+import WestlawSearchPanel from "@/components/WestlawSearchPanel";
 
 /**
  * Public-domain corpus picker. Three tabs: arXiv (research papers),
@@ -128,9 +129,10 @@ const pickFeatured = (pool, count, weekKey) => {
 
 export default function PublicCorpusBrowser({ open, onClose, onImport, isPro }) {
   const [tab, setTab] = useState("arxiv"); // arxiv | gutenberg | law-uk
-  // Sub-source for the law-uk tab. 'official' = the free
-  // legislation.gov.uk + Find Case Law backend; 'bailii' = the
-  // Premium UK Law BAILII full-text search (gated by add-on).
+  // Sub-source for the law-uk tab.
+  //   'official' = legislation.gov.uk + Find Case Law (free)
+  //   'bailii'   = BAILII full-text — gated by Law Pack add-on
+  //   'westlaw'  = Westlaw UK deep-link / embed — free for everyone (no API)
   const [lawSource, setLawSource] = useState("official");
   const [q, setQ] = useState("");
   const [items, setItems] = useState([]);
@@ -148,7 +150,10 @@ export default function PublicCorpusBrowser({ open, onClose, onImport, isPro }) 
     if (!open) return;
     setItems([]);
     setSelected(new Set());
-    setQ("");
+    // Don't clear `q` when the user merely toggles between law sub-sources
+    // (official ↔ bailii ↔ westlaw) — they're refining the same search,
+    // not switching contexts. Clear it on full tab switches and on open.
+    setQ((prev) => (lawSource && tab === "law-uk" ? prev : ""));
     // If user lost the addon (refunded etc) reset the sub-source.
     if (lawSource === "bailii" && !ownsPremiumUkLaw) setLawSource("official");
   }, [open, tab, lawSource, ownsPremiumUkLaw]);
@@ -342,20 +347,20 @@ export default function PublicCorpusBrowser({ open, onClose, onImport, isPro }) 
 
         {/* UK Law sub-source switcher + Premium UK Law upsell */}
         {tab === "law-uk" && (
-          ownsPremiumUkLaw ? (
-            <div className="flex items-center gap-2 mb-3" data-testid="premium-uk-law-source-switch">
-              <span className="mono text-[9px] uppercase tracking-[0.22em] text-[#7a87ad]">Source</span>
-              <button
-                data-testid="lawsource-official-btn"
-                onClick={() => setLawSource("official")}
-                className={`mono text-[10px] uppercase tracking-[0.18em] px-3 py-1 rounded-full border transition ${
-                  lawSource === "official"
-                    ? "bg-cyan-500/15 text-cyan-200 border-cyan-400/50"
-                    : "text-[#9aaad0] border-white/10 hover:text-cyan-200 hover:border-cyan-400/30"
-                }`}
-              >
-                Official
-              </button>
+          <div className="flex items-center gap-2 mb-3 flex-wrap" data-testid="law-source-switch">
+            <span className="mono text-[9px] uppercase tracking-[0.22em] text-[#7a87ad]">Source</span>
+            <button
+              data-testid="lawsource-official-btn"
+              onClick={() => setLawSource("official")}
+              className={`mono text-[10px] uppercase tracking-[0.18em] px-3 py-1 rounded-full border transition ${
+                lawSource === "official"
+                  ? "bg-cyan-500/15 text-cyan-200 border-cyan-400/50"
+                  : "text-[#9aaad0] border-white/10 hover:text-cyan-200 hover:border-cyan-400/30"
+              }`}
+            >
+              Official
+            </button>
+            {ownsPremiumUkLaw ? (
               <button
                 data-testid="lawsource-bailii-btn"
                 onClick={() => setLawSource("bailii")}
@@ -369,37 +374,52 @@ export default function PublicCorpusBrowser({ open, onClose, onImport, isPro }) 
                 <Sparkles size={9} />
                 BAILII full-text
               </button>
-              <span className="mono text-[8.5px] uppercase tracking-[0.22em] text-amber-300/70 ml-auto">★ Premium</span>
-            </div>
-          ) : (
+            ) : (
+              <button
+                data-testid="lawsource-bailii-locked-btn"
+                onClick={startPremiumCheckout}
+                disabled={checkoutBusy}
+                className="mono text-[10px] uppercase tracking-[0.18em] px-3 py-1 rounded-full border border-amber-400/30 bg-amber-500/[0.06] text-amber-200/90 hover:border-amber-300/60 transition flex items-center gap-1.5 disabled:opacity-60"
+                title="Unlock BAILII full-text search — $10 one-off Law Pack add-on"
+              >
+                {checkoutBusy ? <Loader2 size={9} className="animate-spin" /> : <Lock size={9} />}
+                BAILII · $10
+              </button>
+            )}
             <button
-              data-testid="premium-uk-law-upsell"
-              onClick={startPremiumCheckout}
-              disabled={checkoutBusy}
-              className="w-full text-left mb-3 p-3 rounded-lg flex items-start gap-3 bg-gradient-to-br from-amber-500/10 via-fuchsia-500/5 to-transparent border border-amber-400/30 hover:border-amber-300/60 transition disabled:opacity-60"
+              data-testid="lawsource-westlaw-btn"
+              onClick={() => setLawSource("westlaw")}
+              className={`mono text-[10px] uppercase tracking-[0.18em] px-3 py-1 rounded-full border transition flex items-center gap-1.5 ${
+                lawSource === "westlaw"
+                  ? "bg-amber-500/15 text-amber-200 border-amber-400/50"
+                  : "text-[#9aaad0] border-white/10 hover:text-amber-200 hover:border-amber-400/30"
+              }`}
+              title="Open Westlaw UK with your search pre-filled (your Westlaw account required for full results)"
             >
-              <div className="w-8 h-8 rounded-md bg-amber-500/20 border border-amber-400/40 grid place-items-center text-amber-300 flex-shrink-0">
-                {checkoutBusy ? <Loader2 size={14} className="animate-spin" /> : <Lock size={13} />}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="mono text-[9.5px] uppercase tracking-[0.22em] text-amber-300/80">Unlock · Law Pack Add-on</span>
-                  <span className="mono text-[10px] uppercase tracking-[0.18em] px-2 py-[2px] rounded-full bg-amber-500/15 text-amber-200 border border-amber-400/40">$10 once</span>
-                </div>
-                <div className="text-[12.5px] text-[#cfdaf3] leading-snug">
-                  Adds <span className="text-fuchsia-200">BAILII full-text search</span> across 80,000+ UK &amp; Irish judgments,
-                  <span className="text-cyan-200"> AI case summaries </span>(your own LLM key), and the
-                  <span className="text-amber-200"> LexisNexis BYOK </span>proxy for institutional users.
-                </div>
-                <div className="mono text-[9px] uppercase tracking-[0.22em] text-[#566187] mt-1.5">
-                  One-off · tied to your plan (lifetime = forever, Pro = while subscribed)
-                </div>
-              </div>
+              <ExternalLink size={9} />
+              Westlaw UK
             </button>
-          )
+            <span className="mono text-[8.5px] uppercase tracking-[0.22em] text-[#566187] ml-auto">
+              {lawSource === "bailii" ? "★ Premium" : lawSource === "westlaw" ? "Your Westlaw acct" : "Free · Open Government"}
+            </span>
+          </div>
         )}
 
-        {/* Search */}
+        {/* Westlaw sub-source — free deep-link / embed-attempt panel.
+            Shown in place of the standard search UI when the user picks
+            the Westlaw source. The shared search input below feeds its
+            query into this panel. */}
+        {tab === "law-uk" && lawSource === "westlaw" && (
+          <div className="mb-3" data-testid="law-westlaw-wrap">
+            <WestlawSearchPanel query={q} />
+          </div>
+        )}
+
+        {/* Search input — always visible (works for arxiv/gutenberg/law
+            corpus search AND for the Westlaw sub-source, which simply
+            reads `q` to build its deep-link URL). The result list /
+            import button below is hidden when Westlaw is the active
+            source because Westlaw renders its own self-contained panel. */}
         <div className="flex gap-2 mb-3">
           <div className="flex-1 relative">
             <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#566187]" />
@@ -407,20 +427,40 @@ export default function PublicCorpusBrowser({ open, onClose, onImport, isPro }) 
               data-testid="corpus-search-input"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && runSearch()}
-              placeholder={tab === "arxiv" ? "e.g. transformer attention" : tab === "gutenberg" ? "e.g. Pride and Prejudice" : "e.g. Equality Act 2010, mens rea, judicial review"}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                if (tab === "law-uk" && lawSource === "westlaw") {
+                  // Force the Westlaw panel to reset its load timer with
+                  // the new query — passing q through props re-renders
+                  // the iframe automatically; nothing else to do.
+                  return;
+                }
+                runSearch();
+              }}
+              placeholder={
+                tab === "arxiv" ? "e.g. transformer attention"
+                : tab === "gutenberg" ? "e.g. Pride and Prejudice"
+                : tab === "law-uk" && lawSource === "westlaw" ? "e.g. judicial review · negligence · Donoghue v Stevenson"
+                : "e.g. Equality Act 2010, mens rea, judicial review"
+              }
               className="w-full bg-[#0a1428] border border-white/10 rounded-full pl-8 pr-3 py-2 text-[13px] placeholder:text-[#566187] focus:outline-none focus:border-cyan-400/60"
             />
           </div>
-          <button
-            data-testid="corpus-search-btn"
-            onClick={runSearch}
-            disabled={busy || !q.trim()}
-            className="mono text-[10px] uppercase tracking-[0.22em] px-4 py-2 rounded-full bg-cyan-400 text-[#03131e] font-bold disabled:opacity-30 flex items-center gap-1.5"
-          >
-            {busy ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />} Search
-          </button>
+          {!(tab === "law-uk" && lawSource === "westlaw") && (
+            <button
+              data-testid="corpus-search-btn"
+              onClick={runSearch}
+              disabled={busy || !q.trim()}
+              className="mono text-[10px] uppercase tracking-[0.22em] px-4 py-2 rounded-full bg-cyan-400 text-[#03131e] font-bold disabled:opacity-30 flex items-center gap-1.5"
+            >
+              {busy ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />} Search
+            </button>
+          )}
         </div>
+
+        {/* Results — hidden when Westlaw renders its own panel above. */}
+        {!(tab === "law-uk" && lawSource === "westlaw") && (
+          <>
 
         {/* Results */}
         <div className="flex-1 min-h-0 overflow-y-auto rounded-xl border border-white/5 bg-black/20">
@@ -571,6 +611,8 @@ export default function PublicCorpusBrowser({ open, onClose, onImport, isPro }) 
             Import {selected.size > 0 ? `${selected.size}` : ""}
           </button>
         </div>
+          </>
+        )}
       </div>
     </div>
   );
