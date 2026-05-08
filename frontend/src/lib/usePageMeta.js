@@ -18,6 +18,12 @@ export const upsertMeta = (key, value, isProperty = true) => {
   return el;
 };
 
+// Site-wide default OG image — used by every page that doesn't pass its
+// own `image`. 1200×630, brand-consistent cosmic mind-map silhouette.
+// Generated via /app/backend/generate_og_card.py — re-run that script
+// when the brand evolves.
+const DEFAULT_OG_IMAGE = "https://marvex.app/og/marvex-default.png";
+
 /**
  * Hook — write title + og/twitter meta tags AND canonical URL for a page.
  * Restores the previous title on unmount but leaves meta tags in place
@@ -29,6 +35,10 @@ export const upsertMeta = (key, value, isProperty = true) => {
  * The `url` value doubles as the canonical URL. Pass the absolute
  * production URL (e.g. https://marvex.app/press) — never the dev
  * preview origin, which would tell Google to index the wrong host.
+ *
+ * If `image` is not provided we fall through to DEFAULT_OG_IMAGE so
+ * social-share cards always render correctly. Pages that want a
+ * page-specific OG card can pass an absolute URL to override.
  */
 export default function usePageMeta({ title, description, image, url, type = "website" } = {}) {
   useEffect(() => {
@@ -45,11 +55,15 @@ export default function usePageMeta({ title, description, image, url, type = "we
     }
     if (type)  upsertMeta("og:type", type);
     if (pageUrl) upsertMeta("og:url", pageUrl);
-    if (image) {
-      upsertMeta("og:image", image);
-      upsertMeta("twitter:image", image, false);
-      upsertMeta("twitter:card", "summary_large_image", false);
-    }
+
+    // Always set OG image — falls through to brand default if page
+    // didn't pass one. Prevents "stale image from previously-visited
+    // route" bugs that previously polluted /pricing and /vs/* shares.
+    const ogImage = image || DEFAULT_OG_IMAGE;
+    upsertMeta("og:image", ogImage);
+    upsertMeta("twitter:image", ogImage, false);
+    upsertMeta("twitter:card", "summary_large_image", false);
+
     if (title) upsertMeta("twitter:title", title, false);
 
     // Canonical link — only set when an explicit `url` is provided, so we
