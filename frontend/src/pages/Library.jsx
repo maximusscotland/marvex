@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { Sparkles, Search, Trash2, ExternalLink, Calendar, Target, LayoutGrid, BookOpen, Lock, Unlock, Download, Upload, Home } from "lucide-react";
 import { toast } from "sonner";
@@ -17,6 +18,15 @@ import { listCategories, filterMapsByCategory, toggleMapCategory } from "@/lib/c
 import { isFlowchartMap } from "@/lib/flowchart";
 import { saveMap } from "@/lib/storage";
 import { Workflow } from "lucide-react";
+import { useAuth } from "@/lib/auth";
+import { getRef } from "@/lib/referral";
+
+const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
+
+// Whitelist of plans we'll auto-resume into Stripe Checkout. Keeps a
+// rogue sessionStorage value from causing a 400 on the backend or
+// (worse) being interpreted as a free-tier downgrade.
+const RESUMABLE_PLANS = new Set(["lite", "monthly", "annual", "lifetime"]);
 
 /**
  * /library — lists maps whose `source === "research"` plus any pre-seeded
@@ -105,16 +115,58 @@ export default function Library() {
   };
   const mmapInputRef = useRef(null);
 
-  // Seed example maps on first visit, AND self-heal an empty library
-  // (seedExamplesIfFirstRun re-seeds whenever listMaps() is empty,
-  // regardless of the version flag, so a wiped localStorage / new
-  // browser profile always lands on a populated bookshelf).
-  // Also runs the one-time "remove retired Attention demo" migration.
+  // Self-heal an empty library, plus run the one-time "remove retired Attention demo" migration.
   useEffect(() => {
     try { removeRetiredAttentionDemo(); } catch { /* ignore */ }
     const added = seedExamplesIfFirstRun();
     if (added > 0) setTick((t) => t + 1);
   }, []);
+
+  // ────────────────────────────────────────────────────────────
+  // Pricing → OAuth → Library checkout RESUME.
+  //
+  // When a logged-out visitor clicks a paid CTA on /pricing we stash
+  // the chosen plan in sessionStorage, sign them in via Google, and
+  // /auth/callback now lands them here on /library. This effect picks
+  // up the stashed plan and immediately POSTs to /api/billing/create-
+  // checkout so they hit Stripe Checkout without an extra click.
+  //
+  // Belt-and-braces: we whitelist the plan, clear the key BEFORE the
+  // network call (so a network failure doesn't loop on retry), and
+  // toast a friendly error if Stripe rejects the request. If the user
+  // is somehow not yet authenticated (e.g. cookies blocked) we silently
+  // bail — the rest of the Library still loads normally.
+  // ────────────────────────────────────────────────────────────
+  const { user } = useAuth();
+  const resumeFiredRef = useRef(false);
+  useEffect(() => {
+    if (!user || resumeFiredRef.current) return;
+    let pending;
+    try { pending = sessionStorage.getItem("marvex_pending_plan"); } catch { pending = null; }
+    if (!pending || !RESUMABLE_PLANS.has(pending)) return;
+    resumeFiredRef.current = true;
+    try { sessionStorage.removeItem("marvex_pending_plan"); } catch { /* ignore */ }
+    toast("Resuming your checkout…");
+    axios.post(
+      `${API}/billing/create-checkout`,
+      {
+        plan: pending,
+        origin_url: window.location.origin,
+        ref_code: getRef() || "",
+      },
+      { withCredentials: true },
+    ).then((r) => {
+      if (r.data?.url) {
+        window.location.href = r.data.url;
+      } else {
+        toast.error("We couldn't reopen Stripe — please try the upgrade button again.");
+      }
+    }).catch((err) => {
+      const detail = err?.response?.data?.detail;
+      toast.error(typeof detail === "string" ? detail : "Checkout failed — please try again from /pricing.");
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const items = useMemo(() => {
     void tick;
