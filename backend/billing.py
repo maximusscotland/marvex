@@ -57,31 +57,32 @@ PLANS = {
         "amount": 9.00,
         "interval_days": 30,
         "lifetime": False,
-        # Stripe Product + Price live as of Feb 2026 — receipts now read
-        # "Mind-Mapper Pro Lite" (will be renamed to "Marvex Pro Lite" in
-        # the Stripe Dashboard once the legal entity name flip is filed).
-        "stripe_price_id": "price_1TU4aFFMFVPFiUPV1DaOKldX",
+        # Resolved at runtime from env (`STRIPE_PRICE_LITE`) so live vs
+        # test Stripe accounts don't need code changes. The hardcoded
+        # value below is a historical fallback for legacy deploys —
+        # production should set the env var explicitly.
+        "stripe_price_id": (os.environ.get("STRIPE_PRICE_LITE") or "price_1TU4aFFMFVPFiUPV1DaOKldX").strip(),
     },
     "monthly": {
         "label": "Pro Monthly",
         "amount": 15.00,
         "interval_days": 30,
         "lifetime": False,
-        "stripe_price_id": "price_1TPKM2FMFVPFiUPVmPktXtLS",
+        "stripe_price_id": (os.environ.get("STRIPE_PRICE_MONTHLY") or "price_1TPKM2FMFVPFiUPVmPktXtLS").strip(),
     },
     "annual": {
         "label": "Pro Annual",
         "amount": 150.00,
         "interval_days": 365,
         "lifetime": False,
-        "stripe_price_id": "price_1TQ7XDFMFVPFiUPVs3gc0sHA",
+        "stripe_price_id": (os.environ.get("STRIPE_PRICE_ANNUAL") or "price_1TQ7XDFMFVPFiUPVs3gc0sHA").strip(),
     },
     "lifetime": {
         "label": "Pro Lifetime",
         "amount": 200.00,
         "interval_days": 0,
         "lifetime": True,
-        "stripe_price_id": "price_1TQ7XDFMFVPFiUPVG8YEHLF2",
+        "stripe_price_id": (os.environ.get("STRIPE_PRICE_LIFETIME") or "price_1TQ7XDFMFVPFiUPVG8YEHLF2").strip(),
     },
 }
 
@@ -104,7 +105,7 @@ ADDONS = {
     "premium_uk_law": {
         "label": "Law Pack Add-on",
         "amount": 10.00,
-        "stripe_price_id": "price_1TSZlfFMFVPFiUPVoFZQbWMS",
+        "stripe_price_id": (os.environ.get("STRIPE_PRICE_LAW_PACK") or "price_1TSZlfFMFVPFiUPVoFZQbWMS").strip(),
         "description": "Full BAILII case-law search, statute cross-references, and LexisNexis BYOK proxy",
     },
 }
