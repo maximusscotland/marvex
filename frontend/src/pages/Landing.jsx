@@ -128,8 +128,18 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* TINY UTILITY BAR — language switcher centred under the header. */}
-      <div className="relative z-30 px-6 lg:px-12 pt-3 pb-1 flex justify-center" data-testid="lang-bar">
+      {/* TINY UTILITY BAR — language switcher centred under the header,
+          plus a discreet "Have a code?" text link for VIPs / press / family
+          who got an access code by email. Anyone without a code never
+          notices it; anyone with one knows exactly where to click. */}
+      <div className="relative z-30 px-6 lg:px-12 pt-3 pb-1 flex items-center justify-center gap-4" data-testid="lang-bar">
+        <Link
+          to="/redeem"
+          data-testid="nav-have-code-link"
+          className="mono text-[10px] uppercase tracking-[0.22em] text-[#6c7aa3] hover:text-cyan-300 transition"
+        >
+          Have a code? →
+        </Link>
         <LanguageSwitcher compact />
       </div>
 
@@ -158,14 +168,10 @@ export default function Landing() {
             </div>
           </ScrollReveal>
 
-          {/* Discreet access-code affordance — sits between the hero badge
-              and the H1 at the user's request. Collapsed to a tiny
-              "Have an access code?" button by default so the hero layout
-              stays clean; expands inline on click. Full version is still
-              rendered further down for anyone who scrolls past the hero. */}
-          <ScrollReveal delay={60} className="mb-6">
-            <AccessCodeBox variant="inline" />
-          </ScrollReveal>
+          {/* Access-code affordance moved to the top utility bar (next to
+              the language switcher) — keeps the hero focused on the H1 and
+              the primary CTA. VIPs / friends-of-founder / press recipients
+              click "Have a code?" up there and route to /redeem. */}
 
           <ScrollReveal as="h2" delay={120} className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold leading-[0.95] tracking-tight">
             {t("landing.heroTitleA")}
@@ -505,12 +511,11 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ACCESS CODE — sits between How-It-Works and the Desktop CTA so it
-          surfaces right where a VIP / friend-of-the-founder is most likely
-          to be looking for "how do I claim my code?". The component itself
-          handles validate → unlock-gate → store-pending-code; the actual
-          tier grant happens after they sign up (see AccessGate). */}
-      <AccessCodeBox className="relative z-20 px-4 lg:px-8 border-t border-white/5" />
+      {/* ACCESS CODE — removed at user's request. The discreet "Have a code? →"
+          link in the top utility bar is sufficient — VIPs / friends-of-founder
+          /press recipients can click through to /redeem from there. Removing
+          the big mid-page banner keeps the landing focused on conversion
+          (Try Free → Stripe) for the 99% of visitors who don't have a code. */}
 
       {/* DESKTOP CTA */}
       <section className="relative z-20 px-6 lg:px-12 py-28 border-t border-white/5">
