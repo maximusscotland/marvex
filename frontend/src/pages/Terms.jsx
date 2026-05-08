@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
+import { ENTITY, ICO, ICO_REGISTERED } from "@/lib/legal";
 
 const SECTIONS = [
   {
@@ -123,9 +124,59 @@ const SECTIONS = [
     body: (
       <p>
         We may update these terms; material changes get an email if you&apos;re registered.
-        Questions? <a href="mailto:press@marvex.app" className="text-cyan-300 hover:underline">press@marvex.app</a>.
-        Governing law: England &amp; Wales (subject to your local consumer rights).
+        Questions? <a href={`mailto:${ENTITY.contactEmail}`} className="text-cyan-300 hover:underline">{ENTITY.contactEmail}</a>.
+        Governing law: {ENTITY.jurisdiction} (subject to your local consumer rights).
       </p>
+    ),
+  },
+  {
+    h: "13. Who you're contracting with",
+    body: (
+      <>
+        <p>
+          The Service ({ENTITY.brandName}, accessible at {ENTITY.domain}) is{" "}
+          {ENTITY.legalEntity}. We are{" "}
+          {ICO_REGISTERED ? (
+            <>registered with the UK Information Commissioner&apos;s Office under
+            registration number <code>{ICO.registrationNumber}</code></>
+          ) : (
+            <>currently completing UK Information Commissioner&apos;s Office (ICO)
+            registration (application reference <code>{ICO.applicationReference}</code>)</>
+          )}.
+        </p>
+        <ul>
+          <li>
+            <strong>Brand / trading name:</strong> {ENTITY.brandName}
+          </li>
+          <li>
+            <strong>Operating model:</strong> sole trader (no Companies House
+            registration; this disclosure will be updated automatically if the
+            business is later incorporated as a limited company).
+          </li>
+          <li>
+            <strong>Contact:</strong>{" "}
+            <a
+              href={`mailto:${ENTITY.contactEmail}`}
+              className="text-cyan-300 hover:underline"
+              data-testid="terms-entity-contact"
+            >
+              {ENTITY.contactEmail}
+            </a>{" "}
+            — please use this address for any formal notice (refunds, data
+            requests, legal correspondence).
+          </li>
+          <li>
+            <strong>Jurisdiction:</strong> {ENTITY.jurisdiction}.
+          </li>
+        </ul>
+        <p className="text-[#9aa7c7] text-[13px]">
+          Per the EU Consumer Rights Directive (Directive 2011/83/EU as
+          implemented in the UK by the Consumer Contracts Regulations 2013) and
+          the GDPR Article 13(1)(a) identity-of-the-controller requirement, this
+          section identifies the legal entity responsible for the Service and how
+          to reach us.
+        </p>
+      </>
     ),
   },
 ];

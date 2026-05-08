@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
-import { ICO, icoLabel, ICO_REGISTERED } from "@/lib/legal";
+import { ICO, icoLabel, ICO_REGISTERED, ENTITY, SUBPROCESSORS } from "@/lib/legal";
 
 const SECTIONS = [
   {
@@ -157,7 +157,67 @@ const SECTIONS = [
     ),
   },
   {
-    h: "9. Changes",
+    h: "9. Subprocessors",
+    body: (
+      <>
+        <p>
+          To run the Service we share specific, minimal data with the third parties
+          listed below. Each one is contractually bound to GDPR-equivalent terms
+          (under the EU SCCs / UK IDTA where data crosses borders) and we only ever
+          send them the data they need to do their job.
+        </p>
+        <div className="overflow-x-auto -mx-2 my-3">
+          <table className="w-full min-w-[640px] text-[13px] border border-white/10 rounded-lg overflow-hidden">
+            <thead className="bg-white/[0.04] text-[#9aa7c7] mono text-[10px] uppercase tracking-[0.18em]">
+              <tr>
+                <th className="text-left p-2.5 font-normal">Subprocessor</th>
+                <th className="text-left p-2.5 font-normal">What they do</th>
+                <th className="text-left p-2.5 font-normal">Data</th>
+                <th className="text-left p-2.5 font-normal">Hosted in</th>
+              </tr>
+            </thead>
+            <tbody>
+              {SUBPROCESSORS.map((s) => (
+                <tr
+                  key={s.name}
+                  data-testid={`subprocessor-row-${s.name.toLowerCase().replace(/\s+/g, "-")}`}
+                  className="border-t border-white/5 align-top"
+                >
+                  <td className="p-2.5 font-medium text-white">
+                    <a
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cyan-300 hover:underline"
+                    >
+                      {s.name}
+                    </a>
+                  </td>
+                  <td className="p-2.5 text-[#cfdaf3]">{s.purpose}</td>
+                  <td className="p-2.5 text-[#9aa7c7] text-[12px]">{s.data}</td>
+                  <td className="p-2.5 text-[#9aa7c7] text-[12px] whitespace-nowrap">{s.region}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <strong>BYOK AI providers (OpenAI / Anthropic / Google AI)</strong> are
+          deliberately not in this list because Marvex is not the processor when
+          you use AI features. Your browser sends the request directly to the
+          provider using your own API key — our servers never see the request,
+          the response, or your key. You have a direct contractual relationship
+          with the AI provider, not via us.
+        </p>
+        <p className="text-[#9aa7c7] text-[13px]">
+          We&apos;ll update this list and email subscribed users at least 30 days
+          before adding any new subprocessor that handles personal data.
+        </p>
+      </>
+    ),
+  },
+  {
+    h: "10. Changes",
     body: (
       <p>
         We&apos;ll update this page with a new effective date if anything material changes,
