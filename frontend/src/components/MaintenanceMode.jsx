@@ -84,12 +84,20 @@ export default function MaintenanceMode({ children }) {
     try {
       const params = new URLSearchParams(window.location.search);
       const k = params.get("unlock");
+      // Auto-unlock paying customers returning from Stripe Checkout —
+      // see AccessGate for the rationale. Mirrors the same unguessable
+      // cs_live_/cs_test_ session_id check.
+      const sid = params.get("session_id") || "";
+      const upgraded = params.get("upgraded");
       if (k && EXPECTED && k === EXPECTED) {
         localStorage.setItem(STORAGE_KEY, "1");
         setUnlocked(true);
         params.delete("unlock");
         const next = window.location.pathname + (params.toString() ? `?${params}` : "") + window.location.hash;
         window.history.replaceState({}, "", next);
+      } else if (upgraded === "true" && /^cs_(live|test)_[A-Za-z0-9]+/.test(sid)) {
+        try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
+        setUnlocked(true);
       }
     } catch { /* ignore */ }
   }, [unlocked]);

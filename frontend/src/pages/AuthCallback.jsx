@@ -35,9 +35,19 @@ export default function AuthCallback() {
           { session_id: sessionId },
           { withCredentials: true }
         );
-        // strip fragment + go to app
-        window.history.replaceState({}, "", "/library");
-        navigate("/library", { replace: true });
+
+        // Pending-checkout continuity: if the user came here via a paid
+        // CTA on /pricing (where we stash the plan in sessionStorage
+        // before triggering OAuth), send them back to /pricing so the
+        // resume effect there can immediately POST /billing/create-
+        // checkout and redirect to Stripe. Sending them to /library
+        // would hit the maintenance splash for non-paid users and they'd
+        // never reach checkout.
+        let pending = "";
+        try { pending = sessionStorage.getItem("marvex_pending_plan") || ""; } catch { /* ignore */ }
+        const dest = pending ? "/pricing" : "/library";
+        window.history.replaceState({}, "", dest);
+        navigate(dest, { replace: true });
       } catch (e) {
         setError(e?.response?.data?.detail || "Sign-in failed");
       }

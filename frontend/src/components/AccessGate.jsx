@@ -35,12 +35,22 @@ export default function AccessGate({ children }) {
     try {
       const params = new URLSearchParams(window.location.search);
       const k = params.get("unlock");
+      // Auto-unlock for users returning from a successful Stripe Checkout.
+      // Stripe replaces {CHECKOUT_SESSION_ID} with a real cs_live_/cs_test_
+      // ID — those are unguessable and only set by Stripe itself, so
+      // treating them as a valid bypass token is safe and means a paying
+      // customer never sees the maintenance/access splash after paying.
+      const sid = params.get("session_id") || "";
+      const upgraded = params.get("upgraded");
       if (k && EXPECTED && k === EXPECTED) {
         localStorage.setItem(STORAGE_KEY, "1");
         setUnlocked(true);
         params.delete("unlock");
         const next = window.location.pathname + (params.toString() ? `?${params}` : "") + window.location.hash;
         window.history.replaceState({}, "", next);
+      } else if (upgraded === "true" && /^cs_(live|test)_[A-Za-z0-9]+/.test(sid)) {
+        try { localStorage.setItem(STORAGE_KEY, "1"); } catch { /* ignore */ }
+        setUnlocked(true);
       }
     } catch { /* ignore */ }
   }, []);
