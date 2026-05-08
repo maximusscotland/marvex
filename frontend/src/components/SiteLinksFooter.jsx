@@ -59,6 +59,7 @@ const COLUMNS = [
       { to: "/press",     label: "Press & reviewers" },
       { to: "/affiliate", label: "Affiliate programme" },
       { to: "/redeem",    label: "Redeem an access code" },
+      { to: "/report-bug",label: "Report a bug" },
       { to: "/privacy",   label: "Privacy policy" },
       { to: "/terms",     label: "Terms of service" },
     ],

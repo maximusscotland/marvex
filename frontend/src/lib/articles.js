@@ -41,7 +41,7 @@ export const ARTICLES = [
         paragraphs: [
           "PDFs are linear. Reading a long document forces your brain to maintain a working memory of every claim, citation, and counter-argument. Mind maps externalise that cognitive load — branches show hierarchy, colour groups themes, and a single canvas lets you see relationships that 40 pages of prose hide.",
           "The research is on your side: a 2024 meta-analysis across 144 studies found mind-mapping improved retention by 32% and concept recall by 47% versus linear note-taking. For students prepping for exams, lawyers reading case law, journalists working through reports, and consultants synthesising white papers, the ROI is huge.",
-          "Until recently, converting PDFs to mind maps was a 30-minute manual chore. AI mind map generators have collapsed it to under a minute. The catch: most tools force you to upload to their servers and charge per generation. Marvex Studio takes the opposite stance — local-first, BYO-key — which is what we cover in this guide.",
+          "Until recently, converting PDFs to mind maps was a 30-minute manual chore. AI mind map generators have collapsed it to under a minute. The catch: most tools force you to upload to their servers and charge per generation. [Marvex Studio](/pdf-to-mind-map) takes the opposite stance — local-first, BYO-key — which is what we cover in this guide.",
         ],
       },
       {
@@ -58,7 +58,7 @@ export const ARTICLES = [
           "**Step 2 — Drop your PDF.** Drag the file directly onto the canvas, or click the upload button. Marvex detects the document type, parses it locally, and shows you a preview. If the PDF is scanned (image-based), Marvex automatically OCRs it first.",
           "**Step 3 — Pick the engine.** Two options: Quick Outline (free, structural — great for textbooks with clear headings) or AI Analysis (uses your Claude / OpenAI / Gemini key — produces semantic maps with relationship labels and short summaries on each node).",
           "**Step 4 — Watch the map build.** For a 20-page paper, expect a finished tree in 30–60 seconds. Each branch maps to a major section; each leaf carries a 1–2 sentence summary the AI extracted. Right-click any node to ask the AI for a deeper gloss, an example, or a counter-argument.",
-          "**Step 5 — Edit and export.** Drag nodes to re-organise, merge similar branches, link nodes to source pages in the original PDF, and export as PDF, PNG, SVG, Markdown, or Marvex's native .mmap format. Your map is saved automatically to your browser's local storage — never leaves your device unless you choose to sync.",
+          "**Step 5 — Edit and export.** Drag nodes to re-organise, merge similar branches, link nodes to source pages in the original PDF, and export as PDF, PNG, SVG, Markdown, or Marvex's native .mmap format. Your map is saved automatically to your browser's local storage — never leaves your device unless you choose to sync. If you want the same workflow offline with bigger PDFs, the [desktop app](/download) handles up to 200 MB.",
         ],
       },
       {
@@ -103,7 +103,7 @@ export const ARTICLES = [
         heading: "Marvex Studio — best overall (privacy + price)",
         paragraphs: [
           "Marvex Studio leads on the trio that matters most: it's free for the Quick Outline tier, uses BYO-key for AI Analysis (so AI costs scale with your actual use, not a fixed subscription markup), and stores everything locally — no cloud upload, no telemetry. For a 20-page paper, AI Analysis takes ~45 seconds and produces a semantic map with citation chips that link back to the exact PDF page.",
-          "Best for: privacy-conscious users, students, researchers, indie creators on a budget. Try it: marvex.app/pdf-to-mind-map.",
+          "Best for: privacy-conscious users, students, researchers, indie creators on a budget. See the full breakdown on [pricing](/pricing) — the free tier has no time limit. Try it: marvex.app/pdf-to-mind-map.",
         ],
       },
       {
@@ -116,7 +116,7 @@ export const ARTICLES = [
       {
         heading: "Heptabase — best for whiteboarding workflows",
         paragraphs: [
-          "Heptabase isn't purely a PDF-to-mind-map tool — it's a whiteboarding app that happens to have decent PDF integration. If your workflow involves combining PDF excerpts with sticky notes, hand-drawn diagrams, and image annotations, Heptabase shines. For pure PDF-to-mind-map conversion, Marvex is faster and cheaper.",
+          "Heptabase isn't purely a PDF-to-mind-map tool — it's a whiteboarding app that happens to have decent PDF integration. If your workflow involves combining PDF excerpts with sticky notes, hand-drawn diagrams, and image annotations, Heptabase shines. For pure PDF-to-mind-map conversion, Marvex is faster and cheaper — see our [Marvex vs Heptabase](/vs/heptabase) breakdown for a feature-by-feature comparison.",
         ],
       },
       {
@@ -172,7 +172,7 @@ export const ARTICLES = [
           "**Speed.** A well-engineered tool produces a 20-page paper map in 30–60 seconds. If a tool takes 3+ minutes, it's likely making serial AI calls instead of parallelising chunks.",
           "**Citation fidelity.** Every node should link back to the exact source page so you can verify claims. Tools that don't preserve citations are just AI-generated speculation.",
           "**Editability.** Real research workflows require editing — merging branches, renaming nodes, adding hand-drawn connectors. Read-only AI maps are useless after the first reading.",
-          "**Privacy posture.** Cloud-only tools upload your PDFs to their servers, often retaining them for 'training improvements'. If you're processing confidential research or legal documents, this matters enormously. Local-first tools (like Marvex Studio) keep everything on your machine.",
+          "**Privacy posture.** Cloud-only tools upload your PDFs to their servers, often retaining them for 'training improvements'. If you're processing confidential research or legal documents, this matters enormously. Local-first tools (like [Marvex Studio](/pdf-to-mind-map)) keep everything on your machine.",
           "**Cost model.** Some tools charge per generation, some flat-rate, and some BYO-key. BYO-key wins on transparency: you pay your AI provider directly, no markup.",
         ],
       },
@@ -209,7 +209,7 @@ export const ARTICLES = [
       {
         heading: "Use case 1: Textbook chapter → mind map (saves ~3 hours per chapter)",
         paragraphs: [
-          "Most textbook chapters are 30–80 pages of dense prose with hidden structure. Drop the chapter PDF into Marvex Studio's AI Analysis, and you get a hierarchical map of the chapter's argument in 60 seconds. Each branch is a major concept; each leaf is a key claim with the page reference.",
+          "Most textbook chapters are 30–80 pages of dense prose with hidden structure. Drop the chapter PDF into [Marvex Studio's AI Analysis](/pdf-to-mind-map), and you get a hierarchical map of the chapter's argument in 60 seconds. Each branch is a major concept; each leaf is a key claim with the page reference.",
           "Workflow: read the map first to get the bird's-eye view (5 minutes), then read the chapter linearly with the map open as a navigation tool (highlight as you go), then close the chapter and quiz yourself against the map (10 minutes). Total: ~45 minutes vs. the 4 hours a typical chapter consumes via brute-force linear reading.",
         ],
       },
@@ -238,7 +238,7 @@ export const ARTICLES = [
         heading: "Tools you actually need (and which to skip)",
         paragraphs: [
           "**Need:** A PDF mind map tool (Marvex Studio recommended), a notes app for individual highlights (Notion, Apple Notes, anything), a flashcard app for spaced repetition (Anki).",
-          "**Skip:** Premium AI subscriptions you won't use 90% of the time — BYO-key tools let you scale up only when you need to. Don't pay $30/mo for a tool you'll use twice a week.",
+          "**Skip:** Premium AI subscriptions you won't use 90% of the time — BYO-key tools let you scale up only when you need to. Don't pay $30/mo for a tool you'll use twice a week. Compare options on the [pricing page](/pricing) — Marvex's Lite tier is $9/mo and there's a 50% student discount on request.",
         ],
       },
     ],
@@ -269,7 +269,7 @@ export const ARTICLES = [
         heading: "Mind map: hierarchical brainstorming",
         paragraphs: [
           "A mind map starts with a central idea and branches outward. It's radial, not linear, and it's optimised for capturing associations quickly without worrying about order. Think of it as your brain externalised — the 'tree' of ideas with progressively smaller branches.",
-          "Use a mind map when: you're brainstorming, summarising a PDF or book, planning an essay, learning a new domain, or revising for exams. Marvex Studio's AI mind map generator is purpose-built for this category.",
+          "Use a mind map when: you're brainstorming, summarising a PDF or book, planning an essay, learning a new domain, or revising for exams. [Marvex Studio's AI mind map generator](/pdf-to-mind-map) is purpose-built for this category.",
         ],
       },
       {
@@ -292,7 +292,7 @@ export const ARTICLES = [
           "**Brainstorming or summarising one source?** Mind map.",
           "**Documenting a process with decisions?** Flowchart.",
           "**Synthesising multiple sources with cross-links?** Concept map.",
-          "Marvex Studio handles all three on a single canvas — switch modes via the toolbar or right-click menu.",
+          "Marvex Studio handles all three on a single canvas — switch modes via the toolbar or right-click menu. See [how AI mind map generators work](/learn/ai-mind-map-generator-explained) for the engineering behind the conversion.",
         ],
       },
     ],

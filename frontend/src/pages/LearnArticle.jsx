@@ -17,18 +17,34 @@ const SITE = "https://marvex.app";
  * contained SERP unit.
  *
  * Render strategy: dense, keyword-targeted prose grouped by section
- * with markdown-style **bold** support inline (we use a simple
- * regex-driven splitter — no markdown parser dependency).
+ * with markdown-style **bold** + [label](url) link support inline
+ * (we use a simple regex-driven splitter — no markdown parser
+ * dependency). Internal links (starting with "/") render as
+ * <Link> for SPA navigation; external links open in a new tab.
  */
 
+// Single tokenizer that splits on **bold** AND [label](url) so the
+// renderer can interleave text, bold, and links without nesting.
+const TOKEN_RE = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g;
+const LINK_RE = /^\[([^\]]+)\]\(([^)]+)\)$/;
+
 const renderInline = (text) => {
-  // Split on **bold** segments, preserve everything else as plain text.
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
-  return parts.map((p, i) =>
-    p.startsWith("**") && p.endsWith("**")
-      ? <strong key={i} className="text-white">{p.slice(2, -2)}</strong>
-      : <React.Fragment key={i}>{p}</React.Fragment>
-  );
+  const parts = text.split(TOKEN_RE).filter(Boolean);
+  return parts.map((p, i) => {
+    if (p.startsWith("**") && p.endsWith("**")) {
+      return <strong key={i} className="text-white">{p.slice(2, -2)}</strong>;
+    }
+    const m = p.match(LINK_RE);
+    if (m) {
+      const [, label, href] = m;
+      const isInternal = href.startsWith("/");
+      const cls = "text-cyan-300 hover:text-cyan-200 underline decoration-cyan-400/40 hover:decoration-cyan-300 underline-offset-4";
+      return isInternal
+        ? <Link key={i} to={href} className={cls} data-testid={`article-inline-link-${href.replace(/[^a-z0-9]+/gi, "-")}`}>{label}</Link>
+        : <a key={i} href={href} target="_blank" rel="noopener noreferrer" className={cls} data-testid="article-inline-link-ext">{label}</a>;
+    }
+    return <React.Fragment key={i}>{p}</React.Fragment>;
+  });
 };
 
 export default function LearnArticle() {

@@ -356,6 +356,16 @@ function buildMenu() {
     label: "Set Marvex as default for .mmap\u2026",
     click: () => showDefaultAppPrompt({ force: true }).catch(() => {}),
   };
+  const reportBugItem = {
+    label: "Report a bug\u2026",
+    click: () => {
+      // External browser so the form is rendered by the live web build —
+      // no need to ship a duplicate UI inside the desktop bundle. We pass
+      // ?source=desktop&v=<version> so the backend tags the report.
+      const url = `https://marvex.app/report-bug?source=desktop&v=${encodeURIComponent(app.getVersion())}`;
+      shell.openExternal(url);
+    },
+  };
 
   const template = [
     ...(isMac
@@ -390,6 +400,8 @@ function buildMenu() {
       submenu: [
         ...(isMac ? [] : [updateItem, { type: "separator" }]),
         setDefaultItem,
+        { type: "separator" },
+        reportBugItem,
         { type: "separator" },
         {
           label: "Open marvex.app",

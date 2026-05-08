@@ -44,6 +44,12 @@ from premium import make_router as make_premium_router
 from access_codes import make_router as make_access_router
 from admin_ops import make_router as make_admin_ops_router
 from press import make_router as make_press_router
+from bugreport import make_router as make_bugreport_router
+from sentry_init import init_sentry
+
+# Initialise Sentry as early as possible so the FastAPI integration can
+# wrap the routers we mount below. No-op if SENTRY_DSN isn't configured.
+init_sentry()
 
 auth_router = make_auth_router(db)
 billing_router = make_billing_router(db, auth_router.current_user)  # type: ignore[attr-defined]
@@ -59,6 +65,7 @@ premium_router = make_premium_router(db, auth_router.current_user)  # type: igno
 access_router = make_access_router(db, auth_router.current_user)  # type: ignore[attr-defined]
 admin_ops_router = make_admin_ops_router(db, auth_router.current_user)  # type: ignore[attr-defined]
 press_router = make_press_router(db, auth_router.current_user)  # type: ignore[attr-defined]
+bugreport_router = make_bugreport_router(db)
 current_user_dep = auth_router.current_user  # type: ignore[attr-defined]
 
 # A tiny "taste test" — how many free AI runs a brand-new user gets on our
@@ -1788,6 +1795,7 @@ app.include_router(premium_router)
 app.include_router(access_router)
 app.include_router(admin_ops_router)
 app.include_router(press_router)
+app.include_router(bugreport_router)
 
 app.add_middleware(
     CORSMiddleware,

@@ -55,6 +55,7 @@ const MAINTENANCE_ALLOWLIST = [
   "/learn",
   "/privacy",
   "/terms",
+  "/report-bug",
 ];
 
 const isAllowlistedPath = (pathname) =>

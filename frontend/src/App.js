@@ -43,6 +43,7 @@ const FeedbackForm        = lazy(() => import("@/pages/FeedbackForm"));
 const Affiliate           = lazy(() => import("@/pages/Affiliate"));
 const AffiliateResources  = lazy(() => import("@/pages/AffiliateResources"));
 const Galaxy              = lazy(() => import("@/pages/Galaxy"));
+const ReportBug           = lazy(() => import("@/pages/ReportBug"));
 
 /**
  * /learn/:slug router — try tutorial first, fall back to long-form
@@ -131,6 +132,7 @@ export default function App() {
           <Route path="/redeem" element={<Redeem />} />
           <Route path="/press" element={<Press />} />
           <Route path="/pdf-to-mind-map" element={<PdfToMindMap />} />
+          <Route path="/report-bug" element={<ReportBug />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* GATED app surface — Studio, Library, Reader, etc. require either
