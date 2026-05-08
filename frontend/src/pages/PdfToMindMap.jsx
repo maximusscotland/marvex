@@ -5,6 +5,7 @@ import {
   Lock, Globe, Check, Star, ExternalLink,
 } from "lucide-react";
 import Logo from "@/components/Logo";
+import SiteLinksFooter from "@/components/SiteLinksFooter";
 import usePageMeta from "@/lib/usePageMeta";
 
 const SITE = "https://marvex.app";
@@ -276,6 +277,8 @@ export default function PdfToMindMap() {
           <Link to="/download" className="hover:text-cyan-300 transition">Download</Link>
         </div>
       </section>
+
+      <SiteLinksFooter />
     </div>
   );
 }

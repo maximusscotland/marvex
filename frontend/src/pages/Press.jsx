@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Sparkles, CheckCircle2, AlertCircle, Loader2, Mic, Newspaper, Video, Rss, BookOpen } from "lucide-react";
 import usePageMeta from "@/lib/usePageMeta";
+import SiteLinksFooter from "@/components/SiteLinksFooter";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -234,6 +235,7 @@ export default function Press() {
           <Link to="/redeem" className="text-[12px] text-cyan-300 hover:underline">Redeem it →</Link>
         </div>
       </main>
+      <SiteLinksFooter />
     </div>
   );
 }

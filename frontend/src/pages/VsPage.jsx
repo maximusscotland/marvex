@@ -31,7 +31,9 @@ import {
   Zap, Shield, FileText, ExternalLink,
 } from "lucide-react";
 import Logo from "@/components/Logo";
+import SiteLinksFooter from "@/components/SiteLinksFooter";
 import { getCompetitor, COMPETITOR_SLUGS } from "@/lib/competitors";
+import usePageMeta from "@/lib/usePageMeta";
 
 const SITE = "https://marvex.app";
 
@@ -157,10 +159,11 @@ export default function VsPage() {
   // Hooks must be called unconditionally — call them with safe defaults
   // when the slug is unknown, then redirect below.  React's rules of
   // hooks forbid calling them inside the early-return branch.
-  useDocumentMeta({
+  usePageMeta({
     title: competitor?.metaTitle || "Marvex alternatives — comparison",
     description: competitor?.metaDescription || "Comparing Marvex Studio with the field.",
-    canonical: competitor ? `${SITE}/vs/${competitor.slug}` : `${SITE}/pricing`,
+    type: "website",
+    url: competitor ? `${SITE}/vs/${competitor.slug}` : `${SITE}/pricing`,
   });
   useSoftwareJsonLd(competitor?.name || "competitor");
 
@@ -372,6 +375,7 @@ export default function VsPage() {
           ))}
         </div>
       </footer>
+      <SiteLinksFooter />
     </div>
   );
 }

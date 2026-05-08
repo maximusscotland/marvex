@@ -18,6 +18,7 @@ import Logo from "@/components/Logo";
 import CinematicTeaser from "@/components/CinematicTeaser";
 import LandingMindMap from "@/components/LandingMindMap";
 import PressTestimonials from "@/components/PressTestimonials";
+import SiteLinksFooter from "@/components/SiteLinksFooter";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import LinksMenu from "@/components/LinksMenu";
 import SocialProofStrip from "@/components/SocialProofStrip";
@@ -558,6 +559,14 @@ export default function Landing() {
           via objection-handling get a final social-proof nudge before the
           footer + bottom CTAs land. */}
       <PressTestimonials limit={6} />
+
+      {/* SITE-LINKS FOOTER — discreet 4-column text-link sitemap. Provides
+          internal links from Landing to every important deep page (Learn
+          articles, /vs comparisons, Press, Affiliate). Critical for SEO:
+          every internal link spreads link-equity from the home page (which
+          earns the most external backlinks) outward to the rest of the
+          site. */}
+      <SiteLinksFooter />
 
       {/* FOOTER */}
       <footer className="relative z-20 px-6 lg:px-12 py-10 border-t border-white/5">

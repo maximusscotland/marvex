@@ -7,6 +7,8 @@ import FaqJsonLd from "@/components/FaqJsonLd";
 import { FAQ_FLAT } from "@/lib/faqs";
 import { useExperiment } from "@/lib/featureFlags";
 import { track } from "@/lib/posthog";
+import usePageMeta from "@/lib/usePageMeta";
+import SiteLinksFooter from "@/components/SiteLinksFooter";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -61,6 +63,12 @@ const PLAN_CTA = {
 };
 
 export default function Pricing() {
+  usePageMeta({
+    title: "Pricing — Marvex Studio (Free · Lite $9 · Pro $15 · Lifetime $200)",
+    description: "Marvex Studio pricing: free tier, Lite at $9/mo, Pro at $15/mo (or $150/yr), Founder lifetime at $200. Bring your own AI key — no markup.",
+    type: "website",
+    url: "https://marvex.app/pricing",
+  });
   const [founders, setFounders] = useState({ limit: 50, taken: 0, remaining: 50 });
   // A/B experiment: should the Lite tier be visible? PostHog flag
   // `lite_tier_visible` controls bucketing; default TRUE so Lite ships
@@ -477,6 +485,7 @@ export default function Pricing() {
           <Link to="/download" className="hover:text-cyan-300">Download</Link>
         </div>
       </footer>
+      <SiteLinksFooter />
     </div>
   );
 }

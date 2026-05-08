@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Clock, Calendar, ExternalLink } from "lucide-react";
 import Logo from "@/components/Logo";
+import SiteLinksFooter from "@/components/SiteLinksFooter";
 import { getArticle, ARTICLES } from "@/lib/articles";
 import usePageMeta from "@/lib/usePageMeta";
 
@@ -231,6 +232,8 @@ export default function LearnArticle() {
           <ExternalLink size={0} aria-hidden className="hidden" />
         </div>
       </main>
+
+      <SiteLinksFooter />
     </div>
   );
 }
