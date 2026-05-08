@@ -36,8 +36,8 @@ export default function AuthCallback() {
           { withCredentials: true }
         );
         // strip fragment + go to app
-        window.history.replaceState({}, "", "/app");
-        navigate("/app", { replace: true });
+        window.history.replaceState({}, "", "/library");
+        navigate("/library", { replace: true });
       } catch (e) {
         setError(e?.response?.data?.detail || "Sign-in failed");
       }

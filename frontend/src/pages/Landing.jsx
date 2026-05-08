@@ -122,7 +122,7 @@ export default function Landing() {
           </div>
         </div>
         <div className="flex items-center justify-end gap-2">
-          <Link to="/app" data-testid="nav-launch-btn" className="cta-ghost text-sm">
+          <Link to="/library" data-testid="nav-launch-btn" className="cta-ghost text-sm">
             {t("common.tryFree")} <ArrowRight size={14} />
           </Link>
           <LinksMenu align="right" />

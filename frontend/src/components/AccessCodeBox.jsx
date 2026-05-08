@@ -236,7 +236,7 @@ export default function AccessCodeBox({ ctaHref = "/app", className = "", varian
             buy a plan from $15/mo
           </a>{" "}
           or{" "}
-          <a href="/app" className="text-cyan-300/90 hover:text-cyan-200 underline-offset-4 hover:underline">
+          <a href="/library" className="text-cyan-300/90 hover:text-cyan-200 underline-offset-4 hover:underline">
             try the free tier
           </a>.
         </div>

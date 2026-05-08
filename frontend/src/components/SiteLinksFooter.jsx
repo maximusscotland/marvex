@@ -28,7 +28,7 @@ const COLUMNS = [
     heading: "Product",
     links: [
       { to: "/pdf-to-mind-map", label: "PDF to mind map" },
-      { to: "/app",             label: "Open Studio (web)" },
+      { to: "/library",         label: "Open Studio (web)" },
       { to: "/download",        label: "Download desktop app" },
       { to: "/pricing",         label: "Pricing & plans" },
       { to: "/galaxy",          label: "Public maps gallery" },
@@ -56,6 +56,8 @@ const COLUMNS = [
   {
     heading: "Company",
     links: [
+      { to: "/faq",       label: "FAQ" },
+      { to: "/contact",   label: "Contact" },
       { to: "/press",     label: "Press & reviewers" },
       { to: "/affiliate", label: "Affiliate programme" },
       { to: "/redeem",    label: "Redeem an access code" },

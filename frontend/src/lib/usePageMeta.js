@@ -40,7 +40,7 @@ const DEFAULT_OG_IMAGE = "https://marvex.app/og/marvex-default.png";
  * social-share cards always render correctly. Pages that want a
  * page-specific OG card can pass an absolute URL to override.
  */
-export default function usePageMeta({ title, description, image, url, type = "website" } = {}) {
+export default function usePageMeta({ title, description, image, url, type = "website", jsonLd } = {}) {
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
     const prevTitle = document.title;
@@ -78,6 +78,29 @@ export default function usePageMeta({ title, description, image, url, type = "we
       link.setAttribute("href", url);
     }
 
-    return () => { document.title = prevTitle; };
-  }, [title, description, image, url, type]);
+    // JSON-LD structured data — accepts a single object or an array of
+    // schema objects. Each entry becomes its own <script> tag tagged
+    // with `data-managed-by="usePageMeta"` so we can clean them up on
+    // unmount/route change without nuking globally-injected schemas
+    // (Organization, WebSite, etc. live in /public/index.html and
+    // don't carry this attribute).
+    const ldScripts = [];
+    if (jsonLd) {
+      const items = Array.isArray(jsonLd) ? jsonLd : [jsonLd];
+      for (const obj of items) {
+        if (!obj) continue;
+        const el = document.createElement("script");
+        el.type = "application/ld+json";
+        el.setAttribute("data-managed-by", "usePageMeta");
+        el.textContent = JSON.stringify(obj);
+        document.head.appendChild(el);
+        ldScripts.push(el);
+      }
+    }
+
+    return () => {
+      document.title = prevTitle;
+      ldScripts.forEach((el) => el.remove());
+    };
+  }, [title, description, image, url, type, jsonLd]);
 }
