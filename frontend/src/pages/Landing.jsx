@@ -252,7 +252,7 @@ export default function Landing() {
               <span className="gradient-text">Non-Linear Thinkers.</span>
             </h2>
             <p className="text-[#9aa7c7] mt-5 max-w-2xl mx-auto text-[15px] leading-relaxed">
-              We&apos;re not chasing TikTok-brain. Marvex is for people who
+              We&apos;re not chasing byte-size brain. Marvex is for people who
               still finish books — and want a tool that respects that.
             </p>
           </div>
