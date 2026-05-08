@@ -135,15 +135,30 @@ export default function CinematicTeaser() {
               className="absolute inset-0 transition-opacity duration-1000 ease-out"
               style={{ opacity: i === idx ? 1 : 0, pointerEvents: i === idx ? "auto" : "none" }}
             >
-              <img
-                src={f.src}
-                alt={f.alt || f.eyebrow}
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{
-                  animation: i === idx ? "kenBurns 12s ease-out both" : "none",
-                }}
-                draggable={false}
-              />
+              {/* WebP source loaded by Chrome / Edge / Firefox / Safari 14+
+                  (≈98% of traffic in 2026). PNG fallback handled by <img>
+                  src for older browsers. WebP files are 85–95% smaller than
+                  the PNG masters — single biggest LCP win on the landing
+                  page. The <picture> tag picks the right format with zero
+                  client-side JS cost. */}
+              <picture>
+                <source srcSet={f.src.replace(/\.png$/, ".webp")} type="image/webp" />
+                <img
+                  src={f.src}
+                  alt={f.alt || f.eyebrow}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  // Eager-load only the first frame (above-the-fold LCP candidate).
+                  // Frames 2-7 lazy-load — they're only seen once the autoplay
+                  // ticker reaches them, by which time idle CPU has fetched them.
+                  loading={i === 0 ? "eager" : "lazy"}
+                  fetchpriority={i === 0 ? "high" : "auto"}
+                  decoding="async"
+                  style={{
+                    animation: i === idx ? "kenBurns 12s ease-out both" : "none",
+                  }}
+                  draggable={false}
+                />
+              </picture>
               {/* Vignette + gradient for legibility */}
               <div
                 className="absolute inset-0"

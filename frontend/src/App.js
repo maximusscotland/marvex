@@ -1,29 +1,48 @@
 import "@/App.css";
 import "@/i18n";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, HashRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { getTutorial } from "@/lib/tutorials";
 import Landing from "@/pages/Landing";
-import Studio from "@/pages/Studio";
-import FlowchartStudio from "@/pages/FlowchartStudio";
-import IntakeStudio from "@/pages/IntakeStudio";
-import Library from "@/pages/Library";
-import Output from "@/pages/Output";
-import Calendar from "@/pages/Calendar";
-import PdfReader from "@/pages/PdfReader";
-import Tools from "@/pages/Tools";
-import Highlights from "@/pages/Highlights";
-import Memory from "@/pages/Memory";
-import SharedMap from "@/pages/SharedMap";
-import AuthCallback from "@/pages/AuthCallback";
-import Download from "@/pages/Download";
 import Pricing from "@/pages/Pricing";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Learn from "@/pages/Learn";
-import LearnTutorial from "@/pages/LearnTutorial";
-import LearnArticle from "@/pages/LearnArticle";
-import { useParams } from "react-router-dom";
-import { getTutorial } from "@/lib/tutorials";
+import Press from "@/pages/Press";
+import Redeem from "@/pages/Redeem";
+import PdfToMindMap from "@/pages/PdfToMindMap";
+import VsPage from "@/pages/VsPage";
+import AuthCallback from "@/pages/AuthCallback";
+
+// Heavy / authenticated routes are code-split — the visitor only downloads
+// these chunks if they actually navigate there. Cuts the landing-page JS
+// bundle by ~60% (Studio + PdfReader + Highlights pull in the SVG canvas,
+// pdf.js, react-rnd, and several Radix widgets that nobody on /pdf-to-
+// mind-map ever needs).
+const Studio              = lazy(() => import("@/pages/Studio"));
+const FlowchartStudio     = lazy(() => import("@/pages/FlowchartStudio"));
+const IntakeStudio        = lazy(() => import("@/pages/IntakeStudio"));
+const Library             = lazy(() => import("@/pages/Library"));
+const Output              = lazy(() => import("@/pages/Output"));
+const Calendar            = lazy(() => import("@/pages/Calendar"));
+const PdfReader           = lazy(() => import("@/pages/PdfReader"));
+const Tools               = lazy(() => import("@/pages/Tools"));
+const Highlights          = lazy(() => import("@/pages/Highlights"));
+const Memory              = lazy(() => import("@/pages/Memory"));
+const SharedMap           = lazy(() => import("@/pages/SharedMap"));
+const Download            = lazy(() => import("@/pages/Download"));
+const LearnTutorial       = lazy(() => import("@/pages/LearnTutorial"));
+const LearnArticle        = lazy(() => import("@/pages/LearnArticle"));
+const AdminTestimonials   = lazy(() => import("@/pages/AdminTestimonials"));
+const AdminAffiliates     = lazy(() => import("@/pages/AdminAffiliates"));
+const AdminFamily         = lazy(() => import("@/pages/AdminFamily"));
+const AdminReviewers      = lazy(() => import("@/pages/AdminReviewers"));
+const AdminOps            = lazy(() => import("@/pages/AdminOps"));
+const FeedbackForm        = lazy(() => import("@/pages/FeedbackForm"));
+const Affiliate           = lazy(() => import("@/pages/Affiliate"));
+const AffiliateResources  = lazy(() => import("@/pages/AffiliateResources"));
+const Galaxy              = lazy(() => import("@/pages/Galaxy"));
 
 /**
  * /learn/:slug router — try tutorial first, fall back to long-form
@@ -35,19 +54,7 @@ function LearnSlugRouter() {
   const { slug } = useParams();
   return getTutorial(slug) ? <LearnTutorial /> : <LearnArticle />;
 }
-import AdminTestimonials from "@/pages/AdminTestimonials";
-import AdminAffiliates from "@/pages/AdminAffiliates";
-import AdminFamily from "@/pages/AdminFamily";
-import AdminReviewers from "@/pages/AdminReviewers";
-import Redeem from "@/pages/Redeem";
-import Press from "@/pages/Press";
-import PdfToMindMap from "@/pages/PdfToMindMap";
-import FeedbackForm from "@/pages/FeedbackForm";
-import Affiliate from "@/pages/Affiliate";
-import AffiliateResources from "@/pages/AffiliateResources";
-import VsPage from "@/pages/VsPage";
-import AdminOps from "@/pages/AdminOps";
-import Galaxy from "@/pages/Galaxy";
+
 import AccessGate from "@/components/AccessGate";
 import MaintenanceMode from "@/components/MaintenanceMode";
 import OfflineBanner from "@/components/OfflineBanner";
@@ -58,6 +65,12 @@ import CookieConsent from "@/components/CookieConsent";
 import ScrollToTop from "@/components/ScrollToTop";
 import { AuthProvider } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
+
+// Lightweight loading shell shown for ~50-200ms while a code-split
+// chunk loads. Matches the cosmic background so the swap is invisible.
+const RouteFallback = () => (
+  <div className="min-h-screen cosmic-bg" data-testid="route-loading" />
+);
 
 // BrowserRouter relies on the HTML5 history API, which is broken when the
 // Electron wrapper loads this bundle from file:// (the offline fallback).
@@ -90,8 +103,10 @@ export default function App() {
           <AnalyticsRouterListener />
           <ReferralCapture />
           <NavShortcuts />
+          <ScrollToTop />
           <CookieConsent />
           <OfflineBanner />
+        <Suspense fallback={<RouteFallback />}>
         <Routes>
           {/* PUBLIC marketing & legal — fully open so the URL is shareable */}
           <Route path="/" element={<Landing />} />
@@ -139,6 +154,7 @@ export default function App() {
           <Route path="/admin/family" element={<AccessGate><AdminFamily /></AccessGate>} />
           <Route path="/admin/reviewers" element={<AccessGate><AdminReviewers /></AccessGate>} />
         </Routes>
+        </Suspense>
         <Toaster theme="dark" position="bottom-center" />
         </MaintenanceMode>
       </AuthProvider>
