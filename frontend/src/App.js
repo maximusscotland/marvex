@@ -46,6 +46,8 @@ const Galaxy              = lazy(() => import("@/pages/Galaxy"));
 const ReportBug           = lazy(() => import("@/pages/ReportBug"));
 const Faq                 = lazy(() => import("@/pages/Faq"));
 const Contact             = lazy(() => import("@/pages/Contact"));
+const AuthMagic           = lazy(() => import("@/pages/AuthMagic"));
+const SignIn              = lazy(() => import("@/pages/SignIn"));
 
 /**
  * /learn/:slug router — try tutorial first, fall back to long-form
@@ -137,6 +139,8 @@ export default function App() {
           <Route path="/report-bug" element={<ReportBug />} />
           <Route path="/faq" element={<Faq />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/auth/magic" element={<AuthMagic />} />
+          <Route path="/signin" element={<SignIn />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* GATED app surface — Studio, Library, Reader, etc. require either

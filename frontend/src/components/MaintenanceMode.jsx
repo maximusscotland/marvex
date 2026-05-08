@@ -58,6 +58,8 @@ const MAINTENANCE_ALLOWLIST = [
   "/report-bug",
   "/faq",
   "/contact",
+  "/auth/magic",
+  "/signin",
 ];
 
 const isAllowlistedPath = (pathname) =>

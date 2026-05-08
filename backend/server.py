@@ -45,6 +45,7 @@ from access_codes import make_router as make_access_router
 from admin_ops import make_router as make_admin_ops_router
 from press import make_router as make_press_router
 from bugreport import make_router as make_bugreport_router
+from magic_auth import make_router as make_magic_auth_router, ensure_indexes as ensure_magic_indexes
 from sentry_init import init_sentry
 
 # Initialise Sentry as early as possible so the FastAPI integration can
@@ -1796,6 +1797,7 @@ app.include_router(access_router)
 app.include_router(admin_ops_router)
 app.include_router(press_router)
 app.include_router(bugreport_router)
+app.include_router(make_magic_auth_router(db))
 
 app.add_middleware(
     CORSMiddleware,
@@ -1810,6 +1812,16 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+@app.on_event("startup")
+async def on_startup_magic_indexes():
+    """Create indexes for the magic-link auth flow (token unique, TTL on
+    expires_at). Idempotent — safe on every boot."""
+    try:
+        await ensure_magic_indexes(db)
+    except Exception as e:
+        logger.warning("magic_tokens index creation skipped: %s", e)
 
 
 @app.on_event("startup")

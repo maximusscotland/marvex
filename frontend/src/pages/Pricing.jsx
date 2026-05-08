@@ -92,25 +92,33 @@ export default function Pricing() {
   const [busyPlan, setBusyPlan] = useState(null);
 
   const startCheckout = async (planId) => {
-    track("pricing_cta_clicked", { plan: planId, lite_visible: liteVisible });
-    if (!user) {
-      // Stash the intended plan so we can resume after Google OAuth round-trip.
-      try { sessionStorage.setItem("marvex_pending_plan", planId); } catch { /* ignore */ }
-      signIn();
-      return;
-    }
+    track("pricing_cta_clicked", { plan: planId, lite_visible: liteVisible, auth: user ? "logged_in" : "guest" });
     setBusyPlan(planId);
     track("checkout_started", { plan: planId, source: "pricing_page", lite_visible: liteVisible });
-    try {
-      const r = await axios.post(
-        `${API}/billing/create-checkout`,
-        {
+
+    // Two paths:
+    //   1. AUTHENTICATED — POST /api/billing/create-checkout (existing flow,
+    //      attaches user_id, applies affiliate referrals).
+    //   2. GUEST — POST /api/billing/create-guest-checkout (NO auth, Stripe
+    //      collects email at checkout, webhook upserts user + emails magic
+    //      link). Highest-conversion path because it skips OAuth entirely.
+    const endpoint = user ? "/billing/create-checkout" : "/billing/create-guest-checkout";
+    const body = user
+      ? {
           plan: planId,
           origin_url: window.location.origin,
           ref_code: getRef() || "",
-        },
-        { withCredentials: true },
-      );
+        }
+      : {
+          // Affiliate ref intentionally omitted on guest checkouts —
+          // the backend doesn't currently track them server-side and
+          // we don't want to half-implement the path.
+          plan: planId,
+          origin_url: window.location.origin,
+        };
+
+    try {
+      const r = await axios.post(`${API}${endpoint}`, body, { withCredentials: true });
       if (r.data?.url) {
         // Hard redirect to Stripe Checkout. The success_url returns to
         // /app?upgraded=true&session_id=... where Studio's effect mirrors
@@ -128,6 +136,8 @@ export default function Pricing() {
   };
 
   // After OAuth round-trip, resume the pending checkout once the user is back.
+  // Guest-checkout flows skip OAuth entirely so this only fires for users who
+  // explicitly chose the Google sign-in path before checkout.
   useEffect(() => {
     if (!user) return;
     let pending;

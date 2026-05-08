@@ -302,6 +302,91 @@ def addon_is_active(user_doc: dict, addon_key: str) -> bool:
         return False
 
 
+async def _resolve_guest_user(db: AsyncIOMotorDatabase, session_id: str) -> Optional[str]:
+    """
+    For guest-checkout transactions (no user_id at create-time), pull
+    the customer email from the Stripe Checkout Session, find-or-create
+    the Marvex user, attach the user_id to the payment_transactions row
+    and trigger a magic-link email so the customer can access their
+    newly-paid Pro account. Returns the resolved user_id.
+    """
+    try:
+        stripe_sdk.api_key = STRIPE_API_KEY
+        session = stripe_sdk.checkout.Session.retrieve(
+            session_id,
+            expand=["customer_details"],
+        )
+    except Exception:
+        logger.exception("guest-checkout: failed to retrieve Stripe session %s", session_id)
+        return None
+
+    cd = getattr(session, "customer_details", None) or {}
+    email = (getattr(cd, "email", None) or (cd.get("email") if isinstance(cd, dict) else "") or "").strip().lower()
+    if not email:
+        logger.warning("guest-checkout: no email on Stripe session %s", session_id)
+        return None
+
+    now = datetime.now(timezone.utc)
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    if user:
+        user_id = user["user_id"]
+    else:
+        import uuid as _uuid
+        user_id = f"user_{_uuid.uuid4().hex[:12]}"
+        await db.users.insert_one({
+            "user_id": user_id,
+            "email": email,
+            "name": email.split("@")[0],
+            "picture": "",
+            "subscription": {"status": "free", "plan": "", "current_period_end": "", "trial_end": ""},
+            "stripe_customer_id": getattr(session, "customer", "") or "",
+            "free_conversions_used": 0,
+            "created_at": now,
+            "last_login_at": now,
+            "auth_method": "stripe_guest",
+        })
+    await db.payment_transactions.update_one(
+        {"session_id": session_id},
+        {"$set": {"user_id": user_id, "guest_email": email}},
+    )
+
+    # Send a "welcome / sign in" magic link so the user can access the
+    # app on whatever device they want — no Google account required.
+    try:
+        from magic_auth import issue_magic_link_for_email
+        from email_sender import send_email
+        link = await issue_magic_link_for_email(db, email, next_url="/library")
+        subject = "Welcome to Marvex Pro — sign in to your account"
+        text = (
+            f"Thanks for upgrading to Marvex Pro!\n\n"
+            f"Tap the link below to sign in (works on any device):\n\n"
+            f"{link}\n\n"
+            f"Need a fresh link? Visit https://marvex.app and choose 'Sign in with email'."
+        )
+        html = f"""
+        <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#03040a;color:#cfdaf3;padding:24px;max-width:520px;margin:0 auto;">
+          <div style="border:1px solid rgba(122,59,255,0.22);border-radius:14px;padding:26px;background:linear-gradient(180deg,rgba(122,59,255,0.05),rgba(0,240,255,0.04));">
+            <div style="text-transform:uppercase;letter-spacing:0.22em;font-size:11px;color:#c084fc;margin-bottom:14px;">Marvex Studio · welcome</div>
+            <h1 style="font-size:22px;color:#fff;margin:0 0 10px;line-height:1.25;">You&apos;re in. Welcome to Pro.</h1>
+            <p style="color:#a4b4d8;font-size:14px;line-height:1.55;margin:0 0 22px;">
+              Tap the button below to sign in. You can use this same email on any device — no password needed.
+            </p>
+            <a href="{link}" style="display:inline-block;background:linear-gradient(135deg,#00f0ff,#7a3bff);color:#03131e;font-weight:700;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:14px;">
+              Sign in to Marvex →
+            </a>
+            <p style="margin-top:24px;color:#566187;font-size:11px;line-height:1.6;">
+              Need a fresh link later? Visit <a href="https://marvex.app" style="color:#5eead4;">marvex.app</a> and choose &ldquo;Sign in with email&rdquo;.
+            </p>
+          </div>
+        </div>
+        """
+        await send_email(to=email, subject=subject, html=html, text=text)
+    except Exception:
+        logger.exception("guest-checkout: magic-link welcome email failed for %s", email)
+
+    return user_id
+
+
 async def _mark_paid(db: AsyncIOMotorDatabase, session_id: str) -> None:
     """
     Mark a session paid and grant Pro exactly once. Safe to call multiple times
@@ -316,6 +401,16 @@ async def _mark_paid(db: AsyncIOMotorDatabase, session_id: str) -> None:
                 {"$set": {"status": "completed", "payment_status": "paid"}},
             )
         return
+
+    # Guest checkouts arrive with `user_id == ""` — resolve from Stripe
+    # before granting Pro so we don't try to update a non-existent user.
+    if not tx.get("user_id"):
+        resolved = await _resolve_guest_user(db, session_id)
+        if not resolved:
+            logger.warning("_mark_paid: could not resolve guest user for %s — skipping grant", session_id)
+            return
+        tx["user_id"] = resolved
+
     # Branch on transaction kind. Plans grant Pro; add-ons just flip a
     # feature flag on the user doc. Default kind is "plan" for backwards
     # compatibility with rows written before add-ons existed.
@@ -368,6 +463,81 @@ def make_router(db: AsyncIOMotorDatabase, current_user_dep) -> APIRouter:
                 "remaining": max(0, FOUNDER_LIMIT - founders_taken),
             },
         }
+
+    @router.post("/create-guest-checkout")
+    async def create_guest_checkout(payload: CheckoutRequest, request: Request):
+        """
+        ANONYMOUS Stripe Checkout — no auth required. Stripe collects the
+        customer's email at the checkout page; the webhook then upserts a
+        Marvex user from `customer_details.email` and emails them a
+        single-use magic-link to access their newly-paid Pro account.
+
+        Trade-off vs the authenticated /create-checkout:
+          + Highest paid-conversion (zero pre-payment friction)
+          + Works for users who refuse Google sign-in
+          - Account creation is deferred until the webhook fires
+          - Affiliate referrals are NOT applied to guest checkouts
+            (we don't have a `referrer` user_id to credit at this point;
+            adding it would require capturing the cookie pre-checkout,
+            which we'll wire up later if the channel proves valuable)
+
+        Note: this routes through Stripe's SDK directly rather than the
+        Emergent StripeCheckout wrapper because we need `customer_email`
+        omitted (let Stripe collect it) and `payment_method_types` /
+        `customer_creation` configured — knobs the wrapper hides.
+        """
+        if payload.plan not in PLANS:
+            raise HTTPException(status_code=400, detail="Invalid plan")
+        plan = PLANS[payload.plan]
+        plan_price_id = (plan.get("stripe_price_id") or "").strip()
+        if not plan_price_id:
+            raise HTTPException(status_code=500, detail="Plan price not configured")
+
+        origin = payload.origin_url.rstrip("/")
+        success_url = f"{origin}/app?upgraded=true&session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{origin}/pricing?upgraded=false"
+
+        try:
+            stripe_sdk.api_key = STRIPE_API_KEY
+            mode = "payment" if plan.get("lifetime") else "subscription"
+            session = stripe_sdk.checkout.Session.create(
+                mode=mode,
+                line_items=[{"price": plan_price_id, "quantity": 1}],
+                success_url=success_url,
+                cancel_url=cancel_url,
+                # Tell Stripe to collect a customer record so we get
+                # `customer_details.email` reliably in the webhook.
+                customer_creation="always" if mode == "payment" else None,
+                allow_promotion_codes=True,
+                metadata={
+                    "guest": "1",
+                    "plan": payload.plan,
+                    "origin": origin,
+                },
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.exception("Stripe guest checkout creation failed")
+            raise HTTPException(status_code=502, detail=f"Stripe error: {e}") from e
+
+        # Insert a payment_transactions row keyed only by session_id so
+        # the webhook can find it. user_id is filled in by the webhook
+        # after we resolve the email → user.
+        await db.payment_transactions.insert_one({
+            "user_id": "",                          # filled by webhook
+            "session_id": session.id,
+            "plan": payload.plan,
+            "amount": _plan_amount_cents(payload.plan),
+            "amount_base": _plan_amount_cents(payload.plan),
+            "currency": "usd",
+            "status": "initiated",
+            "payment_status": "pending",
+            "pro_granted": False,
+            "kind": "plan",
+            "guest": True,
+            "created_at": datetime.now(timezone.utc),
+            "metadata": {"guest": "1", "plan": payload.plan},
+        })
+        return {"url": session.url, "session_id": session.id}
 
     @router.post("/create-checkout")
     async def create_checkout(payload: CheckoutRequest, request: Request, user: dict = Depends(current_user_dep)):
