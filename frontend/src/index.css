@@ -1,0 +1,487 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-deepest: #03040a;
+  --bg-deep: #06081a;
+  --bg-panel: #0a0f24;
+  --bg-panel-2: #111733;
+  --ink-50: #eaf6ff;
+  --ink-200: #b8c6e0;
+  --ink-400: #6c7aa3;
+  --ink-600: #3a4570;
+  --neon-cyan: #00f0ff;
+  --neon-cyan-soft: #36e6ff;
+  --neon-magenta: #ff2e6c;
+  --neon-violet: #8a5bff;
+  --neon-amber: #ffb547;
+}
+
+html, body, #root {
+  background: var(--bg-deepest);
+  color: var(--ink-50);
+  font-family: 'Sora', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  min-height: 100%;
+}
+
+code, .mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  :root {
+    --background: 230 60% 4%;
+    --foreground: 210 40% 96%;
+    --card: 230 50% 8%;
+    --card-foreground: 210 40% 96%;
+    --popover: 230 50% 8%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 187 100% 50%;
+    --primary-foreground: 230 60% 4%;
+    --secondary: 230 40% 14%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 230 30% 14%;
+    --muted-foreground: 220 14% 65%;
+    --accent: 270 80% 65%;
+    --accent-foreground: 210 40% 96%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 96%;
+    --border: 230 30% 18%;
+    --input: 230 30% 14%;
+    --ring: 187 100% 50%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
+
+/* ============ NEON / COSMIC UTILITIES ============ */
+
+.neon-text {
+  color: var(--neon-cyan);
+  text-shadow:
+    0 0 6px rgba(0, 240, 255, 0.7),
+    0 0 18px rgba(0, 240, 255, 0.45),
+    0 0 36px rgba(0, 240, 255, 0.25);
+}
+
+.neon-ring {
+  box-shadow:
+    0 0 0 1px var(--neon-cyan),
+    0 0 16px rgba(0, 240, 255, 0.55),
+    0 0 36px rgba(0, 240, 255, 0.3),
+    inset 0 0 12px rgba(0, 240, 255, 0.25);
+}
+
+.neon-ring-soft {
+  box-shadow:
+    0 0 0 1px rgba(0, 240, 255, 0.5),
+    0 0 14px rgba(0, 240, 255, 0.25);
+}
+
+.glass-panel {
+  background: rgba(10, 15, 36, 0.55);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(99, 138, 209, 0.12);
+}
+
+.cosmic-bg {
+  background:
+    radial-gradient(ellipse at 80% 15%, rgba(80, 120, 255, 0.18), transparent 55%),
+    radial-gradient(ellipse at 20% 80%, rgba(160, 70, 255, 0.12), transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(0, 200, 255, 0.06), transparent 65%),
+    #03040a;
+  position: relative;
+  overflow: hidden;
+}
+
+.cosmic-bg::before {
+  /* starfield via tiny radial dots */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 12% 22%, #cfe9ff 50%, transparent 51%),
+    radial-gradient(1px 1px at 28% 67%, #ffffff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 44% 14%, #b6e1ff 50%, transparent 51%),
+    radial-gradient(1px 1px at 61% 41%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 73% 78%, #d6efff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 88% 33%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 8% 55%, #ffffff 50%, transparent 51%),
+    radial-gradient(1px 1px at 38% 88%, #aee0ff 50%, transparent 51%),
+    radial-gradient(1px 1px at 55% 70%, #ffffff 50%, transparent 51%),
+    radial-gradient(2px 2px at 92% 60%, #ffffff 50%, transparent 51%);
+  background-size: 700px 700px;
+  background-repeat: repeat;
+  opacity: 0.55;
+  pointer-events: none;
+  animation: drift 80s linear infinite;
+}
+
+.cosmic-bg::after {
+  /* subtle nebula film */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 70% 30%, rgba(50, 100, 240, 0.18), transparent 35%),
+    radial-gradient(circle at 25% 75%, rgba(180, 60, 255, 0.12), transparent 40%);
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+@keyframes drift {
+  from { background-position: 0 0; }
+  to   { background-position: 700px 700px; }
+}
+
+/* gradient text */
+.gradient-text {
+  background: linear-gradient(90deg, #00f0ff 0%, #6ad8ff 40%, #b88dff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-magenta-text {
+  background: linear-gradient(90deg, #ff2e6c, #ff7d4a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #06081a; }
+::-webkit-scrollbar-thumb { background: #1a2348; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #243066; }
+
+/* selection */
+::selection { background: rgba(0, 240, 255, 0.35); color: #fff; }
+
+/* Disable text-select on canvas-y elements */
+.no-select { user-select: none; -webkit-user-select: none; }
+
+/* CTA pill */
+.cta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #7a3bff 0%, #b85bff 100%);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 8px 30px rgba(122, 59, 255, 0.4);
+}
+.cta-pill:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.07);
+  box-shadow: 0 12px 40px rgba(122, 59, 255, 0.55);
+}
+
+.cta-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.4rem;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.03);
+  color: var(--ink-50);
+  border: 1px solid rgba(120,180,255,0.18);
+  transition: all 0.18s ease;
+}
+.cta-ghost:hover {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 14px rgba(0,240,255,0.25);
+}
+
+/* fade-up entrance */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.7s ease both; }
+
+/* Scroll-triggered reveal — uses IntersectionObserver via ScrollReveal.jsx.
+   Items start invisible + 24px below their resting position, then ease into
+   place when the observer adds .reveal--in. The --reveal-delay CSS var lets
+   parents stagger their children without per-child CSS. */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.85s cubic-bezier(0.2, 0.7, 0.2, 1),
+    transform 0.85s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+.reveal--in {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+
+/* mind-map node animations */
+@keyframes nodePop {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.node-pop { animation: nodePop 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.4) both; }
+
+/* breathing glow for primary CTA */
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 0 18px rgba(0,240,255,0.35), 0 0 0 1px rgba(0,240,255,0.7); }
+  50%      { box-shadow: 0 0 32px rgba(0,240,255,0.55), 0 0 0 1px rgba(0,240,255,0.9); }
+}
+.breathe { animation: breathe 3.2s ease-in-out infinite; }
+
+/* Pulse used by the sidebar-expand button so the user can always see how
+   to bring the menu back. */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 12px rgba(0,240,255,0.35), inset 0 0 8px rgba(0,240,255,0.1); }
+  50%      { box-shadow: 0 0 28px rgba(0,240,255,0.7), inset 0 0 14px rgba(0,240,255,0.25); }
+}
+
+/* LLM fuel gauge — pulse for "low", fast-flash for "empty/disconnected".
+ * Both animations cycle the box-shadow + border so the gauge feels alive
+ * in the studio top-bar without making the rest of the UI noisy. */
+@keyframes llmGaugePulse {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(255,138,61,0.35);
+    border-color: rgba(255,138,61,0.45);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(255,138,61,0.7);
+    border-color: rgba(255,138,61,0.85);
+  }
+}
+.llm-gauge-pulse { animation: llmGaugePulse 1.6s ease-in-out infinite; }
+
+@keyframes llmGaugeFlash {
+  0%, 100% {
+    box-shadow: 0 0 6px rgba(255,79,94,0.35);
+    border-color: rgba(255,79,94,0.45);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(255,79,94,0.95), inset 0 0 8px rgba(255,79,94,0.35);
+    border-color: rgba(255,79,94,1);
+  }
+}
+.llm-gauge-flash-fast { animation: llmGaugeFlash 0.85s ease-in-out infinite; }
+
+/* One-shot pulse on a single fuel-gauge cube as it lights up or drains.
+   Uses CSS variable --pulse-color (set inline by LlmFuelGauge) so each
+   zone (red / amber / green) gets a colour-matched glow. */
+@keyframes llmCubePulseIn {
+  0%   { transform: scale(0.7); box-shadow: 0 0 0 var(--pulse-color, #fff); filter: brightness(1.2); }
+  45%  { transform: scale(1.25); box-shadow: 0 0 14px var(--pulse-color, #fff), inset 0 0 8px rgba(255,255,255,0.4); filter: brightness(1.6); }
+  100% { transform: scale(1); box-shadow: 0 0 6px var(--pulse-color, #fff); filter: brightness(1); }
+}
+@keyframes llmCubePulseOut {
+  0%   { transform: scale(1); box-shadow: 0 0 12px var(--pulse-color, #fff); filter: brightness(1.2); }
+  45%  { transform: scale(0.85); box-shadow: 0 0 18px var(--pulse-color, #fff), inset 0 0 6px var(--pulse-color, #fff); filter: brightness(1.4); }
+  100% { transform: scale(1); box-shadow: none; filter: brightness(1); }
+}
+.llm-cube-pulse-in  { animation: llmCubePulseIn  360ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+.llm-cube-pulse-out { animation: llmCubePulseOut 360ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .llm-cube-pulse-in, .llm-cube-pulse-out { animation: none; }
+}
+
+
+/* ==================== PDF Reader text layer ==================== *
+ * pdf.js positions each glyph-run as an absolutely-positioned <span> sized
+ * relative to the --scale-factor CSS variable we set on the container. We
+ * keep the text transparent (so the underlying canvas art shows) but allow
+ * native selection. ::selection paints our cyan highlight behind the
+ * letters, producing a neon highlighter feel.
+ *
+ * NOTE: pdf.js v5 requires both `.textLayer` class and `--scale-factor` /
+ * `--total-scale-factor` to be set on the host element so each span's
+ * `font-size` resolves correctly. Without it, spans collapse and clicks
+ * snap to the wrong paragraph.
+ */
+.pdf-text-layer,
+.textLayer {
+  --scale-factor: 1;
+  --total-scale-factor: var(--scale-factor);
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  opacity: 1;
+  line-height: 1;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  user-select: text;
+  z-index: 2;
+}
+.pdf-text-layer :is(span, br),
+.textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+.pdf-text-layer > :not(.markedContent),
+.pdf-text-layer .markedContent span:not(.markedContent),
+.textLayer > :not(.markedContent),
+.textLayer .markedContent span:not(.markedContent) {
+  --font-height: 0;
+  font-size: calc(var(--total-scale-factor) * var(--font-height));
+  --scale-x: 1;
+  --rotate: 0deg;
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x));
+}
+.pdf-text-layer .markedContent,
+.textLayer .markedContent {
+  display: contents;
+}
+.pdf-text-layer ::selection,
+.textLayer ::selection {
+  background: rgba(0, 240, 255, 0.45);
+}
+.pdf-text-layer ::-moz-selection,
+.textLayer ::-moz-selection {
+  background: rgba(0, 240, 255, 0.45);
+}
+
+
+/* ==================== Film Mode ==================== *
+ * Toggled by FilmModeToggle (Shift+F). Hides distractions for clean video
+ * shots — Emergent badge, cookie consent banner, onboarding tour overlay.
+ * Toggle button itself stays visible so the user can exit film mode.
+ */
+body.film-mode #emergent-badge,
+body.film-mode [data-testid="cookie-consent"],
+body.film-mode [data-testid="tour-overlay"],
+body.film-mode [data-testid="tour-tooltip"],
+body.film-mode [data-testid="tour-spotlight"],
+body.film-mode [data-testid="onboarding-tour"],
+body.film-mode .emergent-watermark,
+body.film-mode a[href*="emergent-badge"],
+body.film-mode a[href*="emergent.sh"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+
+
+/* ==================== Compile-to-document preview ==================== *
+ * Article-style typography for the LLM-generated Markdown preview, plus
+ * a print mode that hides the studio chrome and renders the modal as a
+ * clean black-on-white document. */
+.compile-doc-prose {
+  color: #e8edf6;
+  font-family: 'Sora', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 70ch;
+  margin: 0 auto;
+}
+.compile-doc-prose h1 { font-size: 1.85rem; font-weight: 700; color: #fff; margin: 0 0 1.2rem; letter-spacing: -0.01em; line-height: 1.25; }
+.compile-doc-prose h2 { font-size: 1.35rem; font-weight: 600; color: #fff; margin: 1.8rem 0 0.7rem; letter-spacing: -0.005em; }
+.compile-doc-prose h3 { font-size: 1.1rem;  font-weight: 600; color: #cfdaf3; margin: 1.4rem 0 0.5rem; }
+.compile-doc-prose h4 { font-size: 0.97rem; font-weight: 600; color: #9aaad0; margin: 1.1rem 0 0.35rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.compile-doc-prose p { margin: 0 0 1rem; }
+.compile-doc-prose ul, .compile-doc-prose ol { padding-left: 1.4rem; margin: 0 0 1rem; }
+.compile-doc-prose li { margin-bottom: 0.4rem; }
+.compile-doc-prose strong { color: #fff; font-weight: 600; }
+.compile-doc-prose em { color: #cfdaf3; }
+.compile-doc-prose code { background: rgba(0,240,255,0.08); border: 1px solid rgba(0,240,255,0.2); padding: 1px 5px; border-radius: 4px; font-size: 0.88em; color: #00f0ff; }
+.compile-doc-prose blockquote {
+  border-left: 3px solid rgba(0,240,255,0.5);
+  padding: 0.2rem 0 0.2rem 1rem;
+  margin: 0 0 1rem;
+  color: #cfdaf3;
+  font-style: italic;
+  background: rgba(0,240,255,0.03);
+}
+
+/* Print mode triggered from the modal's "Save as PDF" button.
+ * - Hide everything outside the modal
+ * - Strip the modal's panel chrome so just the article prints
+ * - Render in black-on-white for proper PDF output */
+@media print {
+  body.compile-printing > *:not(.fixed) { display: none !important; }
+  body.compile-printing #compile-doc-modal {
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+    max-height: none !important;
+    height: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+  body.compile-printing #compile-doc-modal .no-print { display: none !important; }
+  body.compile-printing .compile-doc-preview { overflow: visible !important; padding: 0.6in !important; height: auto !important; }
+  body.compile-printing .compile-doc-prose,
+  body.compile-printing .compile-doc-prose * {
+    color: #111 !important;
+    background: white !important;
+  }
+  body.compile-printing .compile-doc-prose code {
+    background: #f3f4f6 !important;
+    color: #111 !important;
+    border-color: #d1d5db !important;
+  }
+  body.compile-printing .compile-doc-prose blockquote {
+
+/* Landing-nav links — subtle underline that grows on hover, with Pricing
+ * picking up a fuchsia accent so the conversion link stands out without
+ * needing a button treatment. */
+.nav-link {
+  position: relative;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  padding-bottom: 2px;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(0, 240, 255, 0.6);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 220ms cubic-bezier(.2,.8,.2,1);
+}
+.nav-link:hover::after { transform: scaleX(1); }
+.nav-link--accent::after { background: rgba(255, 106, 213, 0.7); }
+
+    border-left-color: #888 !important;
+    background: #f9fafb !important;
+  }
+}
+
+/* Hide scrollbar (used by horizontally-scrolling bookshelf so the wooden
+   shelf metaphor isn't broken by a system bar). Keyboard arrows + mouse-
+   wheel + touch swipe + visible chevron buttons cover discoverability. */
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+

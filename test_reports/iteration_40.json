@@ -1,0 +1,42 @@
+{
+  "summary": "Frontend-only testing for 'Save to All targets' one-click mirror in Cloud Save popover. All 13 acceptance criteria from the review request PASS (13/13). The popover now renders 4 target pills (drive/dropbox/zotero/all) in a 4-col grid at minWidth=288px. The 'All' pill renders with fuchsia accent classes (border-fuchsia-400/30, bg-fuchsia-400/[0.03], text-fuchsia-200/80) — NOT cyan — and contains a Zap SVG icon. Clicking it suffixes all 6 format buttons with '-all' (cloud-save-pdf-all … cloud-save-json-all); the non-suffixed ids are absent when 'All' is active. Non-Pro gating is IRON-CLAD: clicking cloud-save-pdf-all fires ZERO outbound requests to apis.google.com / accounts.google.com / dropbox.com / dropboxapi.com / zotero.org, and opens upgrade-dialog. Regression: Drive/Dropbox 6-format grid (non-suffixed), Zotero collapses to single cloud-save-md, cloud-save-pro-badge + cloud-save-upgrade-link visible on all 4 target pills, all mm-tb-export-* buttons still present, and popover mutual-exclusion with mm-tb-backdrop holds. Non-Pro copy reads 'Save exports straight to All · Upgrade' when All pill is active.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "tests_executed": [
+    "PASS: cloud-save-menu opens on mm-tb-cloud-save click",
+    "PASS: 4 target pills visible (cloud-save-target-drive / dropbox / zotero / all)",
+    "PASS: cloud-save-pro-badge + cloud-save-upgrade-link present for non-Pro",
+    "PASS: 'All' pill renders fuchsia accent (border-fuchsia-400/30, bg-fuchsia-400/[0.03], text-fuchsia-200/80) — NO cyan class",
+    "PASS: Zap SVG icon rendered inside cloud-save-target-all",
+    "PASS: Drive (default) shows 6 cloud-save-{pdf/png/png-4x/svg/md/json} WITHOUT -all suffix; cloud-save-pdf-all absent",
+    "PASS: Dropbox target shows same 6 non-suffixed format buttons",
+    "PASS: Zotero target collapses to single cloud-save-md button; cloud-save-pdf absent",
+    "PASS: Clicking cloud-save-target-all → all 6 cloud-save-{format}-all testids render (pdf-all, png-all, png-4x-all, svg-all, md-all, json-all); non-suffixed cloud-save-pdf absent",
+    "PASS: Non-Pro copy under pills reads 'Save exports straight to All · Upgrade' when All is active",
+    "CRITICAL PASS: Non-Pro click on cloud-save-pdf-all → upgrade-dialog opens AND zero outbound OAuth requests (apis.google.com / accounts.google.com / dropbox.com / dropboxapi.com / zotero.org all untouched)",
+    "PASS: Regression — non-Pro click on cloud-save-pdf (Dropbox single-target) also opens upgrade-dialog with zero outbound requests",
+    "PASS: Popover mutual-exclusion — opening mm-tb-backdrop picker closes cloud-save-menu",
+    "PASS: mm-tb-export-png / svg / md / json toolbar buttons still present (no regression)"
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "CloudSaveMenu.jsx handleSave() Pro gate at line 97 correctly fires BEFORE the target === 'all' branch at line 122, so non-Pro users never reach runTarget() / Promise.allSettled. Verified via network capture: 0 OAuth requests on non-Pro click of any -all format button.",
+    "Good UX detail: showingAll flag threads fuchsia hover states through the format grid (hover:border-fuchsia-400/60, hover:bg-fuchsia-400/[0.06]) and the in-flight Loader2 spinner, keeping the 'All is a Pro superpower' visual language consistent.",
+    "runTarget() skipped:true pattern is clean — allows graceful degradation without throwing, which is exactly what Promise.allSettled needs. Each not-configured target returns {label, skipped:true, reason} instead of failing the mirror.",
+    "Minor: title attribute on format buttons ('Mirror PDF to all 3 targets' vs 'Save as PDF') is a nice tooltip touch for Pro users to confirm intent before click.",
+    "File is now 343 lines (up from 256) — still well under the 700-line split threshold; no refactor needed."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (13/13 checks passed)"},
+  "test_credentials": "Access gate key: mind-mapper67 (?unlock=mind-mapper67). No Pro OAuth creds on preview — non-Pro gating fully verified.",
+  "seed_data_creation": "None — default 'Core Concept' map used.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Cloud Save 'All targets' mirror (iteration 40) verified on non-Pro gating path. Pro-path (Promise.allSettled fan-out across drive+dropbox+zotero, per-target aggregated toast with Check/AlertCircle rows) is UNTESTABLE on preview because no REACT_APP_GOOGLE_DRIVE_* / REACT_APP_DROPBOX_APP_KEY / Zotero localStorage creds are seeded. When Pro creds are available: (1) verify okCount/skippedCount/failedCount math in the aggregated toast, (2) verify cloud-save-all-row-{google-drive|dropbox|zotero} rows render with correct StatusIcon per target, (3) verify ExternalLink 'open' links for succeeded targets. Unit tests test_cloud_save_all.mjs (4/4) already validate the fan-out semantics per main agent. 'All' pill uses fuchsia accent to distinguish from cyan single-targets — confirmed visually correct.",
+  "rca of the issue": "N/A — no issues found."
+}

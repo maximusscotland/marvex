@@ -1,0 +1,41 @@
+{
+  "summary": "Frontend-only testing of new 'Reset demo data' button in Studio Settings modal. All core scenarios PASS: button visibility/labelling, cancel path (no data lost, modal stays open), happy path (3 curated seeds restored, custom maps removed), re-seed flag set, settings modal closes, toast 'Demo reset — 3 maps restored' appears, and Library smoke regression shows all 3 seeds. One minor observation about post-reset URL ?id= reopen behaviour noted below — unrelated to Reset functionality itself.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Post-reset deep-link /app?id=example-welcome",
+        "issue": "After reset, navigating to /app?unlock=mind-mapper67&id=example-welcome rendered a stale 'TEST_CustomMap1' title/canvas instead of the welcome seed. The 3 seed maps ARE persisted correctly in localStorage and Library lists them, but the URL ?id= param appears not to drive the Studio's active map on this path. Minor — unrelated to Reset feature itself; flagging for main-agent attention.",
+        "affected_selectors": ["[data-testid=\"studio-page\"]"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "Settings modal",
+        "issues": [
+          "'Reset' button renders at the very bottom of a long scrollable settings modal — on a 1080px viewport the button is outside the viewport even after scroll_into_view (requires programmatic click). Consider either stickying the reset row, making the modal footer fixed, or placing the demo-reset in a collapsible 'Advanced / Danger Zone' section nearer the top."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Investigate why post-reset /app?id=<seedId> doesn't activate the seed map (stale active-id cache). Clear any persisted active-id (e.g., mindmapper.activeMap) inside resetDemoData(), or have Studio respect URL ?id= param over cached activeId on fresh load.",
+    "Minor UX: reset-demo button sits below-the-fold in Settings; consider re-ordering so it is reachable without a long scroll (or sticky footer).",
+    "Non-blocking console warning: 'Maximum update depth exceeded' observed intermittently during Studio init — worth a look but does not affect reset functionality."
+  ],
+  "critical_code_review_comments": [
+    "seedExamples.js resetDemoData() correctly wipes maps.v1 + seed flag + ink + tombstones, then re-seeds via saveMap(). Good.",
+    "Studio.jsx reset handler pipes confirm → resetDemoData() → setActiveId(null) → refresh() → setSettingsOpen(false) → toast. Solid. However setActiveId(null) clears React state but any persisted active-id in localStorage (used on reload) is not cleared — likely root cause of the post-reset deep-link issue noted above.",
+    "Confirm message correctly reports the current map count ('Wipe all N maps ...') — good UX."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "95%"},
+  "test_credentials": "?unlock=mind-mapper67 (no auth)",
+  "seed_data_creation": "Injected 2 custom TEST_CustomMap maps into localStorage['mindmapper.maps.v1'] before reset to validate wipe. Auto-cleaned by the reset itself.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Reset demo feature fully functional. Verified 3 seed ids: 'example-learning-success', 'example-guide-research', 'example-welcome' (note: docs in task mention 'example-welcome-v1'/'example-guide-v1' — actual ids in seedExamples.js are 'example-welcome' and 'example-guide-research'). Seed flag key = 'mindmapper.examples.seeded.v2'. Confirm dialog message template: 'Wipe all N map(s) and restore the demo seeds? This CANNOT be undone.' Reset button is programmatically clickable but may need dispatch_event or evaluate().click() because it's rendered below viewport in a scrollable modal.",
+  "rca of the issue": "N/A — core reset feature works. The only side-observation (stale title on deep-link reopen) suggests activeId is persisted outside maps.v1; verify in storage.js / useMaps hook."
+}

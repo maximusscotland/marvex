@@ -1,0 +1,30 @@
+{
+  "summary": "Iteration 14 verified the 3 new items from the review: (1) GET /api/billing/plans public endpoint, (2) Resume-on-crash Intake queue, (3) 'Deepen this branch' research-map gating. Backend: 8 pytest cases (TestBillingPlans x1, TestBillingCheckoutValidation x3, smoke on /api/research + /api/research/enrich-outline + /api/health x4) — 8/8 PASS. Frontend via Playwright on preview URL: fresh LS shows no banner; seeded queue shows 'Resume your last session · 1 PDF left in the Fixer' with both buttons; clicking Resume restores the Fixer card with Chapter 1/Section A visible + 'Restored 1 PDF from your last session' toast (visually confirmed in screenshot); clicking Discard clears LS (null) + hides banner + shows 'Previous session cleared' toast. UpgradeDialog on /intake: fetches /api/billing/plans once, renders both upgrade-plan-monthly + upgrade-plan-annual in test-mode, closes cleanly on Escape. Studio /app with a seeded source='research' map: right-click on root node exposes [data-testid='mm-ctx-deepen']; after deleting map.source and reloading, the Deepen item is correctly absent. Regression buttons (intake-zotero-btn, intake-dropbox-btn, intake-drive-btn, intake-corpus-btn) all mount.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mindmapper_api.py",
+    "/app/test_reports/pytest/iteration_14.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "billing.py _available_plans(): the 'test' substring check on stripe.api_key (`if 'test' in key`) is technically broad — a live key whose secret happens to contain 'test' would be mis-classified. Safer to use startswith('sk_test_') or startswith('rk_test_'). Very low risk (Stripe key prefixes are fixed), but worth tightening.",
+    "billing.py _ensure_price_id caches the created Stripe price into os.environ (in-memory only). Fine for a single container, but across multiple replicas each process will create its OWN Stripe price (de-duplicated server-side by name, but still noisy). Consider persisting in DB or requiring STRIPE_PRICE_* env vars in prod.",
+    "intakeResume.js: safeItemForStorage forces status='preview' on reload; this is correct because raw File blobs can't be restored, but it silently discards any 'parsing'/'queued' items on crash. Banner copy already covers this ('files can't be re-parsed'). OK as-is — just note the design choice.",
+    "Studio.jsx line 715 passes onDeepen only when source is 'research' OR 'enriched' — the test confirms the gating works. Consider centralising this predicate as `isDeepenable(map)` to avoid divergence if a third source type ('search', 'upload', …) is added later."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_mindmapper_api.py"
+  ],
+  "success_rate": {"backend": "100% (8/8 new + all iter 13 still green on smoke)", "frontend": "100% (7/7 review criteria)"},
+  "test_credentials": "Access gate: ?unlock=mind-mapper67 OR localStorage['mindmapper.unlocked.v1']='1'. No backend auth needed for /api/billing/plans. Deepen-menu visibility test seeded a map directly into localStorage 'mindmapper.maps.v1' (shape: {id,title,source:'research',children,updatedAt,...}) and used ?map=<id> query param to force it active.",
+  "seed_data_creation": "Ephemeral localStorage seeds only: 'mindmapper.intakeQueue.v1' (resume banner tests), 'mindmapper.maps.v1' + 'mindmapper.recents.v1' (research map for Deepen test). Cleared between sub-tests.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "New public endpoint: GET /api/billing/plans returns {available:[...], plans:[{id,label,amount,interval}...]}. In Emergent test-mode both 'monthly' and 'annual' appear; in live-mode only plans with STRIPE_PRICE_MONTHLY/STRIPE_PRICE_ANNUAL env vars set are returned (with a defensive fallback to ['monthly'] so UI never empties). Frontend testids added this iteration: intake-resume-banner, intake-resume-accept, intake-resume-discard, mm-ctx-deepen. Intake resume key: 'mindmapper.intakeQueue.v1' (72h TTL; only items that reached status=='preview' with ≥1 heading are persisted). For Studio.jsx, Deepen context menu item renders iff active.source in {'research','enriched'} — seed via localStorage 'mindmapper.maps.v1'. UpgradeDialog now calls GET /api/billing/plans on open and hides unavailable plan toggles. TestBillingPlans + TestBillingCheckoutValidation classes added to backend regression suite.",
+  "rca_of_the_issue": "N/A — all 3 features ship correctly. Single transient mis-read during testing (innerText check ran before React finished hydrating the restored Fixer card after Resume click); screenshot unambiguously confirms Chapter 1 + Section A rendered. Functional path is correct."
+}

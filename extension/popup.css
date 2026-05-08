@@ -1,0 +1,112 @@
+/* Mind-Mapper Clip popup — tiny cosmic dark UI, ~320px wide. */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 340px;
+  background: #04060d;
+  color: #cfdaf3;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.wrap { padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+.brand { display: flex; align-items: center; gap: 10px; }
+.dot {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: radial-gradient(circle at 30% 30%, #00f0ff, #7b3dff 60%, #0a0f24 95%);
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.35);
+}
+.brand-name { font-weight: 700; color: #fff; letter-spacing: 0.02em; }
+.brand-sub {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.22em;
+  color: #7a87ad; font-family: "SF Mono", ui-monospace, Menlo, monospace;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.row .label {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #566187;
+  margin-bottom: 2px;
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+}
+.row .value { color: #cfdaf3; font-size: 13px; }
+.row .mono  { font-family: "SF Mono", ui-monospace, Menlo, monospace; font-size: 11px; color: #9aa7c7; }
+
+.truncate {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.selection-value {
+  max-height: 80px; overflow: hidden;
+  color: #e2e9f9;
+  border-left: 2px solid #00f0ff55;
+  padding-left: 8px;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.hidden { display: none !important; }
+
+.buttons { display: flex; flex-direction: column; gap: 8px; }
+
+button {
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cfdaf3;
+  padding: 10px 14px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.15s ease;
+}
+button:hover {
+  border-color: rgba(0, 240, 255, 0.4);
+  color: #fff;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.12);
+}
+button.primary {
+  background: linear-gradient(135deg, #00f0ff, #7bffd6);
+  color: #03131e;
+  border-color: transparent;
+  font-weight: 700;
+}
+button.primary:hover { box-shadow: 0 0 16px rgba(0, 240, 255, 0.5); }
+
+.icon { font-size: 14px; }
+
+.status {
+  font-size: 11px;
+  color: #7a87ad;
+  min-height: 14px;
+  text-align: center;
+  font-family: "SF Mono", ui-monospace, Menlo, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.status.ok    { color: #77ffce; }
+.status.error { color: #ff6b8a; }
+
+.footnote {
+  font-size: 11px;
+  color: #566187;
+  line-height: 1.5;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.footnote b { color: #9aa7c7; font-weight: 600; }

@@ -1,0 +1,33 @@
+{
+  "summary": "Phase 2b frontend verification (Dropbox + FTC disclosure + Hybrid affiliate lock + Find-book context menu). All 6 requested flows PASS on the public preview URL. 1) Landing '/' footer shows data-testid='affiliate-disclosure' containing both 'Amazon Services LLC' and 'Bookshop.org'. 2) /intake header shows both intake-zotero-btn and intake-dropbox-btn; clicking Dropbox btn surfaces exact sonner toast 'Dropbox isn't wired up yet — add an app key to .env' and does NOT crash (intake-studio still mounted). 3) intake-hint-dropbox card in empty-queue state renders and clicking it surfaces the same toast. 4) Studio Settings -> affiliate-settings: for unauthed/free user, affiliate-amazon-tag and affiliate-bookshop-id are DISABLED with placeholder 'Upgrade to override'; Lock icon visible in header; status badge reads 'Not set' (owner tag env empty — acceptable per spec); preferred-storefront buttons (amazon/bookshop/ku) are still clickable and clicks persist to localStorage key mindmapper.affiliates.v1. 5) Right-click on Core Concept node opens mm-context-menu with new mm-ctx-find-book option ('Find this book / paper…'); clicking it fires toast 'No affiliate storefront is configured yet' (owner tag empty). 6) Regression: Zotero btn still opens zotero-connect-form dialog; mm-ctx-link button still present in node context menu (non-Amazon URL passthrough covered by Node-side unit tests 11/11).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_7.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "AffiliateSettings.jsx badge logic: shows 'Not set' when both owner.* and user cfg.* are empty. Spec says 'Default active' is shown when owner tag is present, else 'Not set' is acceptable. Current env has empty owner tag, so 'Not set' rendered — matches spec. Consider rendering 'Default active' even with empty owner tag would be misleading, so current behavior is correct.",
+    "IntakeStudio.handleDropboxImport: the early-return on !isDropboxConfigured() means the real Dropbox SDK (dropins.js) is never fetched in this env — intentional and verified. When a key IS later added, confirm pickFromDropbox resolves correctly end-to-end (currently untested because key is empty by design).",
+    "ContextMenu NodeMenu: mm-ctx-find-book is only rendered when onFindBook prop is truthy (`{onFindBook && (...)}`). MindMapCanvas.jsx passes a non-null arrow function unconditionally, so the button is always visible on nodes — verified. Good defensive pattern.",
+    "Pre-existing (iteration_7): Console still shows /api/auth/me 401 noise on unauthed sessions — low priority, does not impact any tested flow.",
+    "Pre-existing (iteration_7): AffiliateSettings writes to localStorage on every keystroke; consider 250ms debounce. Not a blocker."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only request; no backend endpoints exercised)",
+    "frontend": "100% (9/9 targeted checks passed: disclosure, dropbox-btn toast, dropbox-hint toast, no-crash, zotero regression, affiliate lock + placeholder + badge + lock icon, preferred persist, find-book toast, link-btn regression)"
+  },
+  "test_credentials": "Access gate password REACT_APP_UNLOCK_KEY=mind-mapper67 (works). No auth login used (free/unauthed context is what the spec requires).",
+  "seed_data_creation": "None. Only localStorage key mindmapper.affiliates.v1 was updated by the preferred-storefront click during test 4 (preferred=ku).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Verified testids working on public URL: affiliate-disclosure (landing), intake-dropbox-btn + intake-hint-dropbox (intake header + empty-queue hint), affiliate-settings + affiliate-amazon-tag + affiliate-bookshop-id + affiliate-preferred-{amazon,bookshop,ku} (studio settings modal), mm-context-menu + mm-ctx-find-book + mm-ctx-link (node right-click). Dropbox real-SDK path untested by design (REACT_APP_DROPBOX_APP_KEY empty). For future testing with a real Dropbox key, remember to whitelist dropbox.com CSP and test pickFromDropbox() multiselect gating for free vs Pro. Studio settings modal opens via a 'Settings' button; closed cleanly with Escape. Note that /app/auth/me 401 noise persists for unauthed users but is harmless."
+}

@@ -1,0 +1,33 @@
+{
+  "summary": "Frontend-only verification of Zotero connector on /intake + Affiliate settings on /app. All 7 requested flows PASS. Zotero: intake-zotero-btn opens modal (role=dialog, aria-modal=true); empty connect surfaces inline 'Both API key and user ID are required'; bogus key+userID triggers a real fetch to api.zotero.org returning 403, error surfaces inline as 'HTTP 403' (no crash, no unhandled rejection); zotero-close (X) and zotero-cancel both close the dialog; intake-hint-zotero card in empty-queue state opens the dialog. Affiliate: affiliate-settings section renders inside Studio settings modal; all 6 data-testids (amazon-tag, amazon-domain, bookshop-id, preferred-amazon/bookshop/ku) present; typing into affiliate-amazon-tag persists to localStorage key 'mindmapper.affiliates.v1' and survives reload; preferred toggle and amazonDomain select also persist. Regression: /intake file-input accepts a single PDF for the free/unauthed session, /api/mindmap/parse-pdf returns 200 with 5 headings parsed correctly (Research On Clean Energy, 1.Intro, 2.Solar, 3.Wind, 4.Conclusion); Fixer panel mounts; /app Studio still renders the default 'Core Concept' map.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_6.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ZoteroBrowser.jsx — verifyCreds() returns 'HTTP 403' as the error string when the Zotero key is invalid. This is technically correct but user-facing. Consider mapping 401/403 to a friendlier message (e.g., 'Zotero rejected your API key — double-check the key and user ID'). The request() helper already does this mapping — just mirror it in verifyCreds.",
+    "zotero.js verifyCreds — the /keys/current endpoint returns userID as a number; you string-cast it but might still fail if the API ever returns userID as null for restricted keys. Consider treating missing userID as a soft success (i.e., don't block the flow if Zotero omits the field).",
+    "AffiliateSettings.jsx — inputs call setAffiliateConfig on every keystroke which writes to localStorage per keypress. Harmless at current scale but consider a 250ms debounce for cleaner DevTools storage traces.",
+    "Console still shows two /api/auth/me 401 errors on /intake and /app for unauthed sessions (pre-existing, flagged in iteration_6). Low priority noise.",
+    "IntakeStudio.jsx FixerPanel — parsedTitle falls back to file.name minus .pdf, but for the test PDF /tmp/test_intake.pdf the heuristic parser returned 'untitled' as data.title so the map title input literally shows 'untitled'. Minor UX: you may want to prefer file.name over the string 'untitled' when data.title is the literal sentinel 'untitled'."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (regression only — /api/mindmap/parse-pdf verified 200 via UI)",
+    "frontend": "100% (20/20 targeted checks passed across Zotero + Affiliate + regression)"
+  },
+  "test_credentials": "Access gate password REACT_APP_UNLOCK_KEY=mind-mapper67 (works). No auth login used. Zotero tested with bogus key='BOGUSKEYxyz12345notreal' + userId='99999999' — Zotero API returned 403 as expected.",
+  "seed_data_creation": "/tmp/test_intake.pdf (reportlab-generated, 1 page, title 'Research On Clean Energy' + 4 section headings) — reused from iteration_6. No persistent backend data created. localStorage keys written during test: mindmapper.affiliates.v1 (left populated with test tag 'mindmap-test-42', amazonDomain='co.uk', preferred='bookshop').",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All new iteration-7 testids verified: zotero-browser (dialog), zotero-connect-form, zotero-input-key, zotero-input-userid, zotero-connect, zotero-connect-error, zotero-cancel, zotero-close, intake-zotero-btn, intake-hint-zotero, affiliate-settings, affiliate-amazon-tag, affiliate-amazon-domain (select), affiliate-bookshop-id, affiliate-preferred-{amazon,bookshop,ku}. Zotero browse-phase testids (zotero-lib-*, zotero-search, zotero-item-list, zotero-item-<key>, zotero-import, zotero-disconnect) were NOT tested end-to-end because no real Zotero key is available — browse phase requires a valid verifyCreds() success. If a real key is ever provided, the browse phase is ready for full-flow testing. Note: file-input [data-testid='intake-file-input'] is hidden — use page.locator(...).set_input_files() which bypasses visibility, NOT wait_for_selector which times out."
+}

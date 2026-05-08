@@ -1,0 +1,51 @@
+{
+  "summary": "LLMGateway BYOK provider wiring fully validated. All 6 test_llm_dispatch.py contract tests PASS (provider normalization, constants, AsyncOpenAI dispatch for llmgateway, LlmChat dispatch for native providers). All 5 endpoint-level tests PASS (POST /api/research, /api/research/stream, /api/research/enrich-outline, /api/mindmap/from-pdf accept X-User-Api-Provider=llmgateway without returning 400; unknown providers silently fall back to anthropic). Frontend /tools page renders new 'AI & Research' section at top (section order: ai → capture → read → think) with tools-card-llmgateway (href=https://llmgateway.io/) and tools-card-perplexity (href=https://www.perplexity.ai/) — AFFILIATE badges correctly hidden when env vars empty. Studio /app page (NOT /studio — route is /app) renders all 4 BYOK provider cards in api-key-provider-grid with class 'sm:grid-cols-2 lg:grid-cols-4': api-key-signup-anthropic, -openai, -gemini, -llmgateway. LLMGateway card displays 'LLMGATEWAY · GROK' header, tagline 'One key, every model — including xAI Grok. Pay-as-you-go, no subscription.', and 'GET AN LLMGATEWAY KEY' deep-link to https://llmgateway.io/. The Add-a-key native <select> contains exactly 4 options: anthropic, openai, gemini, llmgateway (text 'LLMGateway · Grok'). Code review of /app/frontend/src/lib/settings.js confirms `?ref=<value>` appending when REACT_APP_LLMGATEWAY_REF is set (URL-encoded). No regressions on anthropic/openai/gemini dispatch paths.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "tests_executed": [
+    "PASS: pytest tests/test_llm_dispatch.py → 6/6 (normalize_provider all 4 + fallbacks + case-insensitive; LLMGATEWAY_BASE_URL=https://api.llmgateway.io/v1; LLMGATEWAY_DEFAULT_MODEL=xai/grok-4; call_llm routes llmgateway → AsyncOpenAI with correct base_url+model+messages; call_llm routes anthropic → LlmChat, does NOT touch AsyncOpenAI)",
+    "PASS: pytest tests/test_llmgateway_endpoints.py → 5/5 (all 4 AI endpoints accept X-User-Api-Provider=llmgateway without 400/402; unknown provider 'grok-raw' silently falls back to anthropic, no 400)",
+    "PASS: Frontend /tools — section order is ['ai', 'capture', 'read', 'think'] — AI section correctly hoisted to top",
+    "PASS: tools-card-llmgateway href=https://llmgateway.io/ (no ?ref, env empty)",
+    "PASS: tools-card-perplexity href=https://www.perplexity.ai/ (no ?via, env empty)",
+    "PASS: Both cards have no tools-card-badge child (AFFILIATE badge hidden when ref env is empty)",
+    "PASS: Studio /app — api-key-status-chip visible, text='Add AI key', clicking opens Settings modal",
+    "PASS: api-key-provider-grid present with classes 'grid sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-3'",
+    "PASS: api-key-signup-anthropic href=https://console.anthropic.com/settings/keys",
+    "PASS: api-key-signup-openai href=https://platform.openai.com/api-keys",
+    "PASS: api-key-signup-gemini href=https://aistudio.google.com/apikey",
+    "PASS: api-key-signup-llmgateway href=https://llmgateway.io/",
+    "PASS: 'Add a key' native <select> options = [{anthropic,'Anthropic Claude'},{openai,'OpenAI'},{gemini,'Google Gemini'},{llmgateway,'LLMGateway · Grok'}]",
+    "PASS: AccessGate unlock with ?unlock=mind-mapper67 sets localStorage 'mindmapper.unlocked.v1=1'",
+    "PASS: Regression — existing anthropic/openai/gemini signup links unchanged; LlmChat still used for native providers (verified via mock)"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_llm_dispatch.py",
+    "/app/backend/tests/test_llmgateway_endpoints.py",
+    "/app/test_reports/pytest/iteration_43.xml",
+    "/app/test_reports/pytest/iteration_43_all.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Review request refers to the Studio page as '/studio' but the actual React route in /app/frontend/src/App.js line 38 is '/app' (NOT '/studio'). No functional issue — just a doc-to-code drift worth aligning so future agents and external docs target the correct URL. /studio currently resolves to a blank page (no route match, only the 'Made with Emergent' footer renders).",
+    "Pre-existing (unrelated to this iteration) pytest failures: tests/test_mindmapper_api.py::TestCorpusSearch (arxiv network), tests/test_share_unfurl.py (external HTTP probing), tests/test_sync.py (8 ERRORs — uses deprecated @pytest.mark.asyncio pattern flagged as PytestRemovedIn9Warning with 'Event loop is closed' runtime errors). These are not regressions from the LLMGateway work and should be tracked separately.",
+    "normalize_provider() correctly treats raw 'grok' as invalid and falls back to anthropic — this is the right call because Grok is only accessible via the LLMGateway gateway in this app; accepting raw 'grok' would silently break dispatch. The contract is locked in by test_normalize_provider_falls_back_to_anthropic.",
+    "The AsyncOpenAI client in call_llm() is instantiated per-call (no pooling). Acceptable at current traffic but worth revisiting if Grok usage becomes a hot path — consider a module-level cached client keyed by api_key.",
+    "/app/frontend/src/lib/settings.js encodes the ref via encodeURIComponent — correct. Tools.jsx uses its own appendParam() which also URL-encodes. Consistent.",
+    "Cosmetic/docs: LLMGATEWAY card in Tools page shows 'Pay-as-you-go · BYOK free tier' — worth verifying with LLMGateway's actual pricing page occasionally, as their tier structure can change."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_llmgateway_endpoints.py (NEW — 5 endpoint-level validation tests)"
+  ],
+  "success_rate": {"backend": "100% (11/11 LLMGateway-scoped tests pass; unrelated pre-existing failures in share_unfurl/corpus_search/sync not in scope)", "frontend": "100% (all 14 UI checks pass)"},
+  "test_credentials": "App gate: ?unlock=mind-mapper67 (from /app/frontend/.env:REACT_APP_UNLOCK_KEY). Sets localStorage['mindmapper.unlocked.v1']='1'. No real LLMGateway key available — endpoint tests used dummy key 'sk-test-dummy-llmgateway-key' which is sufficient to prove routing acceptance (our validation layer accepts, downstream LLMGateway call is expected to fail at their auth, which we wrap).",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "IMPORTANT: Studio route is /app, NOT /studio (AccessGate sits above <Routes> so /studio renders as blank page with only the Emergent footer). Any future UI tests that navigate to Studio must use /app or go via Landing's CTA. LLMGateway is the 4th BYOK provider and is hard-wired to model 'xai/grok-4' via base_url=https://api.llmgateway.io/v1 with the OpenAI SDK. The native <select> in Add-a-key now has exactly 4 options (not a Radix combobox). Tool cards on /tools are rendered as <a> elements themselves (testids tools-card-llmgateway / tools-card-perplexity ARE the anchors, so query their href directly rather than a nested <a>). To test the ?ref=<value> appending path, set REACT_APP_LLMGATEWAY_REF in /app/frontend/.env and restart supervisor frontend — requires rebuild since CRA inlines env vars at build time. The test_llm_dispatch.py mocks AsyncOpenAI and LlmChat so no real HTTP calls happen — safe to run repeatedly.",
+  "rca of the issue": "N/A — no bugs found. Implementation matches review request with one doc drift: review refers to '/studio' but actual route is '/app'."
+}

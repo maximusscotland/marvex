@@ -1,0 +1,33 @@
+{
+  "summary": "Regression test on https://mind-mapper.com after iteration_2 CORS fix. Backend: 11/11 pytest green (health, auth/me 401, parse-pdf happy+error paths, from-pdf+billing auth gates, +3 new CORS regression tests). Frontend: access gate unlocks via password, Studio loads with default Core Concept map (6 nodes), sign-in button present, /api/auth/me returns 401 from browser with NO CORS error, context menu opens, all 5 lock icons present, all 3 premium shapes (HEX/DIAMOND/DOCUMENT) + 2 premium fonts (SERIF/MONO) trigger UpgradeDialog, free shapes (RECT/ELLIPSE) + free font (SANS) do NOT trigger dialog, plan toggles (monthly/annual) + close button work. CORS bug from iteration_2 is fully resolved — Access-Control-Allow-Origin now echoes https://mind-mapper.com and Access-Control-Allow-Credentials=true on /api/auth/me + /api/billing/create-checkout + OPTIONS preflight.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mindmapper_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "UpgradeDialog.jsx does not set role='dialog' or aria-modal — purely data-testid-driven. Consider adding role='dialog' + aria-modal='true' for a11y and easier automation.",
+    "MindMapCanvas node-cap (30) enforcement in addChild is correct by inspection but remains hard to automate (ctx-backdrop intercepts rapid clicks). Consider exposing a window.__MINDMAP_TEST_HOOK__ (addChild, flatNodeCount) in dev builds so e2e can assert the guard deterministically.",
+    "blankMap() seeds 3 children with fixed ids n1/n2/n3 — if users create multiple blank maps and positions collide by id, layout overrides might bleed across maps via localStorage. Minor, not blocking.",
+    "Frontend /.env still uses the preview REACT_APP_BACKEND_URL; the deployed production bundle presumably points at a prod host. Works because backend CORS regex now matches mind-mapper.com explicitly — but a same-origin build (REACT_APP_BACKEND_URL='') would remove CORS entirely as a future hardening."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_mindmapper_api.py (added TestCORS class: auth/me ACAO+ACAC headers, OPTIONS preflight, billing CORS)"
+  ],
+  "success_rate": {"backend": "100% (11/11)", "frontend": "100% of automatable flows (node-cap guard not auto-tested; verified by code inspection in MindMapCanvas.jsx lines 337-355)"},
+  "test_credentials": "Access gate password: mind-mapper67 (works). Google OAuth and Stripe not exercised per instructions.",
+  "seed_data_creation": "pytest generates synthetic photosynthesis PDF via reportlab per run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All iteration_2 CORS issues are fixed. pytest suite (11 tests) passes green against https://mind-mapper.com. When testing UpgradeDialog, use selector [data-testid='upgrade-dialog'] — it does NOT have role='dialog'. Premium gating in ContextMenu.jsx (gatedShape/gatedFont @ lines 80-89) correctly invokes onUpgrade for non-Pro users on HEX/DIAMOND/DOCUMENT shapes + SERIF/MONO fonts. Free shapes RECT/ELLIPSE + free font SANS pass through without gating. Node cap (30) test remains flaky in automation — the addChild guard at MindMapCanvas.jsx ~L340 fires both a toast and onUpgrade when flatNodes.length >= FREE_NODE_CAP and !isPro, verified by code review.",
+  "rca of the issue": "No new bugs. Iteration_2 RCA (CORS wildcard + credentialed XHR mismatch) is fully mitigated by backend CORS allow_origin_regex in server.py L402: r'https://(.*\\.)?mind-mapper\\.com|https://.*\\.preview\\.emergentagent\\.com|https://.*\\.emergent\\.host' combined with allow_credentials=True. Verified via both pytest headers assertion and live browser fetch('/api/auth/me',{credentials:'include'}) returning 401 with no CORS console error."
+}

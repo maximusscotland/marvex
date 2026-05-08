@@ -1,0 +1,41 @@
+{
+  "summary": "Frontend-only test of new /tools curated affiliate page + its 2 entry points (Studio sidebar icon + Landing footer link). All 8 feature requirements pass. One minor FTC wording gap: disclosure says 'Amazon Associate' instead of 'Amazon Services LLC Associates Program' (the exact phrasing required by Amazon's operating agreement / FTC compliance).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "/tools — [data-testid='tools-disclosure']",
+        "issues": [
+          "FTC-compliance wording gap: disclosure mentions 'Amazon Associate' but not the exact phrase 'Amazon Services LLC Associates Program'. Amazon's operating agreement requires the full phrase verbatim for participants. Suggest updating the 2nd <p> to: '…is also a participant in the Amazon Services LLC Associates Program and a Bookshop.org affiliate…'."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Minor) Update /tools disclosure text in /app/frontend/src/pages/Tools.jsx line ~235 to include the exact phrase 'Amazon Services LLC Associates Program' for FTC/Amazon operating-agreement compliance."
+  ],
+  "critical_code_review_comments": [
+    "Tools.jsx is clean, well-commented, uses env var correctly (READWISE_REF falls back to empty string — verified Readwise href stays 'https://readwise.io/' with no ?via= when unset).",
+    "ToolCard correctly sets rel='noopener noreferrer sponsored' and target='_blank' on all 10 cards — prevents window.opener hijack + signals paid relationship to search engines.",
+    "Only Readwise carries the AFFILIATE badge (badge element uses its own data-testid which could collide with the ^='tools-card-' query selector; tests must filter it out — consider renaming to 'tool-affiliate-badge' in future for cleaner selectors).",
+    "No new console errors introduced on /tools. Pre-existing 401s on /library, /intake, /read, /app, / and /tools are backend auth probes unrelated to this feature (same errors observed on baseline routes).",
+    "withReadwiseRef helper correctly handles both '?' and no-query base URLs via conditional separator."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (not tested this iteration)",
+    "frontend": "100% (8/8 feature checks pass; 1 minor wording suggestion)"
+  },
+  "test_credentials": "Access gate password: mind-mapper67 (from /app/frontend/.env REACT_APP_UNLOCK_KEY).",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Tools page at /tools is stable. Verified: tools-hero + H1 'Tools we love'; all 3 sections (capture/read/think); 10 cards with correct testids (readwise, hypothesis, zotero, standard-ebooks, arxiv, pubmed, project-gutenberg, obsidian, anki, roam-research); only Readwise card carries [data-testid='tools-card-badge']='AFFILIATE'; every card a[target='_blank'][rel~='sponsored'][rel~='noopener'][rel~='noreferrer'] and href starts with https://; Readwise href is 'https://readwise.io/' (no ?via= because REACT_APP_READWISE_REF is empty — correct); tools-disclosure has 'Affiliate disclosure' heading (CSS uppercase, so innerText check must be case-insensitive) + 'Bookshop.org'; Studio sidebar-icon-tools renders with hover label 'Tools we love' and navigates to /tools; Landing footer-tools-link href='/tools' navigates correctly. Regression /app, /intake, /read, /library all mount without new JS errors.",
+  "rca of the issue": "No functional bugs. Only RCA: initial automated 'Affiliate disclosure' text check reported False because CSS text-transform:uppercase renders the heading as 'AFFILIATE DISCLOSURE' and innerText reflects rendered case. Verified case-insensitively — heading is present and correct. The one actionable gap is the FTC/Amazon exact-wording requirement noted in design_issues."
+}

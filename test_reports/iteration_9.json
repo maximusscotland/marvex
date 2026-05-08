@@ -1,0 +1,40 @@
+{
+  "summary": "Iteration 9 — Research Assistant feature (backend + frontend). All 9 targeted flows PASS on the public preview URL. Backend (pytest): 14 passed / 3 skipped (CORS intentionally prod-only). Frontend: /library renders with correct testids + copy, /app sidebar 'btn-open-library' navigates to /library, Settings modal exposes research-settings with persona/audience + 3 depth toggles persisting to localStorage 'mindmapper.research.v1', right-click Core Concept → mm-context-menu → mm-ctx-research is present with label 'Send to Research Assistant', clicking it while unauthenticated surfaces exact toast 'Sign in to use the Research Assistant' and does NOT crash the app (no pageerror, no error boundary, btn-open-library still mounted). Regression checks green: intake-zotero-btn, intake-dropbox-btn, affiliate-disclosure, existing context menu.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "POST /api/research", "issue": "Because the auth Depends() runs BEFORE the body-shape check, an unauthenticated request with empty focus_title still returns 401 instead of 400. The spec mentions '400 with A focus node title is required' but that path is only reachable for an authed session. Could not be validated end-to-end without a test user. Not a bug — just a test-coverage gap."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mindmapper_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py:546-588 — /api/research: the emptiness guard `if not focus: raise 400` runs AFTER `user = Depends(current_user_dep)`. Unauth callers never reach the 400 branch. If you want the 400 to be observable without auth, move the ResearchRequest shape-check into the Pydantic model (e.g. `@model_validator` that rejects empty focus_title+title) so 422 is returned by FastAPI before auth — OR add a separate unauth preview route. Today behaviour is safe (401 first), just inconsistent with the literal spec wording.",
+    "server.py:586 — `focus = (ctx.focus_title or '').strip() or ctx.title` falls back to the map title when focus_title is blank. Combined with `raw['title'] = focus[:120]` (line 637), a blank focus_title silently produces a map titled after the whole map — could surprise users. Consider forcing the frontend to always send a non-empty focus_title (Studio.handleResearch already does this), or explicitly 400 when focus_title is blank even if map title is present.",
+    "server.py:641-644 — MindMapResponse validation wrapped in try/except returning 502; this hides the real error detail from Sentry/logs. `logger.exception` would give better RCA.",
+    "ResearchSettings persists on every keystroke (no debounce) — same minor concern flagged in iteration 7/8 for AffiliateSettings. Not a blocker.",
+    "Studio.jsx registers /library route and wires btn-open-library to navigate there — confirmed working. Consider pre-loading Library.jsx via React.lazy + Suspense prefetch so the first click feels instant.",
+    "Pre-existing (iteration 7/8): /api/auth/me 401 console noise for unauthed sessions remains — harmless but could be suppressed by treating 401 as expected in the fetcher."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_mindmapper_api.py"
+  ],
+  "success_rate": {
+    "backend": "100% (14/14 active pytest tests pass; 3 CORS tests skipped by design — prod-only)",
+    "frontend": "100% (9/9 targeted checks pass: /library page + empty copy + search + back link, sidebar btn-open-library nav, settings-modal research-settings + persona + audience + 3 depth toggles, localStorage persistence 'mindmapper.research.v1', mm-ctx-research menu item, unauth click toast + no crash + no error boundary, intake regression, affiliate-disclosure regression)"
+  },
+  "test_credentials": "Access gate password: mind-mapper67 (REACT_APP_UNLOCK_KEY) — verified. No user login exercised (auth-gated 401 is the expected UX per spec).",
+  "seed_data_creation": "Only browser-localStorage: 'mindmapper.research.v1' = {persona:'friendly socratic tutor', audience:'college freshman', depth:'deep'} (set by the settings-persist test).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Verified testids on public URL: library-page, library-empty, library-search, library-back-link (/library), btn-open-library (studio sidebar), sidebar-icon-settings (opens settings-modal), research-settings, research-persona, research-audience, research-depth-{concise,balanced,deep}, mm-context-menu, mm-ctx-research, intake-zotero-btn, intake-dropbox-btn, affiliate-disclosure. Note: to open the Settings modal use data-testid='sidebar-icon-settings' (NOT 'btn-open-settings'). The Studio has a password unlock gate when REACT_APP_UNLOCK_KEY is set — submit 'mind-mapper67' via the password input with Enter or submit button. Backend pytest file: /app/backend/tests/test_mindmapper_api.py — new class TestResearchAssistant (4 tests). The ResearchAssistant 400 'focus node title is required' branch is unreachable without an authed user because auth Depends() runs first; non-500 verified for unknown x-user-api-provider header. For future auth-enabled tests, create/seed a user via /api/auth then call /api/research with cookies.",
+  "rca of the issue": "N/A — no blocking issues. Only a minor spec-vs-implementation mismatch around 400 ordering (documented in critical_code_review_comments). All user-facing flows work."
+}

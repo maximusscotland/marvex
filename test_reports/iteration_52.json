@@ -1,0 +1,44 @@
+{
+  "summary": "Frontend-only regression of 8 Studio UI fixes (iter 52). 7/8 fully pass + 1 partial (scroll-to-dismiss on annotation menu). FIX1 child placement near parent: child created 127.5px from parent (well within ~250px target). FIX2 annotation menu dismiss: opens via right-click on sticky/text/shape; Escape, click-outside, second right-click all dismiss reliably. SCROLL-to-dismiss did NOT fire (mouse.wheel doesn't trigger window 'scroll' listener — likely a real edge case). FIX3 header gradient now solid rgb(3,6,15) 0-55% (opaque). FIX4 top toolbar is horizontal (1039x40 @ top=140); shape dropdown opens BELOW trigger (menu y=183, trigger bottom=173). FIX5 SelectionPropertiesPanel renders, drag handle works (moved 88px), position persists in localStorage 'mm.selectionPanelPos'. FIX6 StudioLeftToolbar default pos left=20 top=530, drag handle present. FIX7 mm-tb-insert-shape adds shape annotation. FIX8 reader-print button present after PDF upload, click fires window.print().",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "AnnotationsLayer.jsx — annotMenu scroll-to-dismiss",
+        "issue": "Listener registers 'scroll' on window (capture). Mind-Mapper canvas pans/zooms via wheel events, NOT scroll events, so panning the canvas while menu is open does NOT close it. Escape / click-outside / 2nd right-click all work correctly. Recommend ALSO listening to 'wheel' on window in capture phase, or to canvas-container scroll/wheel.",
+        "selector": "[data-testid=\"mm-annot-ctx-menu\"]",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Studio init",
+        "issues": [
+          "Recurring console error: 'Maximum update depth exceeded' inside Studio mount (carried over from prior iterations 49-51). Non-blocking but visible. Also a stray 'NaN is an invalid value for the left CSS style property' fired once during dispatched contextmenu — likely a transient inside the ctx-menu portal positioning when annotMenu state is null but a dispatched event arrives mid-render."
+        ]
+      }
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Optional) Add wheel-event dismissal alongside scroll for the annotation context menu so canvas panning also closes it (currently only document scroll closes; canvas uses wheel).",
+    "Investigate the 'Maximum update depth exceeded' warning during Studio mount (existing issue, not introduced by this batch).",
+    "Investigate transient 'NaN left CSS' error inside the context-menu portal — likely guard against rendering portal when annotMenu is being torn down."
+  ],
+  "critical_code_review_comments": [
+    "FIX2 implementation is solid: capture-phase mousedown + contextmenu listeners installed via useEffect after annotMenu state is set, so opening event itself doesn't dismiss. Escape works via document keydown.",
+    "FIX5 DraggablePanel correctly persists 'mm.selectionPanelPos' as JSON {x,y}. Verified via reload.",
+    "FIX4 mm-top-toolbar geometry correct: width 1039, height 40, top 140, centred horizontally. Shape, cloud-save and background-picker popovers all flipped to top-full mt-2 (open below).",
+    "FIX7 shape annotation correctly stand-alone (no edge to root) — multiple insertions allowed; verified shape_count increments.",
+    "Pre-existing 'Maximum update depth exceeded' warning persists from earlier iterations — should be triaged independently."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "95% (7.5/8 fixes fully pass; scroll-dismiss is partial)"},
+  "test_credentials": "?unlock=mind-mapper67 (no auth gate)",
+  "seed_data_creation": "Generated /tmp/test_sample.pdf via reportlab for FIX8 (PDF Reader print test).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 8 fixes effectively pass. Only nit: AnnotationsLayer dismissal listens for 'scroll' but canvas uses 'wheel' — pan-to-dismiss therefore doesn't fire. Other 3 dismissal paths (Escape, click-outside, second right-click) are rock-solid. To trigger right-click annotation menu reliably in playwright, dispatch_event('contextmenu') with clientX/Y on the parent element (testid pattern /^mm-annot-{type}-annot_[a-z0-9]+$/) — playwright mouse.click(button='right') sometimes fails because canvas overlays intercept. PDF print button only renders AFTER a PDF is loaded into reader — empty reader has only the upload UI.",
+  "rca of the issue": "Scroll dismiss only fires for 'scroll' event. Mind-Mapper canvas pans via wheel handlers (no overflow scroll). Fix: window.addEventListener('wheel', onScroll, {capture:true, passive:true})."
+}

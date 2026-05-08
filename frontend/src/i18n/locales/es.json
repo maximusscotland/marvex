@@ -1,0 +1,377 @@
+{
+  "common": {
+    "brand": "Marvex",
+    "tagline": "El Laboratorio de Investigación Definitivo",
+    "tryFree": "Prueba Gratis",
+    "download": "Descargar",
+    "openStudio": "Abrir el Estudio",
+    "seeWhatItDoes": "Ver lo que hace",
+    "language": "Idioma",
+    "close": "Cerrar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "untitled": "Sin título"
+  },
+  "nav": {
+    "features": "Características",
+    "howItWorks": "Cómo funciona",
+    "learn": "Aprender"
+  },
+  "landing": {
+    "heroBadge": "1 PDF · 1 Minuto · Pura Magia",
+    "heroTitleA": "PDF a Mapa Mental",
+    "heroTitleB": "en 1 minuto.",
+    "heroLead": "Marvex Studio - El software de mapas mentales y la Herramienta Definitiva de Investigación y Aprendizaje. Sube cualquier PDF y observa cómo ocurre la magia — Con IA, puedes extraer cada concepto, relación y jerarquía en un hermoso mapa mental interactivo. Luego, busca entre todo lo que hayas mapeado. Todo en la seguridad de tu propia máquina. ¡Cero Nube!",
+    "heroFootnote": "Local primero · Funciona sin conexión",
+    "philosophyQuote": "Piensa en el camino que ya has recorrido. Cada acción, cada percepción, cada pequeño paso ha llevado hasta aquí. Marvex Studio no te pide que elijas una nueva dirección — es la continuación inevitable de la trayectoria que has establecido. El progreso se siente sin esfuerzo cuando nuestra tecnología avanzada se alinea con tu propia historia, tus propias luchas y tus propias ambiciones. Detenerse ahora contradice el camino que ya has reclamado como tuyo.",
+    "philosophyAttribution": "— Filosofía de Marvex Studio",
+    "featuresEyebrow": "Características Clave",
+    "featuresTitleA": "Investigación,",
+    "featuresTitleB": "reimaginada.",
+    "feature": {
+      "magicMap": {
+        "title": "Sube un PDF · Obtén un mapa",
+        "badge": "Potenciado por IA · 60s",
+        "body": "En menos de 60 segundos, un generador de mapa mental con IA extrae cada concepto, tema y relación en un mapa visual."
+      },
+      "secondBrain": {
+        "title": "Cada mapa · Una búsqueda",
+        "badge": "Segundo Cerebro Global",
+        "body": "Una barra de búsqueda para gobernarlas a todas. Consulta cada Marvex que hayas creado. Encuentra conexiones entre documentos que no sabías que existían — incluso seis meses después."
+      },
+      "localFirst": {
+        "title": "Tu clave · Cero nube",
+        "badge": "Privacidad Primero · BYOK",
+        "body": "Trae tu propia clave de IA — tu clave, tu factura, tus datos. Los mapas viven en tu navegador. Sin cuentas. Sin rastreo. Sin recolección de datos. Soporte offline completo."
+      },
+      "cloudPush": {
+        "title": "Envía a Drive · Dropbox · Zotero",
+        "badge": "Primero local · Compatible con la nube",
+        "body": "Un clic para replicar un mapa a Google Drive, Dropbox o tu biblioteca de Zotero — como PDF, PNG, SVG, Markdown o un archivo adjunto binario completo. Tú decides, cada vez."
+      },
+      "smartReader": {
+        "title": "Lector de PDF integrado",
+        "badge": "Resaltar → Mapear",
+        "body": "Abre cualquier enlace PDF desde un nodo y el Lector integrado se activa — resalta pasajes, anota márgenes y envía selecciones directamente al mapa que estás construyendo. Tus fuentes, tus anotaciones, todo bajo un mismo techo."
+      },
+      "openAnything": {
+        "title": "Abre cualquier cosa · de la forma correcta",
+        "badge": "Enrutamiento Inteligente de Enlaces",
+        "body": "Adjunta cualquier archivo o URL a un nodo. Los PDF se abren en el Lector. Las canciones se lanzan en tu app de música, los videos en tu reproductor, los sitios web en tu navegador predeterminado — cada enlace respeta cómo tu sistema operativo ya prefiere trabajar."
+      },
+      "calendar": {
+        "title": "Recordatorios en un calendario real",
+        "badge": "Nuevo",
+        "body": "Etiqueta un nodo con una fecha y aparece en una hermosa vista de calendario — todas las fechas límite, charlas y seguimientos de cada mapa en un solo lugar. Local, privado, no se requiere cuenta de Google."
+      },
+      "bookmarks": {
+        "title": "Marcadores de Chrome → lista de lectura",
+        "badge": "Importación en Un Clic",
+        "body": "Exporta tus marcadores de Chrome una vez y Marvex Studio convierte toda la jerarquía de carpetas en un mapa navegable. Años de enlaces guardados, finalmente organizados."
+      },
+      "compileToPdf": {
+        "title": "Mapas → Documentos pulidos",
+        "badge": "Compilación IA",
+        "body": "Lo inverso de PDF→Mapa. Elige un nodo, un subárbol o el mapa completo; la IA lo teje en un ensayo, informe o esquema coherente. Exporta el resultado como PDF o Markdown — tu mapa se convierte en un borrador publicable, sin copiar y pegar."
+      }
+    },
+    "howEyebrow": "Cómo funciona",
+    "howTitleA": "Un minuto de magia.",
+    "howTitleB": "Tres pasos simples.",
+    "steps": {
+      "one": {
+        "title": "Sube tu PDF",
+        "body": "Arrastra y suelta cualquier documento de investigación, libro de texto o documento. Hasta 25 MB."
+      },
+      "two": {
+        "title": "La magia sucede",
+        "body": "En menos de 60 segundos, con IA puedes extraer cada concepto, tema y relación en un mapa visual."
+      },
+      "three": {
+        "title": "Edita y explora",
+        "body": "Arrastra nodos, edita títulos, añade ramas, haz zoom y mueve. Tu mapa se guarda automáticamente de forma local."
+      }
+    },
+    "desktopEyebrow": "Construido para escritorio · Windows · macOS",
+    "desktopTitleA": "Tu",
+    "desktopTitleB": "segundo cerebro",
+    "desktopTitleC": ", en tu máquina.",
+    "desktopLead": "Abre el estudio y comienza a mapear. Se abre al instante, funciona sin conexión, y nunca envía un byte de tu investigación a donde no debería.",
+    "footer": {
+      "copyright": "© 2026 marvex.app · El Laboratorio de Investigación Definitivo",
+      "localFirst": "Local primero",
+      "offlineReady": "Listo para funcionar sin conexión",
+      "noTracking": "Sin rastreo",
+      "toolsWeLove": "Herramientas que amamos",
+      "affiliateDisclosure": "Marvex Studio es participante en el Programa de Asociados de Servicios de Amazon LLC y en el programa de afiliados de Bookshop.org. Los enlaces de libros externos pueden generarnos una comisión sin costo adicional para ti."
+    }
+  },
+  "studio": {
+    "brand": "Marvex",
+    "brandSubtitle": "estudio",
+    "hideSidebar": "Ocultar barra lateral  ([)",
+    "showSidebar": "Mostrar barra lateral  ([)",
+    "sections": {
+      "create": "Crear",
+      "assets": "Activos"
+    },
+    "actions": {
+      "new": "Nuevo",
+      "open": "Abrir",
+      "mindMapperStudio": "Estudio Marvex Studio",
+      "studioOn": "ENCENDIDO",
+      "pdfStudio": "Estudio de PDF",
+      "library": "Biblioteca",
+      "reader": "Lector"
+    },
+    "icons": {
+      "todo": "Lista de tareas (notas adhesivas)",
+      "search": "Buscar (⌘K)",
+      "exportCurrent": "Exportar actual",
+      "highlights": "Destacados",
+      "memory": "Memoria de investigación",
+      "tools": "Herramientas que amamos",
+      "learn": "Tutoriales",
+      "settings": "Configuraciones"
+    },
+    "topBar": {
+      "noMapOpen": "No hay mapa abierto",
+      "renameHint": "Haz clic para renombrar",
+      "untitledMap": "Mapa sin título",
+      "autoSaved": "Guardado automáticamente · local",
+      "share": "Compartir",
+      "shareHint": "Comparte este mapa"
+    },
+    "userBadge": {
+      "signIn": "Iniciar sesión",
+      "upgradeWithFree": "Actualizar · {{remaining}} gratis restantes",
+      "upgradeToPro": "Actualizar a Pro",
+      "pro": "Pro",
+      "trial": "· prueba",
+      "signOutLabel": "Salir",
+      "signOutHint": "Cerrar sesión",
+      "manageSubscription": "Administrar",
+      "manageSubscriptionHint": "Administrar suscripción, actualizar tarjeta o cancelar",
+      "portalUnavailable": "Portal de clientes no disponible. Envía un correo a support@marvex.app y lo resolveremos en 24h."
+    },
+    "empty": {
+      "title": "Tu lienzo te espera.",
+      "body": "Comienza con un mapa en blanco, o sube un PDF y deja que Claude lo convierta en un mapa mental bellamente estructurado en segundos.",
+      "cta": "Mapa Mental PDF"
+    },
+    "modals": {
+      "openMap": "Abrir un Mapa",
+      "noMapsYet": "Aún no hay mapas guardados. Haz clic",
+      "noMapsYetAfter": "o convierte un PDF.",
+      "noMapsYetCta": "NUEVO",
+      "recentlyOpened": "Abiertos recientemente",
+      "allMaps": "Todos los mapas",
+      "branchesOne": "rama",
+      "branchesOther": "ramas",
+      "globalSearch": "Segundo Cerebro · Búsqueda Global",
+      "searchPlaceholder": "Buscar cada mapa, cada nodo…",
+      "searchHint": "Presiona ⌘K en cualquier lugar para buscar.",
+      "searchNoMatches": "Sin coincidencias."
+    },
+    "todo": {
+      "eyebrow": "Lista de tareas",
+      "title": "Tus notas adhesivas",
+      "stats": "{{open}} abiertas · {{done}} hechas",
+      "emptyBody": "Aún no hay notas adhesivas. Inserta una desde la barra de herramientas del lienzo para comenzar tu lista de tareas.",
+      "sectionOpen": "Abiertas",
+      "sectionDone": "Hechas",
+      "currentMap": "· actual",
+      "jumpToMap": "· saltar →"
+    },
+    "defaults": {
+      "coreConcept": "Concepto Central",
+      "ideaOne": "Idea Uno",
+      "ideaTwo": "Idea Dos",
+      "ideaThree": "Idea Tres",
+      "ideaFour": "Idea Cuatro",
+      "ideaFive": "Idea Cinco",
+      "untitledMap": "Mapa Sin Título",
+      "idea1": "Idea 1",
+      "idea2": "Idea 2",
+      "idea3": "Idea 3",
+      "newMapCreated": "Nuevo mapa creado"
+    }
+  },
+  "learn": {
+    "index": {
+      "eyebrow": "Aprender",
+      "title": "Domina Marvex Studio en minutos.",
+      "lead": "Tres tutoriales breves y prácticos que te llevarán de un lienzo en blanco a un flujo de trabajo completo de investigación. Sin relleno, solo los movimientos que importan.",
+      "back": "Volver a la app",
+      "backToLanding": "Volver a la página de inicio",
+      "startTutorial": "Comenzar tutorial",
+      "minutes": "{{minutes}} min de lectura",
+      "stepsCount": "{{count}} pasos",
+      "backToIndex": "Todos los tutoriales",
+      "takeInteractiveTour": "Realiza el recorrido interactivo",
+      "takeInteractiveTourHint": "Un recorrido de 60 segundos dentro del estudio."
+    },
+    "tour": {
+      "skip": "Omitir recorrido",
+      "next": "Siguiente",
+      "back": "Atrás",
+      "done": "Hecho",
+      "stepCounter": "Paso {{current}} de {{total}}",
+      "restart": "Reiniciar recorrido",
+      "welcome": {
+        "title": "Bienvenido a Marvex Studio",
+        "body": "Este rápido recorrido de 60 segundos resalta las cuatro cosas que usarás más. Omítelo en cualquier momento y regresa más tarde desde la página de Aprender."
+      },
+      "sidebar": {
+        "title": "Tu plataforma de lanzamiento",
+        "body": "Inicia un Nuevo mapa, Abre uno existente, o salta a Estudio de PDF, Biblioteca y Lector. Cada herramienta que necesitas vive en esta barra lateral."
+      },
+      "canvas": {
+        "title": "El lienzo",
+        "body": "Arrastra, haz zoom y mueve libremente. Haz doble clic en un nodo para renombrarlo. Presiona Tab para añadir un hijo, Enter para añadir un hermano. Haz clic derecho para más opciones."
+      },
+      "toolbar": {
+        "title": "Barra de herramientas",
+        "body": "Deshacer · Rehacer · Forma · Exportar · Captura de pantalla · Guardar en la Nube. Pasa el ratón sobre cualquier ícono para su información, o presiona ? en cualquier momento para la hoja de trucos completa."
+      },
+      "share": {
+        "title": "Guardar y compartir",
+        "body": "No hay botón de guardado — cada cambio se guarda automáticamente de forma local. Haz clic en Compartir para copiar un enlace de solo lectura, o usa el botón de Guardar en la Nube (Pro) para enviar a Google Drive, Dropbox o Zotero."
+      },
+      "powerMoves": {
+        "title": "Bonus: 3 power moves",
+        "body": "Shift-click two-or-more nodes, right-click, and pick 'Group as branch' to pull scattered ideas under one parent — or 'Join with line/arrow' to connect them visually. The 3-minute tutorial below shows it end-to-end."
+      }
+    },
+    "tutorials": {
+      "firstMap": {
+        "title": "Crea tu primer mapa mental",
+        "subtitle": "De un lienzo en blanco a un mapa mental terminado en menos de cinco minutos.",
+        "category": "Básicos",
+        "minutes": 4,
+        "intro": "Cada mapa mental en esta app comienza desde un solo nodo central. En este recorrido crearás un nuevo mapa, agregarás ramas, personalizarás su forma y color, y lo guardarás — todo utilizando solo algunos atajos de teclado. Al final, conocerás cada movimiento que necesitas para usar Marvex Studio día a día.",
+        "step1": {
+          "heading": "Paso 1 — Abre el Estudio",
+          "body": "Haz clic en el botón del Estudio Marvex Studio en la barra lateral izquierda, o presiona ⌘/Ctrl + N para crear un nuevo mapa. El lienzo llena la pantalla y tu cursor ya está en el nodo central, esperando que lo renombres."
+        },
+        "step2": {
+          "heading": "Paso 2 — Renombra el nodo central",
+          "body": "Haz doble clic en el nodo para entrar en modo de edición, escribe tu tema y presiona Enter. Títulos cortos y contundentes son mejores que oraciones largas — este es la raíz de tu árbol, así que trátalo como un encabezado de capítulo."
+        },
+        "step3": {
+          "heading": "Paso 3 — Añadir ramas hijas",
+          "body": "Presiona Tab para crear un nuevo hijo bajo el nodo seleccionado, o Enter para añadir un hermano. Mantén presionado Shift + Enter para añadir un hermano arriba. Sigue hasta que tu primer anillo de ideas esté en su lugar."
+        },
+        "step4": {
+          "heading": "Paso 4 — Estiliza con clic derecho",
+          "body": "Haz clic derecho en cualquier nodo para abrir el menú de contexto. Elige una forma (rectángulo, elipse, diamante, hexágono, nube, estrella, pastilla), un color de relleno de la paleta, o cambia a un trazo más audaz. Los presets cósmicos combinan perfectamente con el resto de la app."
+        },
+        "step5": {
+          "heading": "Paso 5 — Mover, hacer zoom, enfocar",
+          "body": "Mantén presionado Espacio + arrastra para mover el lienzo. Desplázate o pellizca para hacer zoom. Presiona F para enmarcar el nodo seleccionado. Presiona ? en cualquier momento para abrir la hoja de trucos completa."
+        },
+        "step6": {
+          "heading": "Paso 6 — Guardar y compartir",
+          "body": "No hay botón de guardar — cada cambio se guarda automáticamente de forma local en el instante que lo haces. Haz clic en Compartir en la barra superior para copiar un enlace de solo lectura, o usa el botón de Guardar en la Nube de la barra de herramientas para enviar a Google Drive, Dropbox o Zotero (Pro)."
+        },
+        "tip": "Consejo pro: la historia de deshacer Cmd/Ctrl + Z mantiene 50 pasos. Puedes experimentar sin miedo."
+      },
+      "pdfStudio": {
+        "title": "Convierte un PDF en un mapa mental",
+        "subtitle": "Sube un artículo, deja que Claude lo estructure, luego refina el resultado a mano.",
+        "category": "Flujo de trabajo de PDF",
+        "minutes": 6,
+        "intro": "El Estudio de PDF es el corazón del flujo de trabajo de investigación de Marvex Studio. Tú le das cualquier artículo de investigación, capítulo de libro de texto o documento de hasta 25 MB, y un pase de IA extrae cada concepto, tema y relación en un mapa estructurado que puedes editar. Este tutorial cubre todo el flujo — subir, elegir un modo, revisar, refinar y fusionar con un mapa existente.",
+        "step1": {
+          "heading": "Paso 1 — Abre el Estudio de PDF",
+          "body": "Haz clic en el botón morado del Estudio de PDF en la barra lateral. Llegarás a la cola de Recepción — un panel de control que rastrea cada documento que has procesado. Arrastra y suelta un PDF en la zona de subida o haz clic para explorar."
+        },
+        "step2": {
+          "heading": "Paso 2 — Elige un modo de conversión",
+          "body": "Esquema Rápido analiza encabezados y estructura de forma heurística — rápido y gratuito. Análisis de IA (predeterminado) envía el texto completo a Claude Sonnet 4.5, que produce un mapa semántico rico en relaciones y anotaciones. Los usuarios Pro obtienen ejecuciones de IA ilimitadas; los usuarios gratuitos tienen tres al mes."
+        },
+        "step3": {
+          "heading": "Paso 3 — Revisa el borrador",
+          "body": "Dentro de 30-60 segundos el borrador aparece en el panel de vista previa. Desplázate por el árbol de nodos — cada rama mapea a un grupo de conceptos del artículo y cada hoja lleva un breve resumen. Si una rama parece incorrecta, haz clic para marcarla."
+        },
+        "step4": {
+          "heading": "Paso 4 — Corrige y enriquece",
+          "body": "Usa las herramientas de edición en línea para renombrar, fusionar, dividir o eliminar nodos. Haz clic derecho en cualquier nodo y elige 'Enriquecer con IA' para pedir a Claude una glosa más profunda, un ejemplo, o una perspectiva contraria. El PDF original permanece anclado junto al mapa para que puedas referenciar rápidamente."
+        },
+        "step5": {
+          "heading": "Paso 5 — Comprométete a un mapa",
+          "body": "Una vez que el borrador se vea bien, haz clic en Guardar como Nuevo Mapa o Fusionar en Existente. Fusionar respeta tu estructura existente e inserta los nuevos conceptos como un nuevo sub-árbol que puedes reorganizar más tarde."
+        },
+        "step6": {
+          "heading": "Paso 6 — Revisa con el Lector",
+          "body": "Abre el Lector desde la barra lateral para leer el PDF lado a lado con su mapa. Resalta cualquier frase en el PDF y Marvex Studio automáticamente la añadirá al mapa como un nodo de cita — perfecto para construir pistas de evidencia entre artículos."
+        },
+        "tip": "Consejo pro: sube en lote hasta diez PDFs a la vez y la cola los procesará en paralelo."
+      },
+      "aiResearch": {
+        "title": "Usa el Asistente de Investigación por IA",
+        "subtitle": "Haz cualquier pregunta sobre cada mapa que has creado. Obtén una respuesta fundamentada con citas.",
+        "category": "Investigación por IA",
+        "minutes": 5,
+        "intro": "Tu Segundo Cerebro no es solo un árbol bonito — es una base de conocimiento que puedes buscar. El Asistente de Investigación por IA recolecta de cada mapa, PDF y resaltado que hayas hecho y luego responde a tu pregunta con Claude Sonnet 4.5 basado en ese corpus. Este tutorial cubre cómo hacer preguntas, seguir citas, guardar notas de investigación y modo de Investigación Profunda.",
+        "step1": {
+          "heading": "Paso 1 — Abre Investigación",
+          "body": "Presiona ⌘/Ctrl + K desde cualquier lugar de la app, o haz clic en la lupa en la barra lateral. El panel de Investigación se desliza desde la derecha con un cuadro de pregunta vacío."
+        },
+        "step2": {
+          "heading": "Paso 2 — Pregunta en lenguaje sencillo",
+          "body": "Escribe una pregunta específica. '¿Qué dice Popper sobre la falsabilidad?' es mejor que 'Popper'. Cuanto más precisa sea tu pregunta, más ajustadas las citas. Presiona Enter para enviar."
+        },
+        "step3": {
+          "heading": "Paso 3 — Lee la respuesta en streaming",
+          "body": "Claude transmite la respuesta token por token. Cada afirmación viene con un chip de cita — pasa el ratón para ver el fragmento de la fuente, haz clic para saltar al nodo exacto o al resaltado del PDF del que proviene. Nada es inventado — si el corpus no sabe, el asistente lo dice."
+        },
+        "step4": {
+          "heading": "Paso 4 — Activa Investigación Profunda",
+          "body": "Para preguntas complejas, activa el interruptor de Investigación Profunda en el encabezado del panel. El asistente encadena múltiples búsquedas, explora relaciones y construye una respuesta más larga y mejor estructurada. Toma más tiempo, pero maneja preguntas de varios pasos de manera brillante."
+        },
+        "step5": {
+          "heading": "Paso 5 — Guarda la respuesta",
+          "body": "Haz clic en 'Guardar en Memoria' para anclar la respuesta — se convierte en una nota de investigación accesible desde la página /memory. Preguntas subsecuentes consideran automáticamente tus notas guardadas como contexto, por lo que tu asistente se vuelve más inteligente cuanto más lo uses."
+        },
+        "step6": {
+          "heading": "Paso 6 — Agrégalo a un mapa",
+          "body": "Cada párrafo de la respuesta tiene un botón de agregar rápidamente. Haz clic en él para insertar ese párrafo como un nuevo nodo en tu mapa actual, conservando la cita como una sub-nota. Tu mapa crece de manera orgánica junto con la conversación."
+        },
+        "tip": "Consejo pro: haz preguntas de seguimiento en la misma sesión para mantener el contexto de Claude. Cada nueva sesión comienza desde cero."
+      },
+      "reorganise": {
+        "title": "Reorganise a sprawling map",
+        "subtitle": "Pull scattered ideas under a parent branch in two clicks. No deleting, no copy-paste.",
+        "category": "Power moves",
+        "minutes": 3,
+        "intro": "Maps grow fast. After a research session you'll often end up with eight or ten loose branches that obviously belong together — but moving them one-by-one is tedious. This walk-through shows the fastest path: shift-click to multi-select, right-click to group, rename. Same trick works for joining ideas with arrows or lines.",
+        "step1": {
+          "heading": "Step 1 — Spot the loose ideas",
+          "body": "Open any map that's gotten unwieldy. Look for two-or-more nodes that share a theme but live on different branches — symptoms, side-effects, sources, you name it. These are your join candidates."
+        },
+        "step2": {
+          "heading": "Step 2 — Hold Shift and click each one",
+          "body": "Press and hold Shift, then click each candidate node. Every node you click stays in the pool — you'll see a fuchsia dashed outline around it. Release Shift when you're done. Plain click on any node clears the pool, so keep Shift held until the last one."
+        },
+        "step3": {
+          "heading": "Step 3 — Right-click anywhere on the canvas",
+          "body": "With your pool selected, right-click on any empty canvas area (or on one of the highlighted nodes). The first three options are 'Join N with line', 'Join N with arrow', and 'Group N as branch' — pick whichever matches your intent."
+        },
+        "step4": {
+          "heading": "Step 4 — Group as branch",
+          "body": "'Group N as branch' detaches each selected sub-tree (with its descendants intact) and re-attaches them under a brand-new parent node called 'New group' — anchored to your map root. You're dropped straight into rename mode so you can give the branch a meaningful name and press Enter."
+        },
+        "step5": {
+          "heading": "Step 5 — Or join with a line/arrow instead",
+          "body": "If the ideas should connect without changing the tree, pick 'Join with line' (or arrow). A free-floating connector appears between consecutive selections — drag the endpoints later, recolour from the right-click menu, or delete if you change your mind. Lines work between nodes, stickies, clipart, anything."
+        },
+        "step6": {
+          "heading": "Step 6 — Compile it into a written brief (bonus)",
+          "body": "Once the branch is clean, click the scroll icon in the top toolbar (or right-click the new parent → Compile to document). The AI weaves every node title and summary into a 1-page brief, 3-page report, or 8-page deep-dive — your pick. Save it as PDF straight from the preview, or Copy MD into Notion. The fastest way to turn a brainstorm into a deliverable."
+        },
+        "tip": "Pro tip: select 4+ items and 'Group as branch' will pull them all under one parent in a single click — perfect for mid-PDF pivots when you realise three sections are really one super-topic."
+      }
+    }
+  }
+}

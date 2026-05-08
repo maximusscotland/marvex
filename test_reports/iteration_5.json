@@ -1,0 +1,51 @@
+{
+  "summary": "Iteration-5 verification of the new /intake 'PDF Studio' route and associated flows. Backend regression (pytest TestParsePdf) = 5/5 pass on preview URL. Frontend verified: /intake renders with all required testids, single-PDF upload → parse → preview → fixer → create-maps → navigate to /app with new map in sidebar works end-to-end; fixer rename/add/move/indent/trash all behave correctly; pro-gating toast fires for 2nd upload attempt; sidebar btn-pdf-to-mindmap now navigates to /intake (PdfUploadDialog gone); batch-mode toggle correctly hidden with <2 items; file-input multiple attribute absent for free user.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "IntakeStudio.jsx IntakeCard",
+        "issue": "DOM nesting violation — the outer `intake-card-toggle-<id>` is a <button> that contains nested <button> elements (intake-remove-<id>, intake-ocr-<id>, and five TinyBtn controls in the fixer rows hover menu). React console logs: '<button> cannot be a descendant of <button>. This will cause a hydration error.' During Phase-3 the `intake-remove-<id>` click failed to remove the card exactly once (1 card remained after click) — strongly suspected to be caused by this invalid nesting collapsing the inner button in the accessibility/click tree. Fix: change the outer toggle element from <button> to a <div role=\"button\" tabIndex={0}> (or split into sibling row with a dedicated chevron button).",
+        "selector": "[data-testid^=\"intake-card-toggle-\"] [data-testid^=\"intake-remove-\"]",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Pro-gating on second single-file upload",
+        "issue": "Toast 'Batch intake is a Pro feature' fires correctly, but UpgradeDialog did not open when queried via [role=\"dialog\"]. setUpgradeOpen(true) is called in source (IntakeStudio.jsx L76) — please verify UpgradeDialog actually mounts (its dialog root may not set role=\"dialog\"). Low risk: gating logic works; just confirm the Upgrade CTA surfaces.",
+        "affected_selectors": ["[role=\"dialog\"]", "UpgradeDialog"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mindmapper_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Fix nested <button> DOM violation in IntakeStudio.jsx IntakeCard: change outer card-toggle <button> to a <div role='button' tabIndex={0}> so that intake-remove-<id>, intake-ocr-<id>, and TinyBtn controls remain reliably clickable and no hydration warnings fire.",
+    "Verify UpgradeDialog surfaces visibly when setUpgradeOpen(true) fires in /intake (second-file pro gate)."
+  ],
+  "critical_code_review_comments": [
+    "IntakeStudio.jsx L435-490: Nested <button> in <button> is invalid HTML and causes React hydration warnings + unreliable click on inner buttons. Must refactor outer toggle element.",
+    "IntakeStudio.jsx L75: Pro-gate message uses toast.info for what is effectively a blocking restriction. Consider toast.error or toast.warning for stronger user feedback.",
+    "lib/intake.js ocrPdfToHeadings: Hard-caps at 30 pages (L121) silently — add a toast/info line when a file is truncated so users don't think OCR skipped content.",
+    "IntakeStudio.jsx FixerPanel addAt: Uses `addAt(headings.length - 1)` even when list is empty (headings.length-1 = -1). Works by coincidence because splice(0,...) inserts at start with depth 0. Safer: `headings.length === 0 ? addAt(-1) : addAt(headings.length - 1)` — already the effective behavior but could be made explicit.",
+    "IntakeStudio.jsx only persists the map in localStorage; when not signed in there is no server round-trip. That is per-spec for this iteration but worth an info banner so users know their super-map is device-local until they sign in."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "100% (5/5 TestParsePdf on preview URL; CORS 3 skipped-by-design)",
+    "frontend": "~95% (all required /intake flows verified; one HTML-nesting bug found that caused 1 flaky remove-click)"
+  },
+  "test_credentials": "Access gate password 'mind-mapper67' (from REACT_APP_UNLOCK_KEY) works. /app/memory/test_credentials.md is still just a placeholder — no login required for free flows tested.",
+  "seed_data_creation": "In-browser: a single small reportlab-synthesized PDF (/tmp/test_intake.pdf, 1.5 KB, titled 'Research On Clean Energy' with 4 headings) was passed as a Buffer into Playwright set_input_files. Test added one map to localStorage mindmapper.maps.v1 during Phase-2; no backend data created.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All /intake testids are present and wired. Batch-mode markup (intake-batch-mode/intake-mode-individual/intake-mode-merged/intake-pack-name) is in source but only renders when items.length > 1 — cannot be exercised on a free session because the gate blocks multi-upload. To exercise it, a Pro session is required (subscription_status=='active'|'trialing'). OCR button is wired only on status===FAILED; couldn't trigger a failed state with a valid text PDF. The nested-button DOM bug needs to be fixed before claiming 100% frontend pass.",
+  "rca of the issue": "Nested <button> in <button> (IntakeStudio.jsx IntakeCard): The outer row is rendered as <button data-testid='intake-card-toggle-...'>, and inside its children it renders <button data-testid='intake-remove-...'>, <button data-testid='intake-ocr-...'>, and TinyBtn <button>s. Browsers auto-correct this by closing the outer button before the inner ones, which breaks the DOM tree React expects and can silently drop clicks on the inner buttons (observed: 1 remove-click did not remove the card). Repro: open /intake on free tier, upload a PDF, wait for preview, hover a heading row and try clicking the trash/arrow buttons repeatedly. Mitigation: change outer toggle element to <div role='button' tabIndex={0} onClick={...} onKeyDown={enter→toggle}> — keeps testid + accessibility without nesting violation."
+}

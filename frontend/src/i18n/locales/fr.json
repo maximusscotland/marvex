@@ -1,0 +1,377 @@
+{
+  "common": {
+    "brand": "Marvex",
+    "tagline": "Le laboratoire de recherche ultime",
+    "tryFree": "Essai gratuit",
+    "download": "Télécharger",
+    "openStudio": "Ouvrir le studio",
+    "seeWhatItDoes": "Voir ce qu'il fait",
+    "language": "Langue",
+    "close": "Fermer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "untitled": "Sans titre"
+  },
+  "nav": {
+    "features": "Fonctionnalités",
+    "howItWorks": "Comment ça fonctionne",
+    "learn": "Apprendre"
+  },
+  "landing": {
+    "heroBadge": "1 PDF · 1 Minute · Pure magie",
+    "heroTitleA": "PDF à carte mentale",
+    "heroTitleB": "en 1 minute.",
+    "heroLead": "Marvex Studio - Le logiciel de carte mentale et l'outil ultime de recherche et d'apprentissage. Déposez n'importe quel PDF et regardez la magie opérer — Avec l'IA, vous pouvez extraire chaque concept, relation et hiérarchie dans une belle carte mentale interactive. Puis recherchez à travers tout ce que vous avez déjà cartographié. Tout en toute sécurité sur votre propre machine. Zéro Cloud !",
+    "heroFootnote": "Local-first · Fonctionne hors ligne",
+    "philosophyQuote": "Pensez au chemin que vous avez déjà parcouru. Chaque action, chaque insight, chaque petit pas vous a mené ici. Marvex Studio ne vous demande pas de choisir une nouvelle direction — c'est la continuité inévitable de la trajectoire que vous avez tracée. Le progrès semble sans effort lorsque notre technologie avancée s'aligne avec votre propre histoire, vos propres luttes et vos propres ambitions. S'arrêter maintenant contredirait le chemin que vous avez déjà revendiqué comme le vôtre.",
+    "philosophyAttribution": "— Philosophie Marvex Studio",
+    "featuresEyebrow": "Fonctionnalités principales",
+    "featuresTitleA": "Recherche,",
+    "featuresTitleB": "réimaginée.",
+    "feature": {
+      "magicMap": {
+        "title": "Déposez un PDF · Obtenez une carte",
+        "badge": "Propulsé par l'IA · 60s",
+        "body": "En moins de 60 secondes, un générateur de carte mentale IA extrait chaque concept, thème et relation dans une carte visuelle."
+      },
+      "secondBrain": {
+        "title": "Toutes les cartes · Une recherche",
+        "badge": "Global Second-Brain",
+        "body": "Une barre de recherche pour toutes les gouverner. Interrogez chaque carte mentale que vous avez créée. Trouvez des connexions entre des documents dont vous ignoriez l'existence — même six mois plus tard."
+      },
+      "localFirst": {
+        "title": "Votre clé · Zero cloud",
+        "badge": "Privacy-First · BYOK",
+        "body": "Apportez votre propre clé IA — votre clé, votre facture, vos données. Les cartes vivent dans votre navigateur. Aucun compte. Aucun pistage. Aucune exploitation de données. Support hors ligne complet."
+      },
+      "cloudPush": {
+        "title": "Push to Drive · Dropbox · Zotero",
+        "badge": "Local-first · Cloud-friendly",
+        "body": "Un clic pour synchroniser une carte vers Google Drive, Dropbox ou votre bibliothèque Zotero — en PDF, PNG, SVG, Markdown ou pièce jointe binaire complète. Vous décidez, à chaque fois."
+      },
+      "smartReader": {
+        "title": "Lecteur PDF intégré",
+        "badge": "Highlight → Map",
+        "body": "Ouvrez n'importe quel lien PDF depuis un nœud et le lecteur intégré prend le relais — surlignez des passages, annotez les marges et envoyez vos sélections directement dans la carte en cours de création. Vos sources, vos annotations, tout au même endroit."
+      },
+      "openAnything": {
+        "title": "Ouvrez n'importe quoi · comme il faut",
+        "badge": "Smart Link Routing",
+        "body": "Attachez n'importe quel fichier ou URL à un nœud. Les PDF s'ouvrent dans le lecteur. Les morceaux se lancent dans votre app musicale, les vidéos dans votre lecteur, les sites web dans votre navigateur par défaut — chaque lien respecte la façon dont votre OS aime déjà fonctionner."
+      },
+      "calendar": {
+        "title": "Des rappels sur un vrai calendrier",
+        "badge": "New",
+        "body": "Attribuez une date à un nœud et il apparaît dans une superbe vue calendrier — toutes les échéances, présentations et relances de vos cartes au même endroit. Local, privé, aucun compte Google requis."
+      },
+      "bookmarks": {
+        "title": "Favoris Chrome → liste de lecture",
+        "badge": "One-click Import",
+        "body": "Exportez vos favoris Chrome une seule fois et Marvex transforme toute la hiérarchie de dossiers en carte navigable. Des années de liens sauvegardés, enfin organisés."
+      },
+      "compileToPdf": {
+        "title": "Cartes → Documents soignés",
+        "badge": "AI Compile",
+        "body": "L'inverse de PDF→Carte. Choisissez un nœud, une sous-arborescence ou la carte entière ; l'IA tisse le tout en essai cohérent, note de synthèse ou plan structuré. Exportez le résultat en PDF ou Markdown — votre carte devient un brouillon publiable, sans copier-coller."
+      }
+    },
+    "howEyebrow": "Comment ça fonctionne",
+    "howTitleA": "Une minute de magie.",
+    "howTitleB": "Trois étapes simples.",
+    "steps": {
+      "one": {
+        "title": "Déposez votre PDF",
+        "body": "Faites glisser et déposer n'importe quel article de recherche, manuel ou document. Jusqu'à 25 Mo."
+      },
+      "two": {
+        "title": "La magie opère",
+        "body": "En moins de 60 secondes, avec l'IA, vous pouvez extraire chaque concept, thème et relation dans une carte visuelle."
+      },
+      "three": {
+        "title": "Modifiez et explorez",
+        "body": "Faites glisser des nœuds, modifiez des titres, ajoutez des branches, zoomez et faites défiler. Votre carte s'enregistre automatiquement localement."
+      }
+    },
+    "desktopEyebrow": "Conçu pour le bureau · Windows · macOS",
+    "desktopTitleA": "Votre",
+    "desktopTitleB": "deuxième cerveau",
+    "desktopTitleC": ", sur votre machine.",
+    "desktopLead": "Ouvrez le studio et commencez à cartographier. Il s'ouvre instantanément, fonctionne hors ligne et n'envoie jamais un octet de vos recherches ailleurs où cela ne devrait pas aller.",
+    "footer": {
+      "copyright": "© 2026 marvex.app · Le laboratoire de recherche ultime",
+      "localFirst": "Local-first",
+      "offlineReady": "Prêt hors ligne",
+      "noTracking": "Pas de suivi",
+      "toolsWeLove": "Outils que nous aimons",
+      "affiliateDisclosure": "Marvex Studio est participant au programme des associés d'Amazon Services LLC et au programme d'affiliation de Bookshop.org. Les liens de livres sortants peuvent nous rapporter une commission sans coût supplémentaire pour vous."
+    }
+  },
+  "studio": {
+    "brand": "Marvex",
+    "brandSubtitle": "studio",
+    "hideSidebar": "Cacher la barre latérale ([)",
+    "showSidebar": "Afficher la barre latérale ([)",
+    "sections": {
+      "create": "Créer",
+      "assets": "Actifs"
+    },
+    "actions": {
+      "new": "Nouveau",
+      "open": "Ouvrir",
+      "mindMapperStudio": "Marvex Studio",
+      "studioOn": "ACTIF",
+      "pdfStudio": "PDF Studio",
+      "library": "Bibliothèque",
+      "reader": "Lecteur"
+    },
+    "icons": {
+      "todo": "Liste de tâches (notes autocollantes)",
+      "search": "Recherche (⌘K)",
+      "exportCurrent": "Exporter actuel",
+      "highlights": "Points saillants",
+      "memory": "Mémoire de recherche",
+      "tools": "Outils que nous aimons",
+      "learn": "Tutoriels",
+      "settings": "Paramètres"
+    },
+    "topBar": {
+      "noMapOpen": "Aucune carte ouverte",
+      "renameHint": "Cliquez pour renommer",
+      "untitledMap": "Carte sans titre",
+      "autoSaved": "Sauvegarde automatique · local",
+      "share": "Partager",
+      "shareHint": "Partager cette carte"
+    },
+    "userBadge": {
+      "signIn": "Se connecter",
+      "upgradeWithFree": "Mettre à niveau · {{remaining}} gratuit restant",
+      "upgradeToPro": "Mettre à niveau vers Pro",
+      "pro": "Pro",
+      "trial": "· essai",
+      "signOutLabel": "Déconnexion",
+      "signOutHint": "Se déconnecter",
+      "manageSubscription": "Gérer",
+      "manageSubscriptionHint": "Gérer l'abonnement, mettre à jour la carte, ou annuler",
+      "portalUnavailable": "Portail client indisponible. Envoyez un e-mail à support@marvex.app et nous nous en occuperons dans les 24h."
+    },
+    "empty": {
+      "title": "Votre toile vous attend.",
+      "body": "Commencez avec une carte vierge, ou déposez un PDF et laissez Claude le transformer en une carte mentale magnifiquement structurée en quelques secondes.",
+      "cta": "Carte mentale PDF"
+    },
+    "modals": {
+      "openMap": "Ouvrir une carte",
+      "noMapsYet": "Aucune carte enregistrée pour l'instant. Cliquez",
+      "noMapsYetAfter": "ou convertissez un PDF.",
+      "noMapsYetCta": "NOUVEAU",
+      "recentlyOpened": "Ouverts récemment",
+      "allMaps": "Toutes les cartes",
+      "branchesOne": "branche",
+      "branchesOther": "branches",
+      "globalSearch": "Cerveau second · Recherche globale",
+      "searchPlaceholder": "Recherchez chaque carte, chaque nœud…",
+      "searchHint": "Appuyez sur ⌘K n'importe où pour rechercher.",
+      "searchNoMatches": "Aucun résultat."
+    },
+    "todo": {
+      "eyebrow": "Liste de tâches",
+      "title": "Vos notes autocollantes",
+      "stats": "{{open}} ouvertes · {{done}} faites",
+      "emptyBody": "Aucune note autocollante pour l'instant. Insérez-en une depuis la barre d'outils pour démarrer votre liste de tâches.",
+      "sectionOpen": "Ouvert",
+      "sectionDone": "Fait",
+      "currentMap": "· actuel",
+      "jumpToMap": "· sauter →"
+    },
+    "defaults": {
+      "coreConcept": "Titre de la carte",
+      "ideaOne": "Idée Un",
+      "ideaTwo": "Idée Deux",
+      "ideaThree": "Idée Trois",
+      "ideaFour": "Idée Quatre",
+      "ideaFive": "Idée Cinq",
+      "untitledMap": "Carte sans titre",
+      "idea1": "Idée 1",
+      "idea2": "Idée 2",
+      "idea3": "Idée 3",
+      "newMapCreated": "Nouvelle carte créée"
+    }
+  },
+  "learn": {
+    "index": {
+      "eyebrow": "Apprendre",
+      "title": "Maîtrisez Marvex Studio en quelques minutes.",
+      "lead": "Trois tutoriels courts et pratiques qui vous mèneront d'une toile vierge à un flux de travail de recherche complet. Pas de blabla, pas de remplissage — juste les mouvements qui comptent.",
+      "back": "Retour à l'application",
+      "backToLanding": "Retour à la page d'accueil",
+      "startTutorial": "Démarrer le tutoriel",
+      "minutes": "{{minutes}} min de lecture",
+      "stepsCount": "{{count}} étapes",
+      "backToIndex": "Tous les tutoriels",
+      "takeInteractiveTour": "Faire la visite interactive",
+      "takeInteractiveTourHint": "Une visite rapide de 60 secondes à l'intérieur du studio."
+    },
+    "tour": {
+      "skip": "Passer la visite",
+      "next": "Suivant",
+      "back": "Retour",
+      "done": "Fait",
+      "stepCounter": "Étape {{current}} sur {{total}}",
+      "restart": "Redémarrer la visite",
+      "welcome": {
+        "title": "Bienvenue dans Marvex Studio",
+        "body": "Cette rapide visite de 60 secondes met en évidence les quatre choses que vous utiliserez le plus. Vous pouvez la sauter à tout moment et revenir plus tard depuis la page d'apprentissage."
+      },
+      "sidebar": {
+        "title": "Votre rampe de lancement",
+        "body": "Démarrez une nouvelle carte, ouvrez-en une existante, ou accédez à PDF Studio, à la bibliothèque et au lecteur. Chaque outil dont vous avez besoin se trouve dans cette barre latérale."
+      },
+      "canvas": {
+        "title": "La toile",
+        "body": "Faites glisser, zoomez et faites défiler librement. Double-cliquez sur un nœud pour le renommer. Appuyez sur Tab pour ajouter un enfant, Entrée pour ajouter un frère. Clic droit pour plus d'options."
+      },
+      "toolbar": {
+        "title": "Barre d'outils",
+        "body": "Annuler · Rétablir · Forme · Exporter · Capture d'écran · Sauvegarde dans le Cloud. Survolez chaque icône pour son infobulle, ou appuyez sur ? à tout moment pour la feuille de triche complète."
+      },
+      "share": {
+        "title": "Enregistrer et partager",
+        "body": "Pas de bouton de sauvegarde — chaque changement s'enregistre automatiquement localement. Cliquez sur Partager pour copier un lien en lecture seule, ou utilisez le bouton Sauvegarde dans le Cloud (Pro) pour pousser vers Drive, Dropbox, ou Zotero."
+      },
+      "powerMoves": {
+        "title": "Bonus: 3 power moves",
+        "body": "Shift-click two-or-more nodes, right-click, and pick 'Group as branch' to pull scattered ideas under one parent — or 'Join with line/arrow' to connect them visually. The 3-minute tutorial below shows it end-to-end."
+      }
+    },
+    "tutorials": {
+      "firstMap": {
+        "title": "Créez votre première carte mentale",
+        "subtitle": "D'une toile vierge à une carte mentale finie en moins de cinq minutes.",
+        "category": "Les bases",
+        "minutes": 4,
+        "intro": "Chaque carte mentale dans cette application commence par un seul nœud central. Dans cette présentation, vous créerez une nouvelle carte, ajouterez des branches, personnaliserez leur forme et leur couleur, et l'enregistrerez — le tout en utilisant juste quelques raccourcis clavier. À la fin, vous connaîtrez chaque mouvement dont vous avez besoin pour utiliser Marvex Studio au quotidien.",
+        "step1": {
+          "heading": "Étape 1 — Ouvrir le studio",
+          "body": "Cliquez sur le bouton Marvex Studio dans la barre latérale gauche, ou appuyez sur ⌘/Ctrl + N pour créer une nouvelle carte. La toile remplit l'écran et votre curseur est déjà sur le nœud central, attendant que vous le renommiez."
+        },
+        "step2": {
+          "heading": "Étape 2 — Renommez le nœud central",
+          "body": "Double-cliquez sur le nœud pour entrer en mode édition, tapez votre sujet, et appuyez sur Entrée. Des titres courts et percutants valent mieux que de longues phrases — c'est la racine de votre arbre alors traitez-le comme un titre de chapitre."
+        },
+        "step3": {
+          "heading": "Étape 3 — Ajouter des branches enfants",
+          "body": "Appuyez sur Tab pour générer un nouvel enfant sous le nœud sélectionné, ou sur Entrée pour ajouter un frère. Maintenez Shift + Entrée pour ajouter un frère au-dessus. Continuez jusqu'à ce que votre premier cercle d'idées soit en place."
+        },
+        "step4": {
+          "heading": "Étape 4 — Styliser avec le clic droit",
+          "body": "Faites un clic droit sur n'importe quel nœud pour ouvrir le menu contextuel. Choisissez une forme (rectangle, ellipse, losange, hexagone, nuage, étoile, pilule), une couleur de remplissage de la palette, ou passez à un trait plus audacieux. Les préréglages cosmiques s'ajustent magnifiquement au reste de l'application."
+        },
+        "step5": {
+          "heading": "Étape 5 — Déplacer, zoomer, se concentrer",
+          "body": "Maintenez la barre d'espace enfoncée + faites glisser pour déplacer la toile. Défilez ou pincez pour zoomer. Appuyez sur F pour encadrer le nœud sélectionné. Appuyez sur ? à tout moment pour ouvrir la feuille de triche complète."
+        },
+        "step6": {
+          "heading": "Étape 6 — Enregistrer et partager",
+          "body": "Il n'y a pas de bouton de sauvegarde — chaque changement s'enregistre automatiquement localement au moment où vous le faites. Cliquez sur Partager dans la barre supérieure pour copier un lien en lecture seule, ou utilisez le bouton de la barre d'outils Sauvegarde dans le Cloud pour pousser vers Google Drive, Dropbox ou Zotero (Pro)."
+        },
+        "tip": "Conseil pro : l'historique d'annulation Cmd/Ctrl + Z conserve 50 étapes. Vous pouvez expérimenter sans crainte."
+      },
+      "pdfStudio": {
+        "title": "Transformez un PDF en carte mentale",
+        "subtitle": "Déposez un document, laissez Claude le structurer, puis peaufinez le résultat à la main.",
+        "category": "Flux de travail PDF",
+        "minutes": 6,
+        "intro": "PDF Studio est le cœur du flux de travail de recherche de Marvex Studio. Vous lui donnez n'importe quel article de recherche, chapitre de manuel ou document jusqu'à 25 Mo, et un passage IA extrait chaque concept, thème et relation dans une carte structurée que vous pouvez éditer. Ce tutoriel couvre l'ensemble du pipeline — téléchargement, choix d'un mode, révision, amélioration et fusion avec une carte existante.",
+        "step1": {
+          "heading": "Étape 1 — Ouvrir PDF Studio",
+          "body": "Cliquez sur le bouton violet PDF Studio dans la barre latérale. Vous arrivez dans la queue d'entrée — un tableau de bord qui suit chaque document que vous avez traité. Faites glisser un PDF dans la zone de téléchargement ou cliquez pour parcourir."
+        },
+        "step2": {
+          "heading": "Étape 2 — Choisissez un mode de conversion",
+          "body": "Résumé rapide analyse les en-têtes et structure de manière heuristique — rapidement et gratuitement. L'analyse IA (par défaut) envoie le texte complet à Claude Sonnet 4.5, qui produit une carte sémantique riche en relations et annotations. Les utilisateurs Pro obtiennent des exécutions IA illimitées ; les utilisateurs gratuits en obtiennent trois par mois."
+        },
+        "step3": {
+          "heading": "Étape 3 — Réviser le brouillon",
+          "body": "Dans les 30 à 60 secondes, le brouillon apparaît dans le panneau de prévisualisation. Faites défiler l'arbre des nœuds — chaque branche correspond à un groupe de concepts du document, et chaque feuille porte un court résumé. Si une branche semble incorrecte, cliquez dessus pour la signaler."
+        },
+        "step4": {
+          "heading": "Étape 4 — Corriger et enrichir",
+          "body": "Utilisez les outils d'édition en ligne pour renommer, fusionner, diviser ou supprimer des nœuds. Faites un clic droit sur n'importe quel nœud et choisissez 'Enrichir avec l'IA' pour demander à Claude un glossaire plus approfondi, un exemple ou un point de vue contraire. Le PDF d'origine reste épinglé à côté de la carte pour que vous puissiez rapidement croiser les références."
+        },
+        "step5": {
+          "heading": "Étape 5 — Valider une carte",
+          "body": "Une fois que le brouillon vous convient, cliquez sur Enregistrer comme nouvelle carte ou Fusionner dans l'existant. La fusion respecte votre structure existante et insère les nouveaux concepts comme un sous-arbre frais que vous pourrez réorganiser ultérieurement."
+        },
+        "step6": {
+          "heading": "Étape 6 — Parcourez avec le Lecteur",
+          "body": "Ouvrez le Lecteur depuis la barre latérale pour lire le PDF à côté de sa carte. Mettez en surbrillance toute phrase dans le PDF et Marvex Studio l'ajoutera automatiquement à la carte comme un nœud de citation — parfait pour créer des filières de preuves à travers les documents."
+        },
+        "tip": "Conseil pro : téléchargez jusqu'à dix PDF à la fois et la queue les traitera en parallèle."
+      },
+      "aiResearch": {
+        "title": "Utilisez l'assistant de recherche IA",
+        "subtitle": "Posez n'importe quelle question sur chaque carte que vous avez créée. Obtenez une réponse fondée avec des citations.",
+        "category": "Recherche IA",
+        "minutes": 5,
+        "intro": "Votre Cerveau Second n'est pas qu'un bel arbre — c'est une base de données de connaissances consultable. L'assistant de recherche IA puise dans chaque carte, PDF et surlignage que vous avez jamais réalisés, puis répond à votre question avec Claude Sonnet 4.5 ancré dans ce corpus. Ce tutoriel couvre la façon de poser des questions, de suivre des citations, de sauvegarder des notes de recherche, et le mode de recherche approfondie.",
+        "step1": {
+          "heading": "Étape 1 — Ouvrir la recherche",
+          "body": "Appuyez sur ⌘/Ctrl + K de n'importe où dans l'application, ou cliquez sur la loupe dans la barre latérale. Le panneau de recherche glisse depuis la droite avec une boîte de question vide."
+        },
+        "step2": {
+          "heading": "Étape 2 — Posez en langage clair",
+          "body": "Tapez une question spécifique. 'Que dit Popper sur la falsifiabilité ?' est mieux que 'Popper'. Plus votre question est précise, plus les citations seront pertinentes. Appuyez sur Entrée pour soumettre."
+        },
+        "step3": {
+          "heading": "Étape 3 — Lire la réponse en streaming",
+          "body": "Claude diffuse la réponse jet par jet. Chaque affirmation est accompagnée d'une puce de citation — survolez pour voir le passage source, cliquez pour sauter au nœud exact ou à la surlignage du PDF dont elle est tirée. Rien n'est inventé — si le corpus ne sait pas, l'assistant le dit."
+        },
+        "step4": {
+          "heading": "Étape 4 — Activer la recherche approfondie",
+          "body": "Pour des questions complexes, activez l'interrupteur de recherche approfondie dans l'en-tête du panneau. L'assistant enchaîne plusieurs recherches, explore des relations, et construit une réponse plus longue et mieux structurée. Cela prend plus de temps mais gère magnifiquement les questions à étapes multiples."
+        },
+        "step5": {
+          "heading": "Étape 5 — Sauvegarder la réponse",
+          "body": "Cliquez sur 'Sauvegarder en mémoire' pour épingler la réponse — elle devient une note de recherche accessible depuis la page /memory. Les questions suivantes prennent automatiquement en compte vos notes sauvegardées comme contexte, donc votre assistant devient plus intelligent au fur et à mesure que vous l'utilisez."
+        },
+        "step6": {
+          "heading": "Étape 6 — Insérer dans une carte",
+          "body": "Chaque paragraphe de la réponse a un bouton d'ajout rapide. Cliquez dessus pour insérer ce paragraphe en tant que nouveau nœud sur votre carte actuelle, avec la citation conservée comme sous-note. Votre carte grandit organiquement avec la conversation."
+        },
+        "tip": "Conseil pro : posez des questions de suivi dans la même session pour maintenir le contexte de Claude. Chaque nouvelle session commence à zéro."
+      },
+      "reorganise": {
+        "title": "Reorganise a sprawling map",
+        "subtitle": "Pull scattered ideas under a parent branch in two clicks. No deleting, no copy-paste.",
+        "category": "Power moves",
+        "minutes": 3,
+        "intro": "Maps grow fast. After a research session you'll often end up with eight or ten loose branches that obviously belong together — but moving them one-by-one is tedious. This walk-through shows the fastest path: shift-click to multi-select, right-click to group, rename. Same trick works for joining ideas with arrows or lines.",
+        "step1": {
+          "heading": "Step 1 — Spot the loose ideas",
+          "body": "Open any map that's gotten unwieldy. Look for two-or-more nodes that share a theme but live on different branches — symptoms, side-effects, sources, you name it. These are your join candidates."
+        },
+        "step2": {
+          "heading": "Step 2 — Hold Shift and click each one",
+          "body": "Press and hold Shift, then click each candidate node. Every node you click stays in the pool — you'll see a fuchsia dashed outline around it. Release Shift when you're done. Plain click on any node clears the pool, so keep Shift held until the last one."
+        },
+        "step3": {
+          "heading": "Step 3 — Right-click anywhere on the canvas",
+          "body": "With your pool selected, right-click on any empty canvas area (or on one of the highlighted nodes). The first three options are 'Join N with line', 'Join N with arrow', and 'Group N as branch' — pick whichever matches your intent."
+        },
+        "step4": {
+          "heading": "Step 4 — Group as branch",
+          "body": "'Group N as branch' detaches each selected sub-tree (with its descendants intact) and re-attaches them under a brand-new parent node called 'New group' — anchored to your map root. You're dropped straight into rename mode so you can give the branch a meaningful name and press Enter."
+        },
+        "step5": {
+          "heading": "Step 5 — Or join with a line/arrow instead",
+          "body": "If the ideas should connect without changing the tree, pick 'Join with line' (or arrow). A free-floating connector appears between consecutive selections — drag the endpoints later, recolour from the right-click menu, or delete if you change your mind. Lines work between nodes, stickies, clipart, anything."
+        },
+        "step6": {
+          "heading": "Step 6 — Compile it into a written brief (bonus)",
+          "body": "Once the branch is clean, click the scroll icon in the top toolbar (or right-click the new parent → Compile to document). The AI weaves every node title and summary into a 1-page brief, 3-page report, or 8-page deep-dive — your pick. Save it as PDF straight from the preview, or Copy MD into Notion. The fastest way to turn a brainstorm into a deliverable."
+        },
+        "tip": "Pro tip: select 4+ items and 'Group as branch' will pull them all under one parent in a single click — perfect for mid-PDF pivots when you realise three sections are really one super-topic."
+      }
+    }
+  }
+}

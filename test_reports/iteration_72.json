@@ -1,0 +1,24 @@
+{
+  "summary": "Frontend-only verification of two Premium UK Law UI follow-ups: (1) Premium ✦ pill in Studio UserBadge and (2) 'Premium UK Law' badge on /share/:slug. All five requested checks pass. Studio loads cleanly on /app?unlock=mind-mapper67 with no addon-related console errors; the premium-uk-law-badge is correctly absent for anon users. A real, non-revoked share slug (fd6fwvpewsvj — TEST_og_card_map) was used for the share-page test: footer CTA and all regression elements (title, view-count, top 'Try free' CTA, 'Turn any PDF into a map like this' copy, 'Start free' link, canvas) render, while shared-map-premium-uk-law-badge is correctly absent (map has no UK law links). The /intake → Public domain → UK Law tab still renders premium-uk-law-upsell for anon users.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_72.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "hasUkLawCitations BFS is correct and stack-safe; host regex covers the three intended hosts. Consider whether protocol-relative or schemeless links could appear — currently any string match anywhere in the link is accepted, which is fine and intentional.",
+    "Studio.jsx line 1768 conditional uses optional chaining safely (user.addons?.premium_uk_law?.active) — anon users (user is null/undefined) are guarded by the outer UserBadge render path, so no addons-related console errors observed.",
+    "Pre-existing (unrelated) console issues observed but NOT regressions of this change: (a) MindMapCanvas 'unique key prop' warning on share view, (b) 401s for some non-public assets, (c) one 'Maximum update depth exceeded' warning on /app?unlock=mind-mapper67 first paint. Worth flagging to main agent for separate triage; not blocking these add-ons."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100% (5/5 requested checks)"},
+  "test_credentials": "No login needed. Used ?unlock=mind-mapper67 to access Studio/Intake. Real share slug picked from MongoDB shared_maps collection: fd6fwvpewsvj (TEST_og_card_map, 3 views, no UK law links).",
+  "seed_data_creation": "None. Used existing non-revoked share record already in DB.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Only one non-revoked share document currently exists in shared_maps (slug fd6fwvpewsvj). To test the POSITIVE case for shared-map-premium-uk-law-badge a new shared map containing a node with link/href to legislation.gov.uk, caselaw.nationalarchives.gov.uk or bailii.org would need to be seeded. The hasUkLawCitations() walker has been visually code-reviewed and looks correct (BFS over .children, scans .link plus .links[].url|.href with case-insensitive host regex). The Studio Premium ✦ pill positive case (signed-in user with user.addons.premium_uk_law.active=true) was not exercised here because the request was anon-only; main agent can self-verify by mocking that user shape.",
+  "rca of the issue": "n/a — no bug reproduced; both UI conditional renders behave correctly under the requested anon-only scenarios."
+}

@@ -1,0 +1,55 @@
+{
+  "summary": "Iteration 46: Full backend + frontend test of the new Compile-to-Document feature (POST /api/compile/document + CompileDocumentDialog + canvas/node context-menu wiring + toolbar entry). 8/8 backend tests pass and ALL 13 frontend spec items verified PASS — no functional bugs found. Auth-gate, length presets, style presets, validation 400, free-tier 402, BYOK bypass, toolbar entry, node-ctx subtree mode, multi-select selection mode, empty-canvas whole-map mode, run → graceful 401 error inline in dialog, mocked-success preview pane (h1/h2/ul/strong rendered, Copy MD / Recompile / Save as PDF buttons all visible), and clipboard.writeText invocation on Copy MD all confirmed working end-to-end. Regression check: existing toolbar (sticky/text/image/clipart/line/arrow) + llm-fuel-gauge still render. tour-power-moves-link and pricing-free-reframe testids confirmed via static grep in OnboardingTour.jsx and pages/Pricing.jsx.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "tests_executed": [
+    "BACKEND PASS: POST /api/compile/document with no session → 401 (live curl + pytest TestCompileDocumentAuthGate).",
+    "BACKEND PASS: TestCompileDocumentSuccess.test_brief_briefing_returns_markdown — payload {Photosynthesis + Light reactions + Dark reactions, briefing/brief}, response 200 with markdown starting '# Photosynthesis', both child titles present, word_count int, model_used populated. Prompt sent to LLM contains '~350' (brief target) and 'Executive briefing' style hint.",
+    "BACKEND PASS: test_custom_length_clamps_and_threads_through — custom_words=500 → '500' appears in user_text.",
+    "BACKEND PASS: test_deep_preset_threads_through — deep preset → '2,400' words hint + 'Annotated outline' (outline style) in user_text.",
+    "BACKEND PASS: test_empty_root_title_400 — root.title='' returns 400 'Selection has no title'.",
+    "BACKEND PASS: test_empty_children_with_title_falls_back_to_outline — title-only root returns 200 (outline has 1 line so not empty).",
+    "BACKEND PASS: test_free_user_over_limit_returns_402 — user with free_conversions_used=5 → 402 'free trial / api key' message.",
+    "BACKEND PASS: test_byok_bypasses_quota — same user but X-User-Api-Key header → 200 (BYOK bypass works).",
+    "FRONTEND PASS: mm-tb-compile-doc toolbar button present at /app; clicking opens compile-doc-dialog with 'Map Title' / 'Compiling the entire map' subtitle.",
+    "FRONTEND PASS: All three style segmented buttons (compile-style-essay/briefing/outline) and compile-length-preset dropdown render. Selecting 'custom' option reveals compile-custom-words input.",
+    "FRONTEND PASS: Right-click on mm-node-c1 (Idea One) shows mm-ctx-compile-doc; clicking opens dialog with subtitle 'Compiling “Idea One” + descendants' (subtree mode).",
+    "FRONTEND PASS: Shift-click mm-node-c1 + mm-node-c2 then right-click empty canvas → mm-canvas-ctx-compile-selection visible with label 'Compile 2 to document'; click opens dialog in selection mode.",
+    "FRONTEND PASS: Right-click empty canvas with NO selection → mm-canvas-ctx-compile-map at bottom with label 'Compile map to document…'; click opens dialog (whole-map mode).",
+    "FRONTEND PASS: clicking compile-doc-run with no session → POST /api/compile/document returns 401, dialog surfaces 'Not authenticated' inline (no crash, no white screen, recompile state preserved).",
+    "FRONTEND PASS: With route-intercepted 200 mock response, dialog switches to preview pane: h1=1 (Photosynthesis), h2=2 (Light/Dark reactions), ul=1, strong=1 — markdown renderer works. compile-doc-print, compile-doc-copy, compile-doc-recompile all rendered. Header shows 'READY · 42 words · anthropic:claude'.",
+    "FRONTEND PASS: compile-doc-copy → navigator.clipboard.writeText called with the full markdown body; 'Markdown copied to clipboard' toast appears.",
+    "FRONTEND PASS regression: mm-tb-insert-{sticky,text,image,clipart,line,arrow} all present. llm-fuel-gauge present in top bar.",
+    "REGRESSION (static): tour-power-moves-link found in OnboardingTour.jsx; pricing-free-reframe found in pages/Pricing.jsx — both unchanged."
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_compile_document.py",
+    "/app/test_reports/pytest/compile_document.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py:1141 — req.root.model_dump() ignores extra fields (CompileNode has extra='ignore'), so a tree shape with id/x/y/icon won't break the endpoint. Good defensive design.",
+    "server.py:1054 — _compile_outline_blob caps lines at 200 and depth at 6 for cost safety. Sensible guard for large maps.",
+    "server.py:1183-1185 — strips wrapping ```markdown/```md fences if model adds them anyway. Robust.",
+    "server.py:1183 — only strips a single leading fence and trailing fence. If the model wraps content in inner fences for code blocks (which is legit Markdown), those are preserved correctly. Verified by inspection.",
+    "server.py:1124 — `not is_pro and not has_own_key and used >= FREE_AI_LIMIT` matches the pattern used by /research/* endpoints. Consistent quota policy across AI endpoints.",
+    "CompileDocumentDialog.jsx — inline Markdown→HTML renderer (no react-markdown dep) reduces bundle size; supports h1/h2/h3, p, ul, ol, strong, em, code, blockquote — covers the prompt-shaped output. Verified rendering of h1/h2/ul/strong in the live test.",
+    "MindMapCanvas.jsx:1655,1734 — selection-mode and map-mode entries are mutually exclusive in the canvas-ctx menu (selection only when multiSelected.size>=2; map only otherwise). Correct UX, prevents ambiguity.",
+    "ContextMenu.jsx:323 — mm-ctx-compile-doc lives in NodeMenu so per-node subtree compile is one click away. Good discoverability.",
+    "No backend rate-limit per-user-minute on /compile/document beyond the global free-quota — same posture as the other AI endpoints. If abuse becomes a concern, consider a token bucket. Not blocking."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_compile_document.py (NEW — 8 tests, all passing)"
+  ],
+  "success_rate": {"backend": "8/8 = 100%", "frontend": "13/13 = 100%"},
+  "test_credentials": "App gate: ?unlock=mind-mapper67 only. /app/memory/test_credentials.md is empty (no Google OAuth account configured) — backend auth path tested via dependency override + live 401 verification.",
+  "seed_data_creation": "None — used the default seeded mind-map (Map Title + Idea One..Five). Pytest fixture creates an in-memory test user dict with free_conversions_used=0; no DB writes (db.users.update_one is monkeypatched).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Compile-to-Document is fully shipped and verified. Key testids: mm-tb-compile-doc (toolbar), mm-ctx-compile-doc (NodeMenu), mm-canvas-ctx-compile-selection (canvas ctx when multi-select), mm-canvas-ctx-compile-map (canvas ctx no selection), compile-doc-dialog, compile-style-{essay,briefing,outline}, compile-length-preset (select with values brief/standard/deep/custom), compile-custom-words (number input, only visible when custom selected), compile-doc-run, compile-doc-print, compile-doc-copy, compile-doc-recompile. To test the preview pane without burning LLM tokens, use page.route('**/api/compile/document', ...) and fulfill with status=200 + body {markdown, word_count, model_used}. To bypass cookie banner overlay during clicks in the bottom-right of viewport, click in the upper area (y<300) or higher-x area or pass force=True. The cookie banner does NOT block ctx-menu items in the upper region.",
+  "rca of the issue": "No bugs — informational only: during one prior run the empty-canvas right-click was performed at (1500,200)/(1700,850) where the canvas-ctx-menu opened so close to the cookie-banner overlay that the bottommost option (mm-canvas-ctx-compile-map) was occluded. Re-running with right-click at (1450,280) and using element.scroll_into_view_if_needed() before the click resolved this — testid was present and the click handler fired correctly. Documenting so the next agent uses safe coords."
+}

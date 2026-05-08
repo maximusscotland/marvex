@@ -1,0 +1,43 @@
+{
+  "summary": "Frontend-only testing for Cloud Save expansion — Drive + Dropbox + Zotero targets in the toolbar cloud-save popover. All 12 acceptance criteria from the review request PASS. Three target pills render with correct active-state styling (border-cyan-400). Dropbox target renders the 6-format grid; Zotero target reduces layout to a single 'Save as Zotero note' button. Non-Pro gating works perfectly on ALL three targets — clicking any format/note button closes the menu and opens UpgradeDialog WITHOUT triggering any outbound request to dropbox.com / dropboxapi.com / zotero.org / accounts.google.com / apis.google.com / googleapis.com (only benign CSS font fetches to fonts.googleapis.com were seen). Dynamic copy under the pills updates correctly ('Save exports straight to Google Drive / Dropbox / Zotero'). /dropbox-callback.html serves HTTP 200 (3357 bytes) with the expected postMessage script block keyed to 'mindmapper:dropbox-oauth'. Regression: all 6 existing mm-tb-export-* buttons still fire without console errors. Intake Studio /intake page loads with Zotero / Dropbox / Google Drive cards and nav pills visible. The popover mutual-exclusion fix (cosmetic note from iter_38) is VERIFIED — opening the backdrop-picker closes cloud-save-menu and vice-versa.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "tests_executed": [
+    "PASS: GET /dropbox-callback.html → 200, contains postMessage + 'mindmapper:dropbox-oauth' payload",
+    "PASS: cloud-save-menu opens on mm-tb-cloud-save click",
+    "PASS: 3 target pills render (cloud-save-target-drive / dropbox / zotero)",
+    "PASS: cloud-save-pro-badge + cloud-save-upgrade-link present for non-Pro user",
+    "PASS: Drive pill active by default (border-cyan-400 class)",
+    "PASS: Drive target shows 6 format buttons (pdf/png/png-4x/svg/md/json) in 2-col grid",
+    "PASS: Drive copy mentions 'Google Drive' dynamically",
+    "PASS: Click cloud-save-target-dropbox → pill becomes active (border-cyan-400), copy updates to mention Dropbox, 6 format buttons still render",
+    "PASS: Click cloud-save-pdf on Dropbox (non-Pro) → menu closes, upgrade-dialog opens, ZERO requests to any *.dropbox.* hostname",
+    "PASS: Click cloud-save-target-zotero → layout reduces to single cloud-save-md button; cloud-save-pdf / png / png-4x / svg / json NOT rendered",
+    "PASS: Click cloud-save-md on Zotero (non-Pro) → upgrade-dialog opens, ZERO requests to zotero.org",
+    "PASS: cloud-save-upgrade-link closes menu + opens upgrade-dialog",
+    "PASS: Popover mutual exclusion — opening mm-tb-backdrop auto-closes cloud-save-menu (iter_38 cosmetic issue is now FIXED)",
+    "PASS: Regression — mm-tb-export-png / png-4x / svg / pdf / md / json all clickable without new console errors",
+    "PASS: /intake page loads with Zotero + Dropbox + Google Drive cards and top-nav pills"
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "(Pre-existing, carried from iter_38 — NOT a regression from this iteration) PDF export still logs a CORS console error when fetching the m-logo.jpeg from customer-assets.emergentagent.com. PDF file still generates correctly. Fix options: (a) host logo same-origin, (b) set Access-Control-Allow-Origin on the asset, or (c) silently skip the logo on CORS failure in buildMapPdf()."
+  ],
+  "critical_code_review_comments": [
+    "CloudSaveMenu.jsx (256 lines) — clean, well-structured. Pro-gate (isPro check) correctly fires BEFORE any target-specific OAuth / API call path (handleSave early-returns at line 66 before the targetSupports / targetIsConfigured / saveBlobToDropbox / saveMapToZotero calls). Verified no network leak for non-Pro users on any target.",
+    "targetSupports(target, formatId) helper is a nice abstraction for the Zotero-note-only phase-1 restriction — makes it trivial to light up PDF/PNG pushes later without touching the click handler.",
+    "dropbox-callback.html correctly validates window.opener before postMessage and uses window.location.origin (not '*') as targetOrigin — good security posture.",
+    "All new interactive elements have data-testid (cloud-save-target-{drive|dropbox|zotero}, cloud-save-md on the Zotero path, cloud-save-connect-zotero deep-link). Good test-surface hygiene."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (15/15 checks passed)"},
+  "test_credentials": "Access gate key: mind-mapper67 (auto-unlocked via ?unlock=mind-mapper67 query). REACT_APP_DROPBOX_APP_KEY and REACT_APP_GOOGLE_DRIVE_* empty on preview — confirmed non-Pro gating never reaches config checks.",
+  "seed_data_creation": "None — default 'Core Concept' map used.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Cloud Save now has 3 targets (Drive/Dropbox/Zotero) and all non-Pro gating + UI renders correctly. Pro-path network tests remain untestable on preview (no real OAuth creds for Dropbox/Drive; no Zotero API key seeded). When Pro creds land: (1) Dropbox path should trigger PKCE popup → /dropbox-callback.html → postMessage back → /oauth2/token exchange → content.dropboxapi.com/2/files/upload; (2) Zotero path should POST two items (report + child note) to api.zotero.org/users/:userId/items using getZoteroCreds() from localStorage, then surface the zoteroUrl in the toast. Pure-logic unit tests per main agent: test_dropbox_push.mjs 3/3, test_zotero_push.mjs 5/5, test_build_map_blob.mjs 6/6 — all passing."
+}

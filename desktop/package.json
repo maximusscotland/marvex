@@ -1,0 +1,29 @@
+{
+  "name": "marvex-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "description": "marvex.app — desktop wrapper (Electron + electron-updater)",
+  "author": "marvex.app",
+  "main": "src/main.js",
+  "homepage": "https://marvex.app",
+  "scripts": {
+    "start": "electron .",
+    "build:renderer": "bash scripts/build-renderer.sh",
+    "dist": "yarn build:renderer && electron-builder",
+    "dist:mac": "yarn build:renderer && electron-builder --mac",
+    "dist:win": "yarn build:renderer && electron-builder --win",
+    "dist:linux": "yarn build:renderer && electron-builder --linux",
+    "publish": "yarn build:renderer && electron-builder --publish always"
+  },
+  "dependencies": {
+    "electron-log": "^5.1.5",
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "extends": "./electron-builder.yml"
+  }
+}

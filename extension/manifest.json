@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Mind-Mapper — Clip to Map",
+  "short_name": "Mind-Mapper Clip",
+  "version": "0.2.0",
+  "description": "Right-click any article → send it to Mind-Mapper as a structured mind-map. Uses Mozilla Readability to extract clean article H2/H3 sections.",
+  "author": "Mind-Mapper",
+
+  "permissions": ["contextMenus", "activeTab", "scripting", "storage"],
+
+  "host_permissions": [
+    "https://mind-mapper.com/*",
+    "https://*.mind-mapper.com/*"
+  ],
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+
+  "action": {
+    "default_title": "Send this page to Mind-Mapper",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16":  "icons/icon-16.png",
+      "48":  "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+
+  "icons": {
+    "16":  "icons/icon-16.png",
+    "48":  "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+
+  "minimum_chrome_version": "102"
+}

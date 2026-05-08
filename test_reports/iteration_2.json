@@ -1,0 +1,43 @@
+{
+  "summary": "Production-domain regression test against https://mind-mapper.com. Backend: 8/8 pytest green (health, /auth/me 401, parse-pdf happy+error paths, from-pdf requires auth, billing requires auth). Frontend: access-gate unlock works, landing + studio load, default Core Concept map renders, right-click context menu opens, HEX shape click opens UpgradeDialog, DIA+DOC shape lock icons + serif+mono font lock icons all present, serif click opens UpgradeDialog, plan toggles (monthly/annual) clickable, close button works, free RECT click does NOT open dialog. CRITICAL PROD ISSUE FOUND: from the prod domain, the built frontend calls cross-origin backend https://mindmap-studio-5.emergent.host/api/* with withCredentials=true, but that host returns Access-Control-Allow-Origin: * — browsers block the request, so /api/auth/me never loads on mind-mapper.com. This silently breaks Google OAuth, subscription status, Upgrade checkout, and AI PDF gating on production.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Auth + billing + AI PDF (all authenticated calls from mind-mapper.com)",
+        "issue": "CORS blocked: built frontend at https://mind-mapper.com calls https://mindmap-studio-5.emergent.host/api/auth/me with withCredentials=true; response has Access-Control-Allow-Origin: * which is incompatible with credentialed XHR. Console error: 'The value of the Access-Control-Allow-Origin header in the response must not be the wildcard * when the request's credentials mode is include.' Affects /api/auth/me on every page load and will break /api/billing/create-checkout and /api/mindmap/from-pdf.",
+        "affected_selectors": ["[data-testid='auth-signin-btn']", "[data-testid='upgrade-checkout']", "[data-testid='btn-pdf-to-mindmap']"]
+      }
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mindmapper_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "CRITICAL: Rebuild the frontend with REACT_APP_BACKEND_URL=https://mind-mapper.com (same-origin) so all /api/* calls go through Cloudflare to the same domain — removes CORS entirely. Current frontend/.env still points at the preview URL (https://mindmap-studio-5.preview.emergentagent.com) and the deployed bundle resolves to https://mindmap-studio-5.emergent.host, both of which produce the CORS+credentials conflict.",
+    "Alternative (if same-origin not possible): On the backend, replace CORS wildcard with explicit allow_origins=['https://mind-mapper.com'] and keep allow_credentials=True so credentialed cookies are accepted.",
+    "After redeploy, re-verify: window.fetch('/api/auth/me', {credentials:'include'}) returns 401 (not CORS error) from https://mind-mapper.com, and the Upgrade checkout redirects properly for signed-in users."
+  ],
+  "critical_code_review_comments": [
+    "frontend/.env REACT_APP_BACKEND_URL still uses preview domain; for a live production custom domain the build should use '' (same-origin) or 'https://mind-mapper.com'. Baking an external host into the bundle forces CORS.",
+    "UpgradeDialog.jsx + lib/auth.js use axios withCredentials:true — this is correct, but only works with same-origin or a backend sending Access-Control-Allow-Origin: https://mind-mapper.com (not *) and Access-Control-Allow-Credentials: true.",
+    "Minor: blankMap() seeds 3 ideas (n1/n2/n3) with fixed ids — if a user creates two blank maps and localStorage positions collide by id, layout overrides might bleed across maps. Not blocking.",
+    "Minor: addChild cap check fires onUpgrade via toast+dialog — good. Consider also blocking the '+' mini-button at cap for consistency (currently both paths are gated, verified)."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_mindmapper_api.py (rewritten for prod domain + parse-pdf/auth/billing coverage)"
+  ],
+  "success_rate": {"backend": "100% (8/8)", "frontend": "92% — all gating flows green; node-cap auto-upgrade toast flow not fully verified in automation (click intercepted by ctx-backdrop during rapid Tab spam). Manual smoke recommended."},
+  "test_credentials": "Access gate password: mind-mapper67 (works). No other auth credentials needed — Google OAuth not exercised per instructions.",
+  "seed_data_creation": "Backend pytest generates a synthetic photosynthesis PDF via reportlab per run.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Run backend tests with: TEST_BASE_URL=https://mind-mapper.com pytest backend/tests/test_mindmapper_api.py -v. All 8 tests expected green. After the CORS fix, open https://mind-mapper.com/app in a real browser and confirm DevTools > Network shows /api/auth/me returning 401 with no CORS error. Premium gating (HEX/DIA/DOC shapes, Serif/Mono fonts) + Upgrade dialog plan toggles are verified working; do NOT retest those unless code changes. Node-cap behaviour is implemented in MindMapCanvas.addChild at line ~338 (FREE_NODE_CAP=30) — logic is correct by inspection, but a clean end-to-end 'spam Tab to cap' automation run is flaky because ctx-backdrop intercepts clicks on the previously-selected node; recommend asserting via DevTools console: set many children, call canvas.addChild and observe onUpgrade fires.",
+  "rca of the issue": "CORS+credentials mismatch on the production custom domain. Root cause: the React bundle deployed to mind-mapper.com was built with REACT_APP_BACKEND_URL pointing at an external emergent host (mindmap-studio-5.emergent.host), and that backend emits Access-Control-Allow-Origin: *. Browsers refuse credentialed XHRs (withCredentials=true) against wildcard origins. Mitigation: either (a) rebuild frontend with REACT_APP_BACKEND_URL='' or 'https://mind-mapper.com' so /api calls are same-origin (preferred, what Cloudflare proxying is for), or (b) change backend CORS middleware to echo the exact Origin instead of '*' and keep Access-Control-Allow-Credentials: true. Reproduction: open https://mind-mapper.com/app in Chrome, open DevTools Console — you will see three 'blocked by CORS policy' errors for /api/auth/me within the first 2s of load."
+}

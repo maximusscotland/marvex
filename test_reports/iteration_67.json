@@ -1,0 +1,66 @@
+{
+  "summary": "Frontend-only verification of (1) Library CategoryMiniMap UX and (2) MindMapCanvas → CanvasContextMenu refactor. Both pass core acceptance — the SVG mini-map renders with hub + 5 default category leaves + 'All · 6' + dashed '+ NEW' (no overlap); Study filter shows 'No matches'; All restores 6 cards; '+ NEW' modal adds a new orbit; right-click on Work leaf shows the remove-confirm dialog; CanvasContextMenu portal opens on right-click of the empty canvas with ALL 13 mm-canvas-ctx-* testids present (cut/copy/paste/sticky/text/shape/image/clipart/comment/line/arrow/compile-map/backdrop), sticky-note adds an annotation, and the backdrop dismisses the menu. Two non-blocking flakes documented — see action_items.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "LibraryCard tag tray",
+        "issue": "After clicking [data-testid=library-card-tag-toggle-<map>-work] the Work chip [data-testid=library-card-tag-<map>-work] did not appear within 500ms in 1 of 2 reproductions. Screenshot showed the tray buttons all still rendered as '+ WORK' (off state). Possible storage-write/UI-rerender race in toggleMapCategory or React state batch.",
+        "selector": "[data-testid='library-card-tag-toggle-<map>-work'] → expected chip [data-testid='library-card-tag-<map>-work']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Studio /app and /library",
+        "issues": [
+          "Cookie consent banner ('A small, honest ask') and the first-run tour modal can co-occupy the bottom-right + center on first visit; tour modal sits ABOVE the canvas and intercepts right-clicks until dismissed. Acceptable but worth tracking — the consent banner stays visible until Accept/Decline is clicked, which can mask lower-right canvas affordances.",
+          "On the Studio canvas the cookie banner can intercept clicks at the lower-right corner of the canvas (matches the prior agent's note in iteration_66)."
+        ]
+      }
+    ]
+  },
+  "passed_tests": [
+    "/library renders [data-testid=library-categories] SVG with hub + 5 default category leaves (work/study/personal/research/finances) + library-category-all + library-category-add (+ NEW)",
+    "All leaf shows count 'All · 6' (matches the 6 example maps)",
+    "Click library-category-study → library grid shows 'No matches' (filter works for empty category)",
+    "Click library-category-all → library-grid renders 6 cards back",
+    "Click library-category-add → modal opens with [data-testid=library-category-new-input]; saving 'TEST_Side' → new orbit leaf renders in the mini-map",
+    "Right-click on library-category-work → [data-testid=library-category-remove-confirm] dialog visible",
+    "On a library card hover → [data-testid=library-card-tag-edit-<map>] visible; clicking opens [data-testid=library-card-tag-tray-<map>] with 6 toggle buttons",
+    "/app?unlock=mind-mapper67 — Studio canvas loads, [data-testid=mm-top-toolbar] visible",
+    "Right-click on empty canvas → [data-testid=mm-canvas-ctx-menu] portal opens (mounted on document.body, not affected by canvas transform)",
+    "All 13 canvas-ctx testids present: mm-canvas-ctx-{cut,copy,paste,sticky,text,shape,image,clipart,comment,line,arrow,compile-map,backdrop}",
+    "Click mm-canvas-ctx-sticky → sticky annotation rendered (yellow sticky icon visible at click coords; nodes count stable, sticky elements detected via DOM)",
+    "Click mm-canvas-ctx-line → 'Line added' connector created (verified in first run — connector body label observed)",
+    "Clicking the backdrop ([data-testid=mm-canvas-ctx-backdrop]) outside the menu dismisses [data-testid=mm-canvas-ctx-menu] (verified)"
+  ],
+  "tests_not_executed_with_reason": [
+    "Reopening the canvas context menu after adding a sticky landed the second right-click on the just-added sticky element (which produces the node-level menu, not mm-canvas-ctx-menu). Test harness issue, not a regression. The first open + sticky + dismiss all succeeded, which exercises every code path in CanvasContextMenu.jsx.",
+    ".mmlib export/import skipped per review_request (browser download dialog)."
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "MEDIUM: Investigate whether toggleMapCategory in /app/frontend/src/lib/categories.js synchronously updates the React state subscription used by LibraryCard. In 1/2 runs the chip [data-testid=library-card-tag-<map>-work] did not appear after clicking the Work toggle. Verify that the storage-event/custom-event used by CategoryMiniMap to re-render is also dispatched/consumed by LibraryCard, or have LibraryCard own its own tagged state and update on click.",
+    "LOW: Consider auto-dismissing the first-run tour modal on right-click of the canvas, or rendering the tour above an interactive overlay so the canvas remains testable. Today, the tour blocks right-click until 'Skip tour' is clicked.",
+    "LOW: Mini-map clicks on SVG <g> elements — Playwright's element-handle .click() resolved coordinates incorrectly for the hub-orbit leaves on first try (force=true was needed, or JS dispatchEvent). Adding an invisible <rect> covering the leaf bbox or using pointer-events on the <text>/<rect> already does this — works, just noting it for future test harness reliability."
+  ],
+  "critical_code_review_comments": [
+    "CanvasContextMenu.jsx (NEW, 250 lines): clean extraction. createPortal to document.body correctly bypasses the canvas CSS transform (the original inline JSX would have inherited the zoom-transform — extracting to a portal is the right call). Backdrop+menu sit at z-index 9990/9991 which is above the toolbar (good). All 13 mm-canvas-ctx-* testids preserved verbatim from pre-refactor.",
+    "CategoryMiniMap.jsx: the SVG layout with radius growth (baseRadius + (N-6)*4) is well thought out — verified visually that 6 items (5 defaults + All) plus '+ NEW' lays out without overlap on the hub. Right-click context-menu binding is on the <g>; tested working.",
+    "Library.jsx L415-468: tag tray uses `tagged.includes(c.id)` to render the chip — chip and toggle share the same source-of-truth (the `tagged` array), so the rerender flake observed is most likely a state-propagation issue between the categories storage helper and the card's `tagged` state, not a rendering bug.",
+    "MindMapCanvas.jsx dropped from 1979 → 1767 lines (verified via wc -l). The portal mount point at the bottom of the tree is correct (no stale closures observed)."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "n/a (frontend-only review)",
+    "frontend": "Library mini-map: 8/9 explicit checks pass (Work chip flake). CanvasContextMenu refactor: 6/6 acceptance points verified — all 13 testids present, sticky/line add, portal mount, backdrop dismissal all work."
+  },
+  "test_credentials": "?unlock=mind-mapper67",
+  "seed_data_creation": "localStorage.clear() at start of each run + mm.tour.completed=1, mm.tourCompleted=1, mm.firstRun.tourSeen=true, mm.consent=declined to skip first-run tour. Created one TEST_Side category in the mini-map (persisted to localStorage 'mm.categories.v1' or similar — verify and clean if it leaks across iterations).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The CanvasContextMenu refactor is regression-clean — all 13 mm-canvas-ctx-* testids and behaviours preserved. When testing the canvas right-click menu, pre-set localStorage keys mm.tour.completed=1, mm.tourCompleted=1, mm.firstRun.tourSeen=true to skip the first-run tour modal which otherwise intercepts right-clicks. Avoid right-clicking near a coordinate where you just dropped a sticky/annotation — the second right-click will land on the new element and open the node-level menu instead of mm-canvas-ctx-menu. For SVG <g> clicks in CategoryMiniMap, use JS dispatchEvent or page.click(testid, force=True); element bounding_box() returns useless coords for SVG groups in some Playwright setups. The Work-chip-after-toggle flake on a library card needs a closer look — chip lookup by [data-testid=library-card-tag-<map>-work] returned null in 1/2 runs immediately after clicking [data-testid=library-card-tag-toggle-<map>-work].",
+  "rca_of_the_issue": "N/A — refactor is clean. The single Work-chip flake is a possible state-sync timing issue in toggleMapCategory→LibraryCard (recommend the main agent verify that the categories storage helper either (a) synchronously updates the map record AND dispatches the `mm:categories-changed` event so LibraryCard's effect re-fetches `tagged`, or (b) the LibraryCard component already passes through a stable rerender path — a 600ms wait may be needed in tests, but production users may see a 1-frame delay)."
+}

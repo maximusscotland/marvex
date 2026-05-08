@@ -1,0 +1,32 @@
+{
+  "summary": "Frontend-only verification for Readability v:2 article clip integration. All 7 scenarios passed: v:2 rich article renders 16-heading tree with article fields; v:1 bare + v:1 selection regressions intact; v:99 rejected with proper toast and no card; empty article.sections falls back to Shape C; static extension files (Readability.js, extract.js, background.js tryExtractArticle, manifest 0.2.0) all present; other app routes (/app, /memory, /download, /tools, /highlights) load 200; cloud sync still returns 401 unauth on /api/sync/maps and /api/sync/status.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor spec discrepancy in the review request: v:1 bare clip spec text says '7 headings (root + Source + URL + Key ideas + Open questions + Next steps)' but that list enumerates 6 items and the app correctly renders 6 headings. Matches iteration_32 green baseline, so implementation is correct — only the spec wording in the request is mis-counted.",
+    "parseClipParam (clipPayload.js) treats selection as a plain string (selection: obj.selection ? String(obj.selection) : ''). If the extension ever sends selection as {text: '...'} object, the UI will toast '15 chars ready to map' (length of '[object Object]') and render only 5 headings. Consider accepting either shape to be forward-compatible."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (401 guard verified on /api/sync/*)", "frontend": "100% (7/7 scenarios)"},
+  "test_credentials": "App gate: ?unlock=mind-mapper67",
+  "seed_data_creation": "None — all clips are stateless URL-encoded payloads.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Extension cannot be end-to-end driven in headless harness; static file checks are the only verification. Readability.js header confirmed contains Arc90 copyright. tryExtractArticle present at line 53 of background.js; manifest version is 0.2.0. /tmp/v2clip.txt holds the canonical v:2 payload. To build bespoke payloads, use base64url(json_string) with no padding. IMPORTANT: the v:1 selection payload MUST use selection as a STRING, not {text: '...'} — the latter serializes to '[object Object]' and produces a 5-heading card (caught during testing, payload was fixed and re-tested green).",
+  "detailed_results": {
+    "v2_rich_article": "PASS — 1 card, header '16 HEADINGS · 0 PAGES'; fixer renders root 'The Quiet Collapse of Expert Consensus', 'About', 'By Jane Smith', 'Example Magazine', excerpt leaf, 'The hollowing-out' + 3 paragraphs, 'What replaces the old?' + 2 paragraphs, 'The path forward' + 1 paragraph, 'Source', URL. Toast: 'Clip received — 3 sections extracted'.",
+    "v1_bare": "PASS — 1 card, '6 HEADINGS · 0 PAGES', fixer shows root + Source + URL + Key ideas + Open questions + Next steps. Toast: 'Clip received — \"Simple Page Clip\"'.",
+    "v1_selection": "PASS — 1 card, '7 HEADINGS · 0 PAGES'; root + Source + URL + Clipped passage + 3 sentence leaves (Sentence one./two./three.). Toast: 'Clip received — 43 chars ready to map'.",
+    "v99_invalid": "PASS — 0 cards added, toast 'Could not read clip from extension'.",
+    "empty_sections_fallback": "PASS — 1 card, '6 HEADINGS · 0 PAGES'; article.sections:[] falls back to Shape C (Key ideas / Open questions / Next steps), not an article tree. Toast: generic '\"Empty Article Test\"', not 'sections extracted'.",
+    "static_extension_files": "PASS — /app/extension/vendor/Readability.js exists (Arc90 copyright header confirmed), /app/extension/content/extract.js exists, /app/extension/background.js includes tryExtractArticle at line 53, /app/extension/manifest.json version is 0.2.0.",
+    "other_routes_regression": "PASS — /app, /memory, /download, /tools, /highlights all return 200 with rendered body. /api/sync/maps and /api/sync/status both return 401 unauthenticated as expected."
+  },
+  "rca of the issue": "No bugs found in this iteration."
+}

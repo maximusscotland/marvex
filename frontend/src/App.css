@@ -1,0 +1,47 @@
+/* App-level resets - global styling lives in index.css */
+.App {
+  min-height: 100vh;
+  background: #05060d;
+  color: #e6f6ff;
+}
+
+/* Print mode — triggered by the toolbar Print button.
+   Hides app chrome (sidebar, header, toolbar, modals, sticky icon-mode badges)
+   and prints only the visible mind-map canvas at full page width. */
+@media print {
+  body.printing-canvas {
+    background: #fff !important;
+  }
+  body.printing-canvas * {
+    color-adjust: exact !important;
+    -webkit-print-color-adjust: exact !important;
+  }
+  /* Hide everything except the canvas wrapper. */
+  body.printing-canvas [data-testid="output-sidebar"],
+  body.printing-canvas [data-testid="studio-sidebar"],
+  body.printing-canvas aside,
+  body.printing-canvas header,
+  body.printing-canvas nav,
+  body.printing-canvas [data-testid="mm-toolbar"],
+  body.printing-canvas [data-testid="cookie-consent"],
+  body.printing-canvas [data-testid="mm-context-menu"],
+  body.printing-canvas [data-testid="mm-canvas-ctx-menu"],
+  body.printing-canvas [data-testid="mm-annot-ctx-menu"],
+  body.printing-canvas [data-testid^="user-badge"],
+  body.printing-canvas [data-testid^="toast"],
+  body.printing-canvas [data-testid="tour-overlay"] {
+    display: none !important;
+  }
+  /* Expand the canvas to full page. */
+  body.printing-canvas [data-testid="mindmap-canvas"] {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: #fff !important;
+  }
+  /* Lighten the cosmic background so ink doesn't pour out. */
+  body.printing-canvas [data-testid="mindmap-canvas"] svg {
+    background: #fff !important;
+  }
+}

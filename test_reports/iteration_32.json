@@ -1,0 +1,52 @@
+{
+  "summary": "Verified the new Chrome-extension ?clip= ingress on /intake. Static review of /app/extension/ (manifest.json, background.js, popup.html/js/css, options.html/js, README.md, icons/). Ran four headless Playwright scenarios against the production preview URL: (1) full-selection clip, (2) malformed clip, (3) page-only clip (no selection), plus a structural check of the PDF dropzone. Core functionality works as specified; one minor issue: the toast.error 'Could not read clip from extension' is not visibly rendered in the Sonner portal for the malformed-clip scenario (the clipConsumedRef guard still prevents the card from being added and no error banner appears, so the failure mode is graceful — the user just never sees the error toast). Extension files are structurally correct, manifest parses, MV3 keys and required permissions are all present, and no node_modules exist under /app/extension/.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "IntakeStudio.jsx (?clip= effect)",
+        "issue": "For a malformed clip param (e.g. ?clip=xxxgarbagexxx) parseClipParam() correctly returns null and the useEffect hits the toast.error branch, but the Sonner toast is NEVER rendered into [data-sonner-toaster] section[aria-label='Notifications alt+T'] (confirmed via DOM poll + MutationObserver over 3s). toast.success for a *valid* clip also did not appear within 3 s in my observations. Sonner section exists but stays empty. Likely race: toast() is called from a mount-time useEffect before the <Toaster /> has mounted its queue, or the toast is being dismissed immediately because the same effect then does window.history.replaceState which may be interpreted by the <Toaster /> as a route change. Impact is low — no card is queued and no runtime error banner shows — but the spec explicitly requires the error toast to surface so the user knows why nothing happened.",
+        "selector": "[data-sonner-toaster] section[aria-label='Notifications alt+T']",
+        "priority": "MINOR"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Investigate why Sonner toasts (both toast.error for malformed clip and toast.success for valid clip) are not visibly rendered from the IntakeStudio ?clip= useEffect. Suggestion: move the toast calls into a microtask (queueMicrotask or setTimeout 0) OR fire them AFTER the window.history.replaceState, OR check that <Toaster /> in App.js is mounted above <IntakeStudio /> in the tree (confirmed it is — App.js wraps with Toaster at the root). Also verify there isn't a console.error being swallowed."
+  ],
+  "critical_code_review_comments": [
+    "clipPayload.js parseClipParam: base64UrlDecode wraps atob in try/catch and returns null on invalid input — good. JSON.parse is also try/catch'd — good. No crash vectors found.",
+    "IntakeStudio.jsx line 97: window.history.replaceState({}, '', location.pathname) STRIPS ALL query params, including ?unlock=mind-mapper67. This means after the first clip is consumed, if the user refreshes the tab later the unlock gate may re-activate. Consider replaceState with the filtered query string that preserves unlock and removes only clip.",
+    "IntakeStudio.jsx line 77-99: useEffect dep array is [] (with eslint-disable). The clipConsumedRef guard correctly handles StrictMode double-mount — verified behaviour: exactly 1 card on a valid clip.",
+    "background.js: uses getHost() that reads chrome.storage.sync — good. btoa encoding loop is O(n) but fine for selection up to 4000 chars.",
+    "manifest.json: all required MV3 keys present (manifest_version=3, name, version, background.service_worker, action.default_popup, host_permissions includes mind-mapper.com). permissions=[contextMenus,activeTab,scripting,storage] matches spec.",
+    "popup.js: readSelection() uses chrome.scripting.executeScript with activeTab — good, no <all_urls>. dataset.selection stores raw selection string on the button — fine.",
+    "No node_modules in /app/extension/ — confirmed via `ls`.",
+    "icons/ directory has only a README.md — actual 16/48/128 PNGs are missing. The extension will still load unpacked but will show a blank icon. README documents this as TODO."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend-only task)",
+    "frontend": "95%"
+  },
+  "test_credentials": "App gate: ?unlock=mind-mapper67 (query param). No user auth required.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All 4 primary /intake scenarios pass visually (screenshots saved). The only gap is the missing Sonner toast render for malformed/valid clips — verified by DOM poll + MutationObserver; the <section data-sonner-toaster> stays empty even 3s after the effect fires. Everything else green: exactly 1 card, 7 headings (title, Source, URL, Clipped passage, 3 sentence leaves) for full clip; 6 headings with Key ideas/Open questions/Next steps for page-only clip; 0 cards + no error banner for garbage clip; clip= stripped from URL; CREATE 1 MAP button appears in header when card is queued. Extension static files are all correct and manifest is valid JSON.",
+  "verified_scenarios": [
+    "Full-clip w/ selection: 1 card, title 'The Quiet Collapse of Expert Consensus', 7 headings (root + Source + URL + Clipped passage + 3 sentence leaves), CREATE 1 MAP button present, ?clip= stripped from URL — PASS",
+    "Malformed clip ?clip=xxxgarbagexxx: 0 cards, no runtime error banner, dropzone still functional — PASS. Toast.error expected but not rendered — MINOR issue.",
+    "Page-only clip (no selection): 1 card titled 'Simple Page Clip', 6 headings with placeholder 'Key ideas'/'Open questions'/'Next steps' and NO 'Clipped passage' — PASS",
+    "PDF-drop regression: dropzone UI renders correctly on /intake in all tested states; clip useEffect early-returns when no ?clip= is present so it cannot interfere — structural PASS (no file-drop actually performed, but useEffect isolation is airtight)",
+    "Extension structure: manifest.json parses, has manifest_version=3, name, version, background.service_worker, action.default_popup, host_permissions includes mind-mapper.com, permissions=[contextMenus,activeTab,scripting,storage]. All listed files present. No node_modules/. — PASS"
+  ],
+  "rca_of_the_issue": "Toast-not-rendering root cause (hypothesis): In IntakeStudio.jsx the clip useEffect fires toast.error synchronously on mount, then immediately calls window.history.replaceState. The App.js <Toaster /> sits in the same React tree mount batch — on the first paint the Toaster's internal Sonner store may not yet be subscribed. Recommended fix: wrap the toast call in a `setTimeout(() => toast.error(...), 0)` or `queueMicrotask`, which defers it past the initial mount commit so the Toaster subscription has fired. Same fix for the toast.success branch."
+}

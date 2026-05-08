@@ -1,0 +1,28 @@
+{
+  "summary": "Iteration 27 verified the new PDF Reader v3 Ink feature end-to-end on /read via Playwright against the preview URL. All 11 spec steps passed: (1) gate passes via ?unlock=mind-mapper67 and reader-dropzone renders; (2) upload of /app/backend/tests/fixtures/tiny.pdf renders reader-tabbar + reader-ink-toolbar; (3) toolbar starts collapsed — data-draw-mode='false' with only reader-ink-toggle visible and pen/eraser/colors/widths NOT in DOM; (4) clicking reader-ink-toggle flips data-draw-mode='true' and renders all expanded controls (reader-ink-tool-pen/eraser, reader-ink-colors, reader-ink-color-cyan/fuchsia/yellow, reader-ink-widths, reader-ink-width-fine/med/thick); (5) reader-ink-layer <canvas> is inside reader-page-1 with data-draw-mode='true'; (6) simulated drag produced a stroke — localStorage key 'mindmapper.ink.v1.tiny.pdf::1472::<mtime>' contains pageNumber '1' with a stroke of 29 points (>=2), color cyan, width 4; (7) toggle OFF restores text selection — selecting 'Hello Mind-Mapper' shows reader-selection-toolbar; (8) toggle back ON, pick fuchsia → fuchsia swatch gains ring-2 ring-white scale-110; (9) eraser tool clicked near the stroke removed it from localStorage (empty array after erase); (10) reload page, re-upload same tiny.pdf, toggle draw ON → previously-persisted stroke is loaded and rendered (stroke_count_after_reload=1); (11) regression: reader-tab-add flow works — second PDF opened creates a second tab, two independent session ids rendered in tabbar. Text-selection + FloatingToolbar regression also confirmed.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PdfReader.jsx L78-81: `drawMode`, `inkTool`, `inkColor`, `inkWidth` are top-level state not persisted or tied to session. Acceptable per spec ('Per-PDF, local-only' refers to strokes), but switching tabs does NOT reset tool/color — a nitpick only.",
+    "InkLayer.jsx L43-47: eraser hit-testing iterates every point of every stroke with O(N*M). For PDFs with hundreds of strokes per page this could stutter on pointerdown; fine for current target usage.",
+    "InkLayer.jsx L104-107: canvas pointerEvents toggles between 'auto'/'none' and zIndex between 3/1 based on drawMode. When drawMode is OFF, zIndex=1 is below the text layer (zIndex:2) — good, text remains selectable. No issue.",
+    "inkStorage.js L30-34: saveInk silently swallows QuotaExceededError on localStorage overflow; consider surfacing a toast if a user ever hits the ~5MB cap for a single PDF with hundreds of pages of thick strokes. Non-blocking for MVP.",
+    "PdfReader.jsx L463-478: new PdfPage key is `${activeSession.id}-${i}` — when switching tabs React unmounts/remounts each PdfPage which re-renders canvas + refetches textContent. Acceptable for correctness but expensive for large PDFs. Could key by fileKey+pageNumber and gate rendering by activeSessionId if needed.",
+    "PdfReader.jsx L210: `loadInk(fk)` is called synchronously at session creation — good; stroke data survives reloads because useMemo isn't used on sessions (session state is re-seeded from localStorage on each upload).",
+    "InkLayer.jsx L111-113: onPointerLeave also calls onPointerUp which finalizes the stroke — if a user drags off the page the stroke still persists. Arguably correct; tested and works."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "N/A (frontend-only test)", "frontend": "100% (11/11 spec steps + multi-tab regression + text-selection regression all green)" },
+  "test_credentials": "Access gate: mind-mapper67 via ?unlock=mind-mapper67 (REACT_APP_UNLOCK_KEY).",
+  "seed_data_creation": "Ink data was created in-browser during the test: localStorage key 'mindmapper.ink.v1.tiny.pdf::1472::<mtime>' with 1 fuchsia stroke on page 1 after erase+redraw. /tmp/tiny2.pdf was created by copying /app/backend/tests/fixtures/tiny.pdf to verify multi-PDF tabs. No backend seed data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "PDF Reader Ink feature is fully green. DrawToolbar correctly collapses/expands via data-draw-mode attribute on reader-ink-toolbar. InkLayer pointer capture works — stroke points are stored normalized 0..1 in localStorage under 'mindmapper.ink.v1.<name>::<size>::<mtime>', schema {pageNumber: Stroke[]} with {id, color, width, points[]}. Eraser removes strokes by deleting them from localStorage (empty array after all strokes removed on a page — inkStorage.saveInk also removes the whole key if the entire {} becomes empty, see inkStorage.js L30-32). Text selection still works when drawMode is off because the canvas falls to zIndex:1 + pointerEvents:none, and pdf-text-layer gets pointerEvents:auto. For the +Node regression with a target map, use reader-new-map first (otherwise 'No maps' is shown); then text selection → reader-add-node works. 401s in console are /api/auth/me for signed-out users — not related to the feature.",
+  "rca of the issue": "N/A — no failing features."
+}

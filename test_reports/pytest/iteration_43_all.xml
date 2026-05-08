@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="8" failures="5" skipped="3" tests="87" time="45.765" timestamp="2026-04-24T17:02:12.767661+00:00" hostname="agent-env-267c8bd3-f469-46e5-9fae-f1cf9bb9fdc5"><testcase classname="tests.test_billing_plans" name="test_plans_structure" time="0.000" /><testcase classname="tests.test_billing_plans" name="test_available_plans_never_empty" time="0.000" /><testcase classname="tests.test_billing_plans" name="test_free_ai_limit_is_one_for_byok_policy" time="0.000" /><testcase classname="tests.test_llm_dispatch" name="test_normalize_provider_accepts_all_four" time="0.000" /><testcase classname="tests.test_llm_dispatch" name="test_normalize_provider_falls_back_to_anthropic" time="0.000" /><testcase classname="tests.test_llm_dispatch" name="test_normalize_provider_is_case_insensitive" time="0.000" /><testcase classname="tests.test_llm_dispatch" name="test_llmgateway_constants" time="0.000" /><testcase classname="tests.test_llm_dispatch" name="test_call_llm_routes_llmgateway_through_openai_sdk" time="0.003" /><testcase classname="tests.test_llm_dispatch" name="test_call_llm_routes_native_providers_through_llmchat" time="0.001" /><testcase classname="tests.test_mindmapper_api.TestHealth" name="test_api_root" time="0.203" /><testcase classname="tests.test_mindmapper_api.TestHealth" name="test_health" time="0.119" /><testcase classname="tests.test_mindmapper_api.TestAuth" name="test_me_unauthenticated_returns_401" time="0.150" /><testcase classname="tests.test_mindmapper_api.TestCORS" name="test_auth_me_cors_headers_not_wildcard" time="0.000"><skipped type="pytest.skip" message="CORS origin-echo assertions only apply to the production mind-mapper.com host">/app/backend/tests/test_mindmapper_api.py:83: CORS origin-echo assertions only apply to the production mind-mapper.com host</skipped></testcase><testcase classname="tests.test_mindmapper_api.TestCORS" name="test_auth_me_preflight" time="0.000"><skipped type="pytest.skip" message="CORS origin-echo assertions only apply to the production mind-mapper.com host">/app/backend/tests/test_mindmapper_api.py:99: CORS origin-echo assertions only apply to the production mind-mapper.com host</skipped></testcase><testcase classname="tests.test_mindmapper_api.TestCORS" name="test_billing_create_checkout_cors" time="0.000"><skipped type="pytest.skip" message="CORS origin-echo assertions only apply to the production mind-mapper.com host">/app/backend/tests/test_mindmapper_api.py:113: CORS origin-echo assertions only apply to the production mind-mapper.com host</skipped></testcase><testcase classname="tests.test_mindmapper_api.TestParsePdf" name="test_non_pdf_returns_400" time="0.180" /><testcase classname="tests.test_mindmapper_api.TestParsePdf" name="test_empty_file_returns_400" time="0.141" /><testcase classname="tests.test_mindmapper_api.TestParsePdf" name="test_valid_pdf_returns_outline" time="0.115" /><testcase classname="tests.test_mindmapper_api.TestParsePdf" name="test_noisy_pdf_headings_only" time="0.139" /><testcase classname="tests.test_mindmapper_api.TestParsePdf" name="test_oversized_pdf_returns_413" time="1.230" /><testcase classname="tests.test_mindmapper_api.TestFromPdfRequiresAuth" name="test_unauthenticated_returns_401" time="0.129" /><testcase classname="tests.test_mindmapper_api.TestBillingRequiresAuth" name="test_create_checkout_unauthenticated_returns_401" time="0.113" /><testcase classname="tests.test_mindmapper_api.TestResearchAssistant" name="test_research_unauthenticated_returns_401" time="0.107" /><testcase classname="tests.test_mindmapper_api.TestResearchAssistant" name="test_research_missing_focus_title_empty_title_returns_400_or_401" time="0.168" /><testcase classname="tests.test_mindmapper_api.TestResearchAssistant" name="test_research_unknown_provider_header_does_not_500" time="0.116" /><testcase classname="tests.test_mindmapper_api.TestResearchAssistant" name="test_research_malformed_body_returns_422" time="0.150" /><testcase classname="tests.test_mindmapper_api.TestEnrichOutline" name="test_enrich_outline_unauthenticated_returns_401" time="0.123" /><testcase classname="tests.test_mindmapper_api.TestEnrichOutline" name="test_enrich_outline_empty_headings_unauth_returns_401" time="0.125" /><testcase classname="tests.test_mindmapper_api.TestEnrichOutline" name="test_enrich_outline_missing_headings_returns_422_or_401" time="0.154" /><testcase classname="tests.test_mindmapper_api.TestEnrichOutline" name="test_enrich_outline_unknown_provider_no_500" time="0.114" /><testcase classname="tests.test_mindmapper_api.TestEnrichOutline" name="test_enrich_outline_malformed_heading_item_no_500" time="0.113" /><testcase classname="tests.test_mindmapper_api.TestCorpusSearch" name="test_arxiv_search_returns_hits" time="20.224"><failure message="AssertionError: {&quot;detail&quot;:&quot;arXiv upstream error: &quot;}&#10;assert 502 == 200&#10; +  where 502 = &lt;Response [502]&gt;.status_code">tests/test_mindmapper_api.py:380: in test_arxiv_search_returns_hits
+    assert r.status_code == 200, r.text[:300]
+E   AssertionError: {"detail":"arXiv upstream error: "}
+E   assert 502 == 200
+E    +  where 502 = &lt;Response [502]&gt;.status_code</failure></testcase><testcase classname="tests.test_mindmapper_api.TestCorpusSearch" name="test_gutenberg_search_returns_hits" time="1.343" /><testcase classname="tests.test_mindmapper_api.TestCorpusSearch" name="test_unknown_source_returns_400" time="0.171" /><testcase classname="tests.test_mindmapper_api.TestCorpusSearch" name="test_empty_query_returns_400" time="0.133" /><testcase classname="tests.test_mindmapper_api.TestCorpusSearch" name="test_corpus_search_does_not_require_auth" time="10.483"><failure message="AssertionError: {&quot;detail&quot;:&quot;arXiv upstream error: Client error '429 Unknown Error' for url 'https://export.arxiv.org/api/query?search_query=all%3Atransformer&amp;start=0&amp;max_results=1&amp;sortBy=relevance'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429&quot;}&#10;assert 502 == 200&#10; +  where 502 = &lt;Response [502]&gt;.status_code">tests/test_mindmapper_api.py:432: in test_corpus_search_does_not_require_auth
+    assert r.status_code == 200, r.text[:300]
+E   AssertionError: {"detail":"arXiv upstream error: Client error '429 Unknown Error' for url 'https://export.arxiv.org/api/query?search_query=all%3Atransformer&amp;start=0&amp;max_results=1&amp;sortBy=relevance'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/429"}
+E   assert 502 == 200
+E    +  where 502 = &lt;Response [502]&gt;.status_code</failure></testcase><testcase classname="tests.test_mindmapper_api.TestCorpusFetch" name="test_fetch_arxiv_pdf_passthrough" time="0.449" /><testcase classname="tests.test_mindmapper_api.TestCorpusFetch" name="test_fetch_gutenberg_text_synthesises_pdf" time="1.029" /><testcase classname="tests.test_mindmapper_api.TestCorpusFetch" name="test_fetch_host_allowlist_blocks_evil" time="0.128" /><testcase classname="tests.test_mindmapper_api.TestCorpusFetch" name="test_fetch_missing_url_returns_400" time="0.112" /><testcase classname="tests.test_mindmapper_api.TestCorpusFetch" name="test_fetch_invalid_url_returns_400" time="0.163" /><testcase classname="tests.test_mindmapper_api.TestCorpusFetch" name="test_fetch_unknown_source_returns_400" time="0.131" /><testcase classname="tests.test_mindmapper_api.TestCorpusFetch" name="test_fetch_does_not_require_auth" time="0.346" /><testcase classname="tests.test_mindmapper_api.TestBillingPlans" name="test_plans_public_no_auth" time="0.124" /><testcase classname="tests.test_mindmapper_api.TestBillingCheckoutValidation" name="test_invalid_plan_returns_400" time="0.117" /><testcase classname="tests.test_mindmapper_api.TestBillingCheckoutValidation" name="test_valid_plan_missing_auth_returns_401_or_403" time="0.136" /><testcase classname="tests.test_mindmapper_api.TestBillingCheckoutValidation" name="test_malformed_body_no_500" time="0.106" /><testcase classname="tests.test_research_memory" name="test_research_request_accepts_empty_memory" time="0.000" /><testcase classname="tests.test_research_memory" name="test_research_request_parses_memory_entries" time="0.000" /><testcase classname="tests.test_research_memory" name="test_build_memory_blob_empty_returns_empty_string" time="0.000" /><testcase classname="tests.test_research_memory" name="test_build_memory_blob_renders_compact_tree" time="0.000" /><testcase classname="tests.test_research_memory" name="test_build_memory_blob_caps_entries_and_branches" time="0.000" /><testcase classname="tests.test_research_memory" name="test_build_memory_blob_skips_entries_without_focus_title" time="0.000" /><testcase classname="tests.test_research_stream.TestPublicEndpoints" name="test_health" time="0.117" /><testcase classname="tests.test_research_stream.TestPublicEndpoints" name="test_billing_plans" time="0.137" /><testcase classname="tests.test_research_stream.TestPublicEndpoints" name="test_research_stream_unauthenticated_returns_401" time="0.112" /><testcase classname="tests.test_research_stream.TestPublicEndpoints" name="test_research_non_streaming_unauthenticated_returns_401" time="0.108" /><testcase classname="tests.test_research_stream.TestStreamWithAuthOverride" name="test_missing_focus_title_returns_400" time="0.008" /><testcase classname="tests.test_research_stream.TestStreamWithAuthOverride" name="test_stream_headers_are_sse" time="0.103" /><testcase classname="tests.test_share.TestSharePublicUnauth" name="test_get_nonexistent_slug_returns_404" time="0.138" /><testcase classname="tests.test_share.TestSharePublicUnauth" name="test_post_share_requires_auth" time="0.107" /><testcase classname="tests.test_share.TestSharePublicUnauth" name="test_delete_share_requires_auth" time="0.118" /><testcase classname="tests.test_share.TestSharePublicUnauth" name="test_list_mine_requires_auth" time="0.130" /><testcase classname="tests.test_share.TestShareCreateFlow" name="test_post_missing_title_returns_400" time="0.006" /><testcase classname="tests.test_share.TestShareCreateFlow" name="test_post_too_large_returns_413" time="0.005" /><testcase classname="tests.test_share.TestShareCreateFlow" name="test_full_create_get_revoke_flow" time="0.373" /><testcase classname="tests.test_share.TestOGImage" name="test_og_nonexistent_slug_returns_200_fallback_public" time="0.253" /><testcase classname="tests.test_share.TestOGImage" name="test_og_nonexistent_slug_header_in_process" time="0.122" /><testcase classname="tests.test_share.TestOGImage" name="test_og_valid_slug_returns_png_with_300_cache" time="0.844" /><testcase classname="tests.test_share.TestOGImage" name="test_og_real_map_tree_render_is_larger_than_fallback" time="0.283" /><testcase classname="tests.test_share.TestRegressionMounts" name="test_health" time="0.142" /><testcase classname="tests.test_share.TestRegressionMounts" name="test_billing_plans" time="0.124" /><testcase classname="tests.test_share.TestRegressionMounts" name="test_research_stream_mounted" time="0.121" /><testcase classname="tests.test_share_unfurl.TestUnfurlFallback" name="test_nonexistent_slug_returns_200_fallback" time="0.125" /><testcase classname="tests.test_share_unfurl.TestUnfurlFallback" name="test_cache_control_header_in_process" time="0.003"><failure message="RuntimeError: Event loop is closed">tests/test_share_unfurl.py:43: in test_cache_control_header_in_process
+    r = client_with_auth.get("/api/share/fakeslug/unfurl")
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:548: in get
+    return super().get(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1053: in get
+    return self.request(
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:516: in request
+    return super().request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:398: in handle_request
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:395: in handle_request
+    portal.call(self.app, scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/anyio/from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/root/.venv/lib/python3.11/site-packages/anyio/from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+share.py:122: in unfurl_html
+    doc = await db.shared_maps.find_one(
+/root/.venv/lib/python3.11/site-packages/motor/metaprogramming.py:74: in method
+    return framework.run_on_executor(
+/root/.venv/lib/python3.11/site-packages/motor/frameworks/asyncio/__init__.py:85: in run_on_executor
+    return loop.run_in_executor(_EXECUTOR, functools.partial(fn, *args, **kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/asyncio/base_events.py:817: in run_in_executor
+    self._check_closed()
+/usr/local/lib/python3.11/asyncio/base_events.py:520: in _check_closed
+    raise RuntimeError('Event loop is closed')
+E   RuntimeError: Event loop is closed</failure></testcase><testcase classname="tests.test_share_unfurl.TestUnfurlRealShare" name="test_real_share_unfurl_has_title_and_branch_count" time="0.002"><failure message="RuntimeError: Event loop is closed">tests/test_share_unfurl.py:57: in test_real_share_unfurl_has_title_and_branch_count
+    r = client_with_auth.post("/api/share", json=payload)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:633: in post
+    return super().post(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:516: in request
+    return super().request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:398: in handle_request
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:395: in handle_request
+    portal.call(self.app, scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/anyio/from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/root/.venv/lib/python3.11/site-packages/anyio/from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+share.py:67: in create_share
+    existing = await db.shared_maps.find_one({"slug": slug}, {"_id": 1})
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/motor/metaprogramming.py:74: in method
+    return framework.run_on_executor(
+/root/.venv/lib/python3.11/site-packages/motor/frameworks/asyncio/__init__.py:85: in run_on_executor
+    return loop.run_in_executor(_EXECUTOR, functools.partial(fn, *args, **kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/asyncio/base_events.py:817: in run_in_executor
+    self._check_closed()
+/usr/local/lib/python3.11/asyncio/base_events.py:520: in _check_closed
+    raise RuntimeError('Event loop is closed')
+E   RuntimeError: Event loop is closed</failure></testcase><testcase classname="tests.test_share_unfurl.TestUnfurlRealShare" name="test_x_forwarded_proto_https_passthrough" time="0.001"><failure message="RuntimeError: Event loop is closed">tests/test_share_unfurl.py:85: in test_x_forwarded_proto_https_passthrough
+    r = client_with_auth.post("/api/share", json=payload)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:633: in post
+    return super().post(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:516: in request
+    return super().request(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:398: in handle_request
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/testclient.py:395: in handle_request
+    portal.call(self.app, scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/anyio/from_thread.py:334: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/root/.venv/lib/python3.11/site-packages/anyio/from_thread.py:259: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/applications.py:1054: in __call__
+    await super().__call__(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/applications.py:123: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/cors.py:85: in __call__
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py:65: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:756: in __call__
+    await self.middleware_stack(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:776: in app
+    await route.handle(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:297: in handle
+    await self.app(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:77: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:64: in wrapped_app
+    raise exc
+/root/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    await app(scope, receive, sender)
+/root/.venv/lib/python3.11/site-packages/starlette/routing.py:72: in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:278: in app
+    raw_response = await run_endpoint_function(
+/root/.venv/lib/python3.11/site-packages/fastapi/routing.py:191: in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+share.py:67: in create_share
+    existing = await db.shared_maps.find_one({"slug": slug}, {"_id": 1})
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/motor/metaprogramming.py:74: in method
+    return framework.run_on_executor(
+/root/.venv/lib/python3.11/site-packages/motor/frameworks/asyncio/__init__.py:85: in run_on_executor
+    return loop.run_in_executor(_EXECUTOR, functools.partial(fn, *args, **kwargs))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/local/lib/python3.11/asyncio/base_events.py:817: in run_in_executor
+    self._check_closed()
+/usr/local/lib/python3.11/asyncio/base_events.py:520: in _check_closed
+    raise RuntimeError('Event loop is closed')
+E   RuntimeError: Event loop is closed</failure></testcase><testcase classname="tests.test_share_unfurl.TestUnfurlRealShare" name="test_public_url_serves_unfurl" time="0.126" /><testcase classname="tests.test_share_unfurl.TestBaselineOGTags" name="test_index_html_has_og_and_twitter_tags" time="0.126" /><testcase classname="tests.test_sync" name="test_free_user_gets_402" time="0.000"><error message="failed on setup with &quot;pytest.PytestRemovedIn9Warning: 'test_free_user_gets_402' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.&#10;See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture&quot;">/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_free_user_gets_402' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture</error></testcase><testcase classname="tests.test_sync" name="test_status_disabled_for_free" time="0.000"><error message="failed on setup with &quot;pytest.PytestRemovedIn9Warning: 'test_status_disabled_for_free' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.&#10;See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture&quot;">/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_status_disabled_for_free' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture</error></testcase><testcase classname="tests.test_sync" name="test_push_then_pull_roundtrip" time="0.000"><error message="failed on setup with &quot;pytest.PytestRemovedIn9Warning: 'test_push_then_pull_roundtrip' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.&#10;See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture&quot;">/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_push_then_pull_roundtrip' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture</error></testcase><testcase classname="tests.test_sync" name="test_lww_keeps_server_newer" time="0.000"><error message="failed on setup with &quot;pytest.PytestRemovedIn9Warning: 'test_lww_keeps_server_newer' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.&#10;See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture&quot;">/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_lww_keeps_server_newer' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture</error></testcase><testcase classname="tests.test_sync" name="test_since_filter_only_returns_recent" time="0.000"><error message="failed on setup with &quot;pytest.PytestRemovedIn9Warning: 'test_since_filter_only_returns_recent' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.&#10;See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture&quot;">/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_since_filter_only_returns_recent' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture</error></testcase><testcase classname="tests.test_sync" name="test_delete_creates_tombstone_and_shows_in_pull" time="0.000"><error message="failed on setup with &quot;pytest.PytestRemovedIn9Warning: 'test_delete_creates_tombstone_and_shows_in_pull' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.&#10;See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture&quot;">/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_delete_creates_tombstone_and_shows_in_pull' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture</error></testcase><testcase classname="tests.test_sync" name="test_user_isolation" time="0.000"><error message="failed on setup with &quot;pytest.PytestRemovedIn9Warning: 'test_user_isolation' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.&#10;See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture&quot;">/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_user_isolation' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture</error></testcase><testcase classname="tests.test_sync" name="test_purge_old_tombstones" time="0.000"><error message="failed on setup with &quot;pytest.PytestRemovedIn9Warning: 'test_purge_old_tombstones' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.&#10;See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture&quot;">/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:458: in setup
+    return super().setup()
+           ^^^^^^^^^^^^^^^
+/root/.venv/lib/python3.11/site-packages/pytest_asyncio/plugin.py:728: in pytest_fixture_setup
+    return (yield)
+            ^^^^^
+E   pytest.PytestRemovedIn9Warning: 'test_purge_old_tombstones' requested an async fixture 'db', with no plugin or hook that handled it. This is usually an error, as pytest does not natively support it. This will turn into an error in pytest 9.
+E   See: https://docs.pytest.org/en/stable/deprecations.html#sync-test-depending-on-async-fixture</error></testcase></testsuite></testsuites>

@@ -1,0 +1,57 @@
+{
+  "summary": "Iteration 45: Frontend-only review of new MindMapCanvas features (Map Title rename, clipart toolbar + picker, editable line/arrow connectors with endpoints, annotation context menu, sticky/text/image/clipart resize handles, multi-select shift+click → join with line/arrow). 11 of 13 spec items PASS. 1 confirmed BUG (sticky resize handles can never appear due to mutually-exclusive flags) and 1 minor flake (node-context-menu right-click after a connector was created in the same coordinates didn't capture the menu — canvas-context-menu join path verified working so feature itself is fine).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "AnnotationsLayer.jsx — sticky annotation",
+        "issue": "Sticky resize handles NEVER appear. Lines 229-246: `collapsedSticky = it.type === 'sticky' && !isEditing` and `showResize = (isSel || isM) && !isEditing && !collapsedSticky`. For a sticky, `!collapsedSticky` is equivalent to `isEditing`, so `!isEditing && !collapsedSticky` is always false. The four corner handles `mm-annot-resize-{tl,tr,bl,br}-<id>` therefore never render on stickies. Verified: count of every handle testid = 0 after inserting a sticky, blurring out of edit, then clicking the sticky element to select. Same render path works for text annotations (handles tl/br confirmed = 1 each).",
+        "selector": "[data-testid^=\"mm-annot-resize-tl-\"][data-testid$=\"sticky-...\"]",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Multi-select via NodeMenu (right-click ON a multi-selected node)",
+        "issue": "After shift-clicking 2 nodes and right-clicking one of them, the node context menu (mm-context-menu) sometimes did not open in our test — `node-ctx-menu=0`. Reproduced once after a previous Join created a connector overlapping the source node bbox; the right-click likely fell on the connector instead. The canvas-empty-area right-click path (mm-canvas-ctx-menu with mm-canvas-ctx-join-line / -join-arrow) works perfectly: 'Join 2 with line' is rendered, click creates one connector (delta=+1), 'Joined' toast fires, multi-select clears. NodeMenu join options are wired in ContextMenu.jsx (lines 273, 282 — testids mm-ctx-join-line / mm-ctx-join-arrow) and were observed earlier this run with single-select right-click. Likely intermittent / not a code defect — main agent should self-verify.",
+        "affected_selectors": ["[data-testid=\"mm-context-menu\"]", "[data-testid=\"mm-ctx-join-line\"]", "[data-testid=\"mm-ctx-join-arrow\"]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "tests_executed": [
+    "PASS: Studio loads at /app?unlock=mind-mapper67 — title chip + root node both display 'Map Title' / 'MAP TITLE' (uppercased). 'Core Concept' string absent from DOM.",
+    "PASS: Toolbar buttons present — mm-tb-insert-{sticky,text,image,clipart,line,arrow} = 1 each, plus mm-tb-print = 1.",
+    "PASS: Clipart picker — click mm-tb-insert-clipart opens mm-clipart-picker; typing 'rocket' in mm-clipart-picker-search filters; mm-clipart-rocket present (count=1) and clickable; modal closes; 'Clipart added' toast; one mm-annot-clipart-* annotation dropped on canvas.",
+    "PASS: Line button — 'Line added' toast fires; one mm-annot-connector-* annotation created.",
+    "PASS: Arrow button — 'Arrow added' toast fires; second connector created (total=2).",
+    "PASS: Connector selection — clicking a connector reveals mm-conn-endpoint-1-<id> and mm-conn-endpoint-2-<id> draggable handles (1 each).",
+    "PASS: Connector right-click — mm-annot-ctx-menu opens with 'Line | Remove arrowhead | Dashed line | Colour | Delete'.",
+    "PASS: Text annotation resize — after click-to-select, mm-annot-resize-tl-<id> and mm-annot-resize-br-<id> both render (count=1 each).",
+    "PASS: Multi-select shift+click — Shift held while clicking mm-node-c1 then mm-node-c2 puts BOTH nodes into multi-select state (fuchsia/pink dashed outlines on both — confirmed via screenshot).",
+    "PASS: Canvas right-click join — mm-canvas-ctx-menu opens; mm-canvas-ctx-join-line and mm-canvas-ctx-join-arrow visible with 'Join 2 with line' / 'Join 2 with arrow' labels; clicking join-line creates exactly +1 connector; toast 'Joined 2 items with 1 line' appears; multi-select clears after action.",
+    "PASS: Sanity — mm-tb-print button still present and untouched by this iteration's changes.",
+    "FAIL: Sticky resize handles never render (see ui_bugs[0]).",
+    "FLAKY: NodeMenu join via right-click-on-multi-selected-node — once observed mm-context-menu count=0 in a state where canvas-context-menu join worked correctly. Code path in ContextMenu.jsx:273,282 is correct. Likely overlap with newly-created connector at right-click coords."
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "FIX BUG: AnnotationsLayer.jsx sticky resize. Either (a) decouple `collapsedSticky` from `isEditing` (e.g. add an `isExpanded` flag that's true when `isSel && !isEditing`) so the sticky stays expanded while selected, OR (b) include `isSel` as a hint: `collapsedSticky = it.type === 'sticky' && !isEditing && !isSel`. Then resize handles will render when the sticky is selected but not editing, matching the spec ('click sticky to expand, then click body to select, resize handles appear').",
+    "VERIFY: After fixing sticky, re-run the right-click-on-multi-selected-node case manually — confirm mm-context-menu opens with mm-ctx-join-line / mm-ctx-join-arrow at the top. If the issue reproduces deterministically, ensure node onContextMenu still wins over connector pointer events when node bbox overlaps a connector start/end."
+  ],
+  "critical_code_review_comments": [
+    "AnnotationsLayer.jsx:229,245 — `collapsedSticky` and `showResize` are mutually exclusive for stickies, which breaks the resize feature for the sticky type. This is a logic regression introduced by the resize-handle PR.",
+    "MindMapCanvas.jsx:1023 — `setMultiSelected(new Set())` on plain (non-shift) node click. This is correct behaviour but means tests/users must hold Shift on BOTH clicks to multi-select; first click without Shift wipes the pool. UX-OK, just documenting.",
+    "ContextMenu.jsx:273,282 — mm-ctx-join-line / mm-ctx-join-arrow rendered only when `joinCount >= 2`. Wiring confirmed via prop joinCount={multiSelected.size} (MindMapCanvas.jsx:1435).",
+    "Canvas right-click ctx menu (MindMapCanvas.jsx:1515) renders Join options conditionally on multiSelected.size >= 2 — verified working end-to-end including the toast 'Joined 2 items with 1 line'.",
+    "ClipartLibrary.jsx — clean modal, search filter works, testids on every clipart entry (mm-clipart-<name>). Good coverage for E2E."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a — frontend-only", "frontend": "11/13 spec items PASS (≈85%); 1 confirmed bug, 1 flaky integration"},
+  "test_credentials": "App gate: ?unlock=mind-mapper67 only. No login needed (local-first studio).",
+  "seed_data_creation": "None — used the default seeded map (Map Title + Idea One..Five) on first load.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Onboarding tour has TWO 'Skip tour' buttons (data-testid='tour-close' and data-testid='tour-skip'); use a specific testid, NOT get_by_role('button', name='Skip tour') (strict-mode violation). To multi-select two nodes for testing join, hold Shift down BEFORE the first click and release AFTER the second — plain first-click resets multiSelected to empty Set. Sticky annotations have TWO testids in the DOM: mm-annot-sticky-<id> (root container) and mm-annot-sticky-collapsed-<id> (the icon-state inner div). When testing resize, account for the bug above — currently any test that clicks a sticky to select it will see 0 resize handles regardless of implementation.",
+  "rca of the issue": "Sticky resize regression RCA: The new resize-handle support added in this iteration uses `showResize = (isSel || isM) && !isEditing && !collapsedSticky` (AnnotationsLayer.jsx:245). However sticky-specific code defines `collapsedSticky = it.type === 'sticky' && !isEditing` (line 229), meaning for stickies `!collapsedSticky === isEditing`. Substituting: `showResize = (isSel || isM) && !isEditing && isEditing` ⇒ always FALSE for stickies. Reproduction: insert sticky → press Escape (exit edit) → click sticky → select → expect 4 corner handles → 0 found. Mitigation: introduce a third state for stickies — selected-but-not-editing should keep the box expanded. Smallest patch: change line 229 to `const collapsedSticky = it.type === 'sticky' && !isEditing && !isSel && !isM;` so a selected sticky stays expanded; the existing `showResize` condition will then be `true` for stickies that are selected and not editing. No other call sites use collapsedSticky outside this file."
+}

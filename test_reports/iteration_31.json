@@ -1,0 +1,38 @@
+{
+  "summary": "Second-pass MindMapCanvas hook-extraction refactor (useSelection + useEditing + useContextMenu) regression-tested. All 9 requested regressions PASS. Zero runtime errors, zero console errors, zero page errors. No behaviour change observed from the 3 new hooks.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "regression_matrix": {
+    "studio_loads_6_nodes": {"result": "PASS", "detail": "/app?unlock=mind-mapper67 rendered [data-role='canvas-bg'] + 6 [data-testid^='mm-node-'] (mocsnp1g_myvas root + c1..c5). No runtime error banner."},
+    "node_selection_resize_handles": {"result": "PASS", "detail": "Click c2 (Idea Two) -> all 4 handles visible: mm-resize-tl-c2, -tr-c2, -bl-c2, -br-c2. Click canvas bg -> mm-resize-tl-c2 gone (clearSelection fires)."},
+    "node_context_menu": {"result": "PASS", "detail": "Right-click c2 -> [data-testid='mm-context-menu'] visible. Escape -> menu removed."},
+    "edge_context_menu": {"result": "PASS", "detail": "Right-click [data-testid='mm-edge-c1'] hit-area -> mm-context-menu appears (useContextMenu.openEdgeMenu path). Escape -> menu removed."},
+    "edge_click_selection_visual": {"result": "PASS", "detail": "Click mm-edge-c1 -> sibling visible <line> stroke-width 1.1 -> 2.2 AND opacity 0.85 -> 1 (isSelEdge branch fires). NB: the mm-edge-* data-testid is on the invisible hit-area (fixed strokeWidth=14); the visual sibling line carries the selection styling."},
+    "dblclick_inline_edit_rename": {"result": "PASS", "detail": "Dblclick c2 -> [data-testid='mm-edit-c2'] appears and is document.activeElement. Fill 'Renamed Node' + Enter -> node innerText becomes 'Renamed Node'. commitEdit hook path verified."},
+    "commit_empty_rejected": {"result": "PASS", "detail": "Dblclick, clear input, Enter -> node retains 'Renamed Node' (empty trimmed value rejected per useEditing.commitEdit)."},
+    "click_select_plus_enter_starts_edit": {"result": "PASS", "detail": "Click c2, press Enter -> mm-edit-c2 input visible. Confirms useEditing + useCanvasHotkeys integration intact."},
+    "bg_rightclick_no_menu_clears_existing": {"result": "PASS", "detail": "Open node menu via right-click c2, then right-click empty canvas -> mm-context-menu removed and no new menu opens."},
+    "landing_hero_download_to_download_page": {"result": "PASS", "detail": "/ landing shows [data-testid='hero-launch-btn'] with text 'Download' -> clicking routes to /download. /download renders 3 OS panels (download-os-linux, download-os-windows, download-os-mac) with multiple download-link-* children."}
+  },
+  "critical_code_review_comments": [
+    "useSelection.js clean: selectNode/selectEdge each clear the opposite selection atomically — good separation.",
+    "useEditing.js commitEdit correctly guards against null + empty/whitespace values via trim(); onChange+findAndUpdate path preserved from pre-refactor behaviour.",
+    "useContextMenu.js readOnly prop is honoured: openNodeMenu/openEdgeMenu both early-return when readOnly=true. Recommend the main agent also verify /share/:slug (read-only viewer) still suppresses right-click menus — this path was not exercised in regression (no shared-slug URL provided) but the code path is correct by inspection.",
+    "Minor: openNodeMenu/openEdgeMenu use `selectNode?.(id)` / `selectEdge?.(id)` optional-chaining but the hook always receives both setters from MindMapCanvas.jsx:362 — the optional-chaining is only useful if someone instantiates the hook without those deps in the future; acceptable defensive coding.",
+    "No missing-dep issues detected in the three new useCallbacks (all close over stable setters + readOnly). The warning from the review request about 'missing dep in a useCallback inside one of the hooks' does not materialise in testing."
+  ],
+  "action_items": [],
+  "updated_files": [],
+  "test_report_links": [],
+  "success_rate": {"backend": "N/A (frontend-only request)", "frontend": "100% (9/9 regressions pass)"},
+  "test_credentials": "App gate unlock key: mind-mapper67 (?unlock=mind-mapper67 sets localStorage)",
+  "seed_data_creation": "Used default Core Concept starter map (6 nodes). Renamed c2 'Idea Two' -> 'Renamed Node' during test — this is localStorage-only and resets on next fresh preview session.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Studio route is /app?unlock=mind-mapper67 (NOT /?unlock=...). The edge [data-testid='mm-edge-<id>'] data-testid sits on the *invisible hit-area <line>* with strokeWidth=14 fixed; for visual edge-selection assertions read the next sibling <line> inside the same <g> (hit.parentElement.querySelectorAll('line')[1]) for real stroke-width/opacity. Context menu testid is 'mm-context-menu' (singular). All three new hooks are functioning identically to pre-refactor — safe to proceed with further extractions.",
+  "rca of the issue": "No regression found. The second-pass extraction of useSelection / useEditing / useContextMenu preserves identical behaviour. MindMapCanvas.jsx:352-362 cleanly consumes all three hooks and forwards the expected handlers to JSX callsites (e.g. onContextMenu={openNodeMenu}, onBlur={commitEdit}, onClick={selectEdge + closeMenu})."
+}

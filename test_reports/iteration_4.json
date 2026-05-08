@@ -1,0 +1,36 @@
+{
+  "summary": "Iteration-4 verification of (a) tightened parse-pdf heuristic and (b) frontend image-compression pipeline. Backend pytest 10/10 pass on preview URL (3 CORS tests correctly skip — they are prod-domain scoped). Frontend access gate unlocks with 'mind-mapper67', Studio at /app renders Core Concept map with 6 nodes, toolbar buttons mm-tb-insert-image + mm-tb-backdrop are present and clickable, mm-backdrop-picker + mm-backdrop-file-input appear on demand, and compressImage import resolves with zero console/page errors.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mindmapper_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "backend/server.py simple_heading_scan dedupes running headers by dropping any title whose lowercase key appears >1 time (line 311). This is correct but could also drop legitimate repeated section titles (e.g., 'Summary' appearing in two chapters). Low risk because such repeats are uncommon and the outline branch handles properly-structured PDFs first.",
+    "lib/imageCompress.js flattens JPEGs against hard-coded '#03121d' — fine for the current dark canvas but will look wrong if the backdrop ever changes. Consider passing the target bg color via opts, or sticking with PNG when the source has alpha.",
+    "storage.js throwing on QuotaExceededError is good defensive behavior, but there is no visible user-facing 'free up space' affordance wired to the toast in Studio.jsx. Consider adding a 'clear older snapshots' action in the toast CTA.",
+    "Oversized upload check (>25 MB) runs AFTER awaiting file.read() — so the server still buffers the whole 25 MB before rejecting. Consider Content-Length pre-check to reject early and save bandwidth."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_mindmapper_api.py (added TestParsePdf.test_noisy_pdf_headings_only + test_oversized_pdf_returns_413; env-driven BASE_URL; CORS tests skip when not on mind-mapper.com)"
+  ],
+  "success_rate": {
+    "backend": "100% (10/10 run; 3 CORS tests skipped-by-design on preview host)",
+    "frontend": "100% of required flows verified"
+  },
+  "test_credentials": "Access gate password 'mind-mapper67' works. /app/memory/test_credentials.md is empty (only a placeholder comment) — not an issue because no login is required for the tested flows.",
+  "seed_data_creation": "pytest uses reportlab to synthesize two in-memory PDFs (photosynthesis + noisy neural-networks sample) per run; no persistent data created.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The backend test file now env-parameterizes BASE_URL via REACT_APP_BACKEND_URL with fallback to the preview URL. The TestCORS class is prod-only (skipif 'mind-mapper.com' not in BASE_URL). Iteration-4 validated: (1) parse-pdf heuristic filter correctly drops sentences containing verb hints + emails + DOI + Smith-style citations + URLs + 'Keywords:' + 'Page N of M' — see test_noisy_pdf_headings_only. (2) 25 MB guard works via 413. (3) Frontend Studio is under route /app (not /studio) — the 'Launch the Studio' button on the landing page routes there. Direct goto('/studio') renders blank; use in-app nav or goto('/app'). (4) mm-tb-insert-image and mm-tb-backdrop are wired and the compressImage import resolves cleanly in production build.",
+  "rca of the issue": "No bugs surfaced. Both iteration-4 changes behave as designed end-to-end."
+}

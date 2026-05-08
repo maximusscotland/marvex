@@ -1,0 +1,32 @@
+{
+  "summary": "Phase 2c corpus/kindle features tested end-to-end. Backend: 14 new pytest cases for /api/corpus/search + /api/corpus/fetch all pass (arXiv+Gutenberg search, arXiv PDF passthrough, Gutenberg text→PDF synth, host allowlist, validation 400s, public-no-auth regression). Full suite 31/34 passed, 3 CORS tests skipped (production-host only — expected). Frontend: every review criterion verified against the preview URL — 'Public domain' header button, corpus modal with tabs, search via Enter + click, 20 arXiv hits, free-tier 2-items blocked with correct toast, single arXiv import fires 'Imported 1' toast, modal closes, intake card auto-parses to PREVIEW (24 headings, 4 pages). Kindle hint card opens a role='dialog' modal with all 4 steps + open button. Zotero/Dropbox/Drive regression intact.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Corpus browser (arXiv first attempt)", "issues": ["Observed a single transient HTTP 502 from /api/corpus/search (arXiv upstream hiccup). A second attempt succeeded with 20 hits. UI degraded gracefully to 'NO RESULTS' — acceptable, but a small inline retry hint or explicit 502 error copy would be nicer than silent empty-state."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mindmapper_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "OPTIONAL: distinguish '502 upstream' vs 'no results' in PublicCorpusBrowser so a transient arXiv blip surfaces a retry CTA instead of the empty-state."
+  ],
+  "critical_code_review_comments": [
+    "server.py /api/corpus/fetch host allowlist uses `host == a or host.endswith('.' + a)` — correct. But the check lower-cases neither `host` nor `a`; httpx.URL normalises host to lowercase already, so fine in practice, but adding `host = host.lower()` would future-proof against any non-httpx URL parser change.",
+    "PublicCorpusBrowser.jsx — searches do not debounce on Enter repeat / button double-click. A quick double-Enter can fire two parallel /api/corpus/search calls. Minor, but adding a `busy` gate on the search handler (you already have `busy` for import) would be safe.",
+    "server.py parse_arxiv_atom — uses stdlib ElementTree without defusedxml. Input comes from export.arxiv.org (trusted) so low risk, but worth using defusedxml.ElementTree for belt-and-braces XXE protection.",
+    "corpus_search has hard-coded 50-item cap but the frontend requests limit=20. Fine as-is; just note that both places need updating if the cap ever changes."
+  ],
+  "updated_files": ["/app/backend/tests/test_mindmapper_api.py"],
+  "success_rate": {"backend": "100% (31/31 executed, 3 CORS skipped by design)", "frontend": "100% (14/14 review criteria)"},
+  "test_credentials": "Access gate: localStorage.setItem('mindmapper.unlocked.v1','1') OR ?unlock=mind-mapper67. /api/corpus/* endpoints are intentionally unauthenticated — no cookie needed.",
+  "seed_data_creation": "None. All corpus tests hit live upstreams (export.arxiv.org, gutendex.com, arxiv.org/pdf, www.gutenberg.org). 'Attention Is All You Need' PDF ~2MB; Frankenstein synth PDF ~100KB — confirmed by pytest assertions.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "New public endpoints: GET /api/corpus/search?source={arxiv|gutenberg}&q=...&limit=... and GET /api/corpus/fetch?source=...&url=...&title=.... Host allowlist is {arxiv.org, export.arxiv.org, www.gutenberg.org, gutenberg.org, www.gutenberg.net}. Frontend: intake-corpus-btn opens corpus-browser modal; tabs corpus-tab-arxiv / corpus-tab-gutenberg; corpus-search-input fires on Enter or corpus-search-btn; corpus-result-list > li elements have data-testid corpus-item-<id>; corpus-import-btn is disabled until ≥1 selection. Free-tier rule: 2+ selected = 'Free tier is limited to 1 file per batch' toast; 1 selected = fetches PDF blob via /api/corpus/fetch and injects into intake queue where it auto-parses to PREVIEW. Kindle hint card (intake-hint-kindle) opens kindle-howto modal with 4 steps (kindle-step-1..4) and kindle-howto-open link. NOTE: arXiv upstream occasionally returns 502 — retry once before declaring a regression. TestCorpusSearch + TestCorpusFetch classes cover both paths — reuse for future regression.",
+  "rca_of_the_issue": "N/A — all Phase 2c features ship correctly. Only caveat: first arXiv search in one Playwright attempt hit a transient upstream 502; a second attempt succeeded, consistent with typical arxiv.org jitter, not a backend bug."
+}

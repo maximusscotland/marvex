@@ -1,0 +1,42 @@
+{
+  "summary": "Verified the correction of teaser/screenshots split. Cinematic teaser now uses original book->mindmap frames (frame1_studio.jpg, frame2_library.jpg, frame3_cloud.jpg). New 'See it in action' screenshots gallery section (#screenshots / data-testid=landing-screenshots) was added between #features and #how, displaying the three product screenshots (mind-mapper-1/2/3.png). All 6 image URLs respond 200. Section ordering correct. Teaser auto-advance still cycles every ~5s. Studio at /app?unlock=mind-mapper67 mounts and mm-tb-connect-mode toolbar button is present. Frontend-only test as requested.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Landing.jsx is now ~590 lines and continues to grow. Consider extracting Hero, BuiltFor, Features, Screenshots, How, CTA, Footer subcomponents to keep file <500 lines.",
+    "ScreenshotsSection items have no native lazy-loading fallback for browsers without IntersectionObserver — currently OK because <img loading='lazy'> is used."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped)", "frontend": "100%"},
+  "test_credentials": "?unlock=mind-mapper67 (URL gate, no creds)",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "iter_56 confirmed CinematicTeaser frames reverted to /teaser/frame{1,2,3}_*.jpg, and new #screenshots section with /teaser/mind-mapper-{1,2,3}.png lives between #features and #how. All assets 200. Teaser cycling and studio /app mount with mm-tb-connect-mode all working.",
+  "validations_run": {
+    "teaser-frame-0 src": "/teaser/frame1_studio.jpg",
+    "teaser-frame-1 src": "/teaser/frame2_library.jpg",
+    "teaser-frame-2 src": "/teaser/frame3_cloud.jpg",
+    "landing-screenshot-0 src": "/teaser/mind-mapper-1.png",
+    "landing-screenshot-1 src": "/teaser/mind-mapper-2.png",
+    "landing-screenshot-2 src": "/teaser/mind-mapper-3.png",
+    "section_y_features": 3899,
+    "section_y_screenshots": 4908,
+    "section_y_how": 5489,
+    "ordering_features<screenshots<how": true,
+    "teaser_cycles_after_5s": "0 -> 1 (true)",
+    "http_status_mind-mapper-1.png": 200,
+    "http_status_mind-mapper-2.png": 200,
+    "http_status_mind-mapper-3.png": 200,
+    "http_status_frame1_studio.jpg": 200,
+    "http_status_frame2_library.jpg": 200,
+    "http_status_frame3_cloud.jpg": 200,
+    "studio_mm-tb-connect-mode_present": true
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "summary": "Completed frontend-only testing for the new /download page + Landing hero redirect + /app Studio regression. ALL 6 target flows passed cleanly on the preview URL. OS detection correctly identified Linux (headless Chromium), the detected panel is ordered first in the DOM, and all 8 installer links (3 Windows + 2 macOS + 3 Linux) point at github.com/.../releases/latest/download/* as expected. Footer links (all-releases / use-browser / back) wired correctly. Landing hero CTA reads 'Download' and routes to /download (not /app). /app Studio regression also passes — canvas-bg present and 6 seed nodes visibly render.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "tests_executed": {
+    "download_page_loads": "PASS — [data-testid='download-page'] present at /download?unlock=mind-mapper67",
+    "three_os_panels_present": "PASS — download-os-windows / -mac / -linux all rendered",
+    "exactly_one_detected": "PASS — data-detected='true' only on 'linux' (headless CI is Linux, as expected)",
+    "detected_panel_ordered_first": "PASS — DOM order is ['download-os-linux','download-os-windows','download-os-mac']",
+    "per_os_link_counts": "PASS — Windows=3, macOS=2, Linux=3",
+    "link_hrefs_github_releases": "PASS — all 8 links contain 'github.com' AND 'releases/latest/download'. Repo path is placeholder 'YOUR_GITHUB_USERNAME/mind-mapper' as documented by main agent; user will set REACT_APP_DESKTOP_GITHUB_REPO later.",
+    "footer_all_releases": "PASS — [data-testid='download-all-releases'] href contains github.com, target='_blank'",
+    "footer_use_browser": "PASS — [data-testid='download-use-browser'] links to /app",
+    "footer_back": "PASS — [data-testid='download-back'] links to /",
+    "hero_cta_text_and_route": "PASS — [data-testid='hero-launch-btn'] reads 'Download', href='/download'",
+    "hero_click_navigates_to_download": "PASS — after click URL is /download (not /app) and download-page visible",
+    "studio_app_regression": "PASS — /app?unlock=mind-mapper67 loads, [data-role='canvas-bg'] present, and screenshot confirms 6 seed nodes visible (Core Concept + Idea One–Five). Generic node selector in test returned 0 (the Studio uses SVG/custom markup with no data-testid on node wrappers), but the canvas and nodes clearly render — this is a test-selector gap, not a functional regression."
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Optional / low priority) Add a stable data-testid on Studio node wrappers (e.g., data-testid='mindmap-node') so future regression tests can assert node count without fragile SVG selectors. Current test had to fall back on a screenshot for verification.",
+    "(Reminder for deploy time, not a bug) Set REACT_APP_DESKTOP_GITHUB_REPO in frontend/.env once the GitHub repo is live — currently all 8 installer hrefs point at github.com/YOUR_GITHUB_USERNAME/mind-mapper/releases/latest/download/*.",
+    "(Nice-to-have) detectMacArch() currently always returns 'arm64' and is invoked only via `void detectMacArch;` inside useEffect — i.e., it's dead code today. Either wire it into the mac panel (prefer the Apple-Silicon link when detected) or drop it to avoid future confusion."
+  ],
+  "critical_code_review_comments": [
+    "Download.jsx is self-contained, env-driven (REACT_APP_DESKTOP_GITHUB_REPO), and under 250 lines — clean.",
+    "OS detection heuristic is pragmatic: regex on userAgent+platform, falls back to 'unknown' → primary defaults to 'windows'. Matches the request's expected behavior.",
+    "The 401s seen in console come from existing /api/auth/me background call on unauth'd pages — unrelated to this change, pre-existing across iterations."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not requested)", "frontend": "100% (12/12 assertions passed)"},
+  "test_credentials": "App gate unlock param: ?unlock=mind-mapper67 (from request, no /app/memory/test_credentials.md changes needed).",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The /download page, Electron scaffolding (/app/electron/), and CI workflow (/app/.github/workflows/electron-build.yml) are in place. Electron itself is scaffolding-only — no GH release exists yet, so installer download links 404 today by design. Don't retest the hrefs' resolution; test only structure + wiring as done here. Landing hero now routes to /download (not /app); the *secondary* 'Open the Studio' CTA at the bottom of the landing (data-testid='cta-launch-bottom') still points at /app — which is correct.",
+  "rca_of_the_issue": "No issues found."
+}

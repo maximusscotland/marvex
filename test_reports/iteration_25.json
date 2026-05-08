@@ -1,0 +1,34 @@
+{
+  "summary": "Iteration 25 bundled review: (A) Global /highlights ledger and (B) Intake pipeline progress stepper. 8 of 9 test cases PASS end-to-end via Playwright; Test 7 (status=done pill states) could not be exercised via the resume-queue pathway because resumeSaved() hard-codes status=PREVIEW — verified by static code review instead (buildSteps reachedDone logic in IntakeProgress.jsx L72-132 is correct). Backend smoke 3/3 green (/api/health=200, /api/billing/plans=200 returns monthly+annual, /api/share/x/og.png=200 PNG 43,819 bytes).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Highlights.jsx option tag children", "issues": ["Console warning: '<span> cannot be a child of <option>' — the visual-editor runtime wraps dynamic text nodes inside <option> with <span> (lines 120-122 where `{all.length}` and `{name} · {count}` appear). React logs a hydration warning on /highlights. Non-blocking (functionality works), but the warning clutters the console. If product cares, replace dynamic children with a single template literal so no span wrapper is injected: `<option value=''>{`All PDFs (${all.length})`}</option>`."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_25.json"
+  ],
+  "action_items": [
+    "(Minor) Silence the '<span> cannot be a child of <option>' console warning on /highlights by flattening the dynamic children of each <option> into a single text expression (single template literal, no nested span).",
+    "(Optional enhancement for testability) Consider a hidden e2e escape-hatch so a Fixer card can be mounted in status=done/runningAction=mapping without running the full create-maps flow — would enable automated verification of intake-pipeline-step-* data-state transitions for the active/done branches. Currently only 'preview' coverage is testable via the resume queue."
+  ],
+  "critical_code_review_comments": [
+    "Highlights.jsx L56-59: open() calls navigate() with unescaped mapId/nodeId — if either ever contains '&' or '?', the target URL will be corrupted. Use URLSearchParams: `navigate('/app?' + new URLSearchParams({ map: h.mapId, focus: h.nodeId }))`.",
+    "Highlights.jsx L20-34: useMemo with empty deps → the ledger will NOT refresh if a new highlight is mapped while the user is still on /highlights (e.g., in another tab). Adding a window 'storage' event listener that invalidates the memo would make the ledger self-refreshing. Non-blocking on launch because navigation always re-mounts.",
+    "Studio.jsx L131-142: useEffect keyed on [activeId] — if the user arrives at /app?map=X&focus=Y and the same X is already active (activeId unchanged), setFocusNodeId + replaceState still fire on mount, which is what we want. But if focus changes while activeId stays the same (URL manipulated in-page), the effect won't re-fire. Edge-case only — the primary flow from /highlights always changes activeId.",
+    "IntakeProgress.jsx L112-122: the deepen pill's done condition is `reachedDone && runningAction !== 'deepening'`. Correct, but semantically when status hits DONE the runningAction is cleared to null in IntakeStudio's finally block — so the `!== 'deepening'` guard is redundant defensively; still fine.",
+    "IntakeProgress.jsx L125-129: the terminal 'done' pill turns green ONLY when `reachedDone && !runningAction`. This correctly avoids a premature 'all complete' while deepen is still running. Good.",
+    "IntakeStudio.jsx resumeSaved() at L202-222 unconditionally coerces status to PREVIEW and omits runningAction — reasonable (you can't resume mid-map-creation) but it means the progress stepper is never exercised in an 'active' state via the resume banner. Testers must rely on code review for active/done branches."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "100% (3/3 smoke)", "frontend": "89% (8/9 executed; 1 skipped due to resume-queue limitation, verified by code review)" },
+  "test_credentials": "Access gate: REACT_APP_UNLOCK_KEY=mind-mapper67 (also accepts ?unlock=mind-mapper67 URL param).",
+  "seed_data_creation": "Seeded localStorage 'mindmapper.maps.v1' with 2 maps (ethics.pdf x2 highlights, quantum.pdf x1) — used by TEST2 to verify 3-highlights/2-PDF hero, filters, and row→/app navigation. Seeded localStorage 'mindmapper.intakeQueue.v1' with preview-state items for the resume banner flow — clicked intake-resume-accept to hydrate the Fixer card and assert pipeline pills.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Highlights feature is fully working: empty state + hero counts + search + pdf-filter dropdown (appears only when pdfs.length>1) + row navigation + focus-param stripping all verified. Sidebar icon [data-testid='sidebar-icon-highlights'] navigates correctly. Intake pipeline stepper renders correct pill set for enrich-only (4 pills: parse/map/enrich/done) and enrich+autoDeepen (5 pills: parse/map/enrich/deepen/done), with parse=done and remaining=pending in status=preview. The DONE-state assertion (all pills green) cannot be triggered via the resume queue because resumeSaved() forces STATUS.PREVIEW — verified by code inspection only. All 5 regression routes (/app, /read, /tools, /share/fakeslug-xyz, /library) mount with 0 pageerrors. Backend smoke unchanged.",
+  "rca of the issue": "N/A — no failing features in this iteration. The one minor console-noise finding (span-in-option hydration warning on /highlights) is caused by the visual-editor runtime wrapping each dynamic JSX expression inside <option>…</option> with an instrumented <span data-ve-dynamic='true'>. React rejects <span> as a child of <option>. Fix is purely cosmetic: replace `<option>All PDFs ({all.length})</option>` with a single template literal so only a text node lives inside the option element."
+}

@@ -1,0 +1,26 @@
+{
+  "summary": "Both new features tested end-to-end. Backend: GET /api/share/fd6fwvpewsvj returns 200 with new `referral_code` (empty string for this share — owner has no affiliate code), all existing fields (slug/title/map/view_count/created_at) present, owner_user_id is stripped from response. 404 still returned for unknown slugs. GET /api/license/verify and GET /api/premium/status still return 401 unauth (regression ok). Frontend /flowchart?unlock=mind-mapper67: page title shows 'Start', FLOWCHART STUDIO sidebar entry present and highlighted (bg-[#0a1428] active state). Seed flowchart renders 10 nodes including green pill START, purple parallelogram Input/Output, magenta hex 'Validate input', orange diamond Decision-wiring-parent, document, database, connector, note, End terminator. Right-clicking a node opens the context menu with exactly 9 flow-add-* buttons (process, decision, terminator, io, subprocess, document, database, connector, note). Standard mm-ctx-add is NOT present in flowchart mode. Clicking mm-ctx-flow-add-decision adds a new orange diamond 'Decision' child (node count 10→11, SVG polygon count increased). Regression: /app?unlock=mind-mapper67 right-click shows standard mm-ctx-add (count=1) and zero flow-add-* buttons (count=0). /library?unlock=mind-mapper67 still shows the Library Categories mini-map. /intake?unlock=mind-mapper67 → Public-domain → UK Law tab still renders premium-uk-law-upsell. All 7 requested checks pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/backend/tests/test_share_referral.py", "/app/test_reports/pytest/pytest_results.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "share.py: _public_projection includes owner_user_id temporarily so the endpoint can look up the affiliate code, then doc.pop('owner_user_id', '') strips it before returning. Verified via the test — owner_user_id is absent from the JSON response. Clean, minimal surface.",
+    "Pre-existing console warning reproduced on /flowchart (and /app) first paint: 'Maximum update depth exceeded … useEffect either doesn't have a dependency array, or one of the dependencies changes on every render'. This is NOT a regression caused by these changes — it was already flagged in iteration_72 notes. Worth separate triage but does not block the two features under test (canvas renders, interactions work).",
+    "ContextMenu.jsx FlowchartShapeRow correctly renders 9 buttons in a 3×3 grid with distinct shape previews (clipPath for diamond/parallelogram/hex). onAddShapeChild callback pins shape+fill+stroke via MindMapCanvas addChild(parentId, count, shapeOverride) — the newly created Decision child visually showed orange-diamond styling, not inherited from parent green-pill, confirming the shape override works.",
+    "FLOWCHART_SHAPES palette in lib/flowchart.js uses consistent fill (rgba 0.08–0.10 alpha) + strong stroke colours — readable on the dark canvas. Good contrast.",
+    "blankFlowchart() root sets title='Start' which is correct per spec (user sees 'Start' as the page title and as the centre terminator node)."
+  ],
+  "updated_files": ["/app/backend/tests/test_share_referral.py"],
+  "success_rate": {"backend": "100% (4/4)", "frontend": "100% (7/7 requested checks)"},
+  "test_credentials": "No login. ?unlock=mind-mapper67 for all frontend routes. Backend share test uses existing non-revoked slug 'fd6fwvpewsvj'.",
+  "seed_data_creation": "None. Used existing share doc + in-app first-visit auto-seeded flowchart.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Flowchart Studio at /flowchart loads the auto-seeded 'Start' flowchart on first visit and persists it to localStorage (subsequent visits show the same tree). There are 10 nodes by default (Start pill root + 9 descendants). The referral_code field on /api/share/:slug will only be non-empty when the share owner has an affiliate.code in users collection; slug fd6fwvpewsvj's owner does not, so referral_code is ''. To positively exercise the ?ref=CODE stamping on SharedMap.jsx CTAs, seed a user with affiliate.code set and re-share from that account, or monkey-patch the owner of an existing share. A pre-existing (unrelated) 'Maximum update depth exceeded' console warning fires on both /app and /flowchart first paint — not caused by these changes.",
+  "rca of the issue": "n/a — no bugs reproduced."
+}

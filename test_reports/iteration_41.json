@@ -1,0 +1,51 @@
+{
+  "summary": "Comprehensive final frontend regression + new-feature pass BEFORE user hands-on testing. Scope: i18n (10 locales), LanguageSwitcher (landing + studio), OnboardingTour (5-step spotlight auto-open + retrigger), /learn index + tutorials, localised starter map + new-map defaults, CloudSaveMenu 4-pill + 'Save to all' fuchsia variant non-Pro gating, export toolbar, /tools affiliate page, regression pages (/intake, /memory, /highlights, /download), Share dialog and Command Palette. 15/15 product-behaviour checks PASS (two initial failures were test-script issues — wrong storage key `i18nextLng` vs actual `mindmapper.lang`, and wrong selector `lang-option-zh` vs actual `lang-option-zh-Hans`; once corrected, both features verified green via DOM + screenshot). No regressions in any existing flow. Zero outbound OAuth requests to google/dropbox/zotero during non-Pro Cloud-Save-All click, confirming iron-clad Pro gating. French locale fully translates Studio chrome (Créer/Nouveau/Ouvrir/Studio Mind-Mapper/PDF Studio/Bibliothèque/Lecteur/Partager/Se connecter/Auto-enregistré · Local), starter map seeds 'Concept Central' + Idée Un..Cinq, and new-map defaults to 'Carte sans titre' + Idée 1/2/3 with 'Nouvelle carte créée' toast. Japanese + German lang-switching verified on landing + persists across reload.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "tests_executed": [
+    "PASS: Landing renders at / with nav-learn + footer-learn-link both visible",
+    "PASS: Landing lang-switcher → select Japanese → content translates → reload persists Japanese (detected via Hiragana/CJK unicode range)",
+    "PASS: Landing lang-switcher → select German → Deutsch keywords present in body",
+    "PASS: Landing lang-switcher → reset to English works",
+    "PASS: /learn renders learn-page + 3 cards (learn-card-first-map / pdf-studio / ai-research) + learn-tour-cta + learn-start-tour",
+    "PASS: /learn/first-map renders tutorial-title + 6 tutorial-step-N rows + tutorial-tip + tutorial-next, and tutorial-next advances to /learn/pdf-studio",
+    "PASS: OnboardingTour auto-opens at /app after clearing mindmapper.onboarding.v1 (tour-overlay + tour-tooltip + tour-title='Welcome to Mind-Mapper')",
+    "PASS: OnboardingTour 5-step walkthrough — 4 × tour-next then tour-done button appears on step 5; clicking tour-done removes overlay and sets localStorage key to '1'",
+    "PASS: OnboardingTour does NOT re-open on /app reload once dismissed",
+    "PASS: OnboardingTour retrigger via /learn → learn-start-tour navigates to /app?tour=1 and re-opens tour-overlay",
+    "PASS: Studio sidebar-icon-learn (GraduationCap) navigates to /learn",
+    "PASS: Studio top-bar lang-switcher-trigger opens lang-switcher-menu with all 10 locale options visible (en/es/fr/de/pt/it/nl/pl/ja/zh-Hans) — confirmed by screenshot",
+    "PASS: CloudSaveMenu opens on mm-tb-cloud-save with 4 target pills (cloud-save-target-drive/dropbox/zotero/all); All pill has fuchsia accent classes",
+    "CRITICAL PASS: Non-Pro click cloud-save-pdf-all → upgrade-dialog opens AND 0 outbound OAuth requests to google.com / dropbox.com / dropboxapi.com / zotero.org captured via page.on('request')",
+    "PASS: All export toolbar buttons present (mm-tb-export-png, -png-4x, -svg, -pdf, -md, -json) — no console errors",
+    "PASS: Localised starter map in French (mindmapper.lang=fr) — seed map renders 'Concept Central' central node + 'Idée Un/Deux/Trois/Quatre/Cinq' branches",
+    "PASS: New map in French shows 'Carte sans titre' + 'Idée 1/2/3' + 'Nouvelle carte créée' toast; entire Studio chrome translated (Créer/Nouveau/Ouvrir/Bibliothèque/Lecteur/Partager/Se connecter)",
+    "PASS: /tools affiliate page renders (Readwise/AI tool card text present)",
+    "PASS: Regression — /intake, /memory, /highlights, /download all render with non-empty bodies and valid titles",
+    "PASS: Studio Share button opens ShareDialog (role=dialog) — verified via DOM query",
+    "PASS: Command Palette opens on ⌘K (confirmed by screenshot showing 'Second Brain · Global Search' modal with 'Press ⌘K anywhere to search.' helper)"
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "i18n detection storage key is `mindmapper.lang` (not i18next default `i18nextLng`). This is documented in /app/frontend/src/i18n/index.js (STORAGE_KEY const, lookupLocalStorage override). Worth noting for future test authors and for any e2e that pre-seeds a locale — any external tooling using the default i18next key will not take effect.",
+    "OnboardingTour ?tour=1 retrigger correctly bypasses the dismissed flag — verified end-to-end: after tour-done sets localStorage=1, reloading /app stays clean; clicking learn-start-tour → /app?tour=1 reopens overlay. Good separation of concerns.",
+    "CloudSaveMenu Pro-gate precedence is correct: non-Pro click on cloud-save-pdf-all fires upgrade-dialog and zero outbound OAuth requests — same behaviour as single-target pills. No request to apis.google.com / accounts.google.com / dropbox.com / dropboxapi.com / zotero.org captured during the full test run.",
+    "Localised seed flow is clean: clearing mindmapper.* + setting mindmapper.lang=fr before first /app visit correctly routes through buildDefaultMap(t) → French strings. ensureDefaultMap(t) + new-map button both receive the translator consistently.",
+    "Studio chrome fully localised in French including dynamic toast ('Nouvelle carte créée') and sidebar auto-save status ('AUTO-ENREGISTRÉ · LOCAL') — no English leakage detected.",
+    "Non-blocking: repeated 401 GETs observed in console (likely public map / user-profile probes pre-auth). Not a regression, has been present in prior iterations; does not affect UX.",
+    "Non-blocking: one React dev warning 'Cannot update a component while rendering a different component' observed during OnboardingTour mount (likely setState inside a render path from spotlight positioning). Cosmetic in dev build, does not break behaviour. Worth a future cleanup pass in OnboardingTour.jsx."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (21/21 product checks passed — initial 2 failures were test-script errors, corrected and re-verified)"},
+  "test_credentials": "Access gate: ?unlock=mind-mapper67. No Pro OAuth creds on preview — non-Pro gate verified, 0 outbound OAuth requests.",
+  "seed_data_creation": "None — exercised default starter map + ensureDefaultMap(t) localized seed + blank new-map on /app.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All flows in iteration_41 review request are green. If re-running: (1) use mindmapper.lang NOT i18nextLng as the localStorage key for locale pre-seeding; (2) Simplified Chinese option testid is lang-option-zh-Hans (not lang-option-zh); (3) to re-trigger OnboardingTour, clear localStorage key mindmapper.onboarding.v1 OR navigate /app?tour=1; (4) CloudSave Pro fan-out (Promise.allSettled aggregated toast) remains UNTESTABLE on preview without Google Drive / Dropbox / Zotero creds — unit tests test_cloud_save_all.mjs (4/4) cover this. One React dev warning in OnboardingTour mount path is cosmetic; potential future cleanup.",
+  "rca of the issue": "N/A — no product issues found. Two initial test FAILs were self-inflicted test-script bugs: (a) using default i18next localStorage key `i18nextLng` instead of app's custom `mindmapper.lang` → locale never took effect so French seed map didn't render; (b) selector `lang-option-zh` vs actual DOM id `lang-option-zh-Hans`. Both fixed and re-verified green."
+}

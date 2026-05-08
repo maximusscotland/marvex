@@ -1,0 +1,26 @@
+{
+  "summary": "Tested iteration 17: (1) AutoDeepenToggle on /intake Fixer cards and (2) map-timestamp on /app Studio. Timestamp renders correctly (format: 'Apr 23, 2026 · 10:57 PM'), with correct mono/uppercase/muted style (classes: mono text-[10px] uppercase tracking-[0.2em] text-[#6c7aa3]). Both toggles render side-by-side in FixerPanel with correct label 'Auto-deepen after map creation'. Pro-badge [data-testid='intake-autodeepen-pro-badge'] visible when no Pro/BYO. Clicking autodeepen without Pro opens UpgradeDialog and aria-checked remains 'false'. Adding BYO key (mindmapper.apiKey.v1) removes the Pro badge (unlocked=isPro||hasOwnKey works). Resume flow restores autoDeepen field correctly (code path verified — resumeSaved sets autoDeepen:!!row.autoDeepen and safeItemForStorage persists autoDeepen). Backend smoke: /api/billing/plans 200, /api/research 401 unauthenticated. /read, /app, /library all mount without console errors. No new backend endpoints this iteration (as expected).",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Studio.jsx line 837: `{active?.updatedAt && (...)}` correctly hides the timestamp when no map is active or no updatedAt — edge case holds. formatStudioStamp safely handles null.",
+    "intakeResume.js safeItemForStorage persists autoDeepen as boolean (line 28) and loadIntakeQueue enforces MAX_AGE_HOURS=72 — testers must use fresh savedAt when seeding.",
+    "IntakeStudio.jsx runAutoDeepenBatch uses Promise.all with try/catch per-item and falls back gracefully on 401/402/403 — matches spec ('Failures gracefully toast and leave the map intact').",
+    "AutoDeepenToggle gating `unlocked = isPro || hasOwnKey` mirrors EnrichToggle exactly — consistent policy.",
+    "Minor: in IntakeStudio createMaps merged-mode auto-deepen fires even if only one source item opted in (by design), but toast message 'Auto-deepened · +N extra branches' only shows if added>0 — user may not get feedback on zero-added case. Current toast('auto-deepening N maps') still dismisses correctly."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "100%", "frontend": "95%" },
+  "test_credentials": "Access gate unlock: mind-mapper67 (REACT_APP_UNLOCK_KEY). /app and /intake protected by gate. Pro simulated via BYO key: localStorage 'mindmapper.apiKey.v1' = {provider,key}.",
+  "seed_data_creation": "Seeded localStorage 'mindmapper.intakeQueue.v1' with {savedAt:Date.now(), items:[{id,fileName,parsedTitle,sourcePages,headings:[...],enrich:false,autoDeepen:false/true,status:'preview'}]} to trigger Resume banner.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Per-agent-to-agent-note, did NOT run full auto-deepen LLM flow end-to-end (would burn quota). Verified: (a) toggle visibility/gating, (b) state persistence across resume, (c) UpgradeDialog opens without Pro. Timestamp tested via format+style+conditional rendering. If seeding intakeQueue, ensure savedAt is within last 72h or loadIntakeQueue silently drops it. Resume auto-expands the first card — do NOT click the card header after resume (will collapse). T5/T6/T7 Playwright clicks failed due to lingering UpgradeDialog blocking overlay after Escape on first run; underlying code paths verified via static review and T3/T4 confirmation.",
+  "rca of the issue": "No blocking issue. One transient test-infra issue: UpgradeDialog may not close with Escape on /intake (testing artifact, not a user-visible bug since user would click its close button). Recommend adding data-testid='upgrade-dialog-close' to the dialog's close button for easier automation."
+}

@@ -1,0 +1,57 @@
+{
+  "summary": "Iteration 58 — Frontend-only validation of FIX1–FIX5 + regression on https://mindmap-studio-5.preview.emergentagent.com/app?unlock=mind-mapper67. FIX1, FIX2, FIX3 (shape + text), and REGRESSION pass cleanly. FIX5 (no-glow when empty) passes. Two real bugs found: FIX5 with-key glow does NOT render because of an invalid CSS box-shadow string, and FIX4 cumulative ArrowRight nudge is broken by a stale-closure issue (only ~6px out of expected ~30px applies after 5 rapid presses; Shift+Down single press works at ~21px ≈ 25px).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "LlmFuelGauge",
+        "issue": "Box-shadow inline style is invalid CSS so the gauge never renders a glow even when fuel is present. Line 171 builds `0 0 8px ${st.glow}33` where st.glow is already an rgba(...) string (e.g. 'rgba(61,220,132,0.55)'), producing the invalid value `0 0 8px rgba(61,220,132,0.55)33`. getComputedStyle().boxShadow is 'none' even with data-cubes=6 after a BYOK key is set. Either drop the `33` suffix and rely on the existing rgba alpha, or store the colour as #hex and append the alpha hex pair. Confirmed reproducible: setting localStorage 'mindmapper.apiKey.v1' = {provider:'openai',key:'sk-test-…'} + dispatching 'mindmapper:apikey-changed' → cubes becomes 6 but boxShadow stays 'none'.",
+        "selector": "[data-testid=llm-fuel-gauge]",
+        "priority": "HIGH"
+      },
+      {
+        "component": "MindMapCanvas — keydown arrow nudge",
+        "issue": "Stale-closure bug. The handler at /app/frontend/src/components/MindMapCanvas.jsx ~line 607 reads `positions[id]` from the closure (`const cur = positions[id] || {x:0,y:0}`) and calls onChange with `cur + step`. When multiple ArrowRight presses fire in rapid succession, all of them read the SAME `positions[id]` snapshot, so 5 presses all write `cur.x + 6` and only the last one persists. Test result: 5x ArrowRight on 'Idea One' moved the node only ~5px total instead of the expected ~30px. Single-press Shift+ArrowDown works (~21px observed for 25px expected — within tolerance). Fix by passing a functional updater to onChange (or by recomputing positions from the latest map snapshot). For multi-select / annotation paths, the same concern applies (they also read from captured state).",
+        "selector": "(global keydown)",
+        "priority": "HIGH"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "fix_results": {
+    "FIX1_shapes_no_selection_inserts": "PASS — [data-testid=mm-tb-shapes] is NOT disabled when no node is selected. Click inserts a free-floating shape annotation (count went from 0 → 1 in localStorage map.annotations).",
+    "FIX1_shapes_with_selection_picker": "PASS — After selecting 'Idea One', clicking mm-tb-shapes opens [data-testid=mm-tb-shape-menu].",
+    "FIX2_sidebar_collapse_expand": "PASS — [data-testid=sidebar-collapse-btn] hides sidebar; [data-testid=sidebar-expand-btn] appears with text 'Menu' and animationName='pulse-glow' (computed). Clicking it restores sidebar; btn-open-library and btn-pdf-to-mindmap are visible again.",
+    "FIX3_shape_annotation_full_props": "PASS — Right-click on a free-floating shape shows: [data-testid=mm-annot-link-<id>] input with placeholder 'https://… or file:///…', 8 colour swatches [data-testid^=mm-annot-shape-color-], and Edit / Duplicate / Delete buttons. Typing 'https://example.com' + Enter closes the menu; right-clicking again surfaces [data-testid=mm-annot-open-link-<id>] at the top.",
+    "FIX3_text_annotation_full_props": "PASS — Right-click on a text annotation shows the link input + edit/delete (no shape-color palette, expected for text).",
+    "FIX4_arrow_keys_move_selection": "FAIL — 5x ArrowRight on 'Idea One' moved node ~5px instead of ~30px (stale closure). Shift+ArrowDown moved ~21px (acceptable, ~25 expected). RCA in ui_bugs.",
+    "FIX4_backspace_still_deletes": "PASS — After arrow-nudge, Backspace removed 'Idea One' (regression check passes).",
+    "FIX5_empty_no_glow": "PASS — In a clean profile (no key, no Pro) data-cubes=0 and getComputedStyle(gauge).boxShadow === 'none'.",
+    "FIX5_with_key_glow": "FAIL — After setting BYOK key (mindmapper.apiKey.v1) and dispatching apikey-changed, data-cubes becomes 6 but getComputedStyle.boxShadow stays 'none'. Caused by malformed inline style — see ui_bugs. NOTE: the review request example used the wrong localStorage key 'mindmapper.user.byok' / field 'apiKey' — actual key is 'mindmapper.apiKey.v1' with shape {provider, key}. Even with the correct key, the glow never appears because of the CSS bug.",
+    "REGRESSION_smoke": "PASS — [data-testid=btn-import-bookmarks], [data-testid=mm-tb-connect-mode], [data-testid=map-close-btn] all present."
+  },
+  "test_report_links": ["/app/test_reports/iteration_58.json"],
+  "action_items": [
+    "FIX5 box-shadow bug (LlmFuelGauge.jsx ~line 171): replace `0 0 8px ${st.glow}33` with `0 0 8px ${st.glow}` (st.glow is already rgba with alpha) OR change STATES.*.glow to #rrggbb hex and keep the `33` alpha suffix. Verify with getComputedStyle that boxShadow !== 'none' when data-cubes > 0.",
+    "FIX4 stale-closure (MindMapCanvas.jsx ~line 607-612): convert the arrow-nudge `onChange(next)` path to a functional updater so rapid presses compose correctly. Ensure the same fix is applied for the multi-select branch and the selectedAnnotation branch (the `setAnnotations(arr => …)` callback already uses a functional updater, so that path likely behaves better — please verify with a 5x ArrowRight test on a sticky / shape annotation).",
+    "(Polish) Update agent-to-agent context: BYOK localStorage key is 'mindmapper.apiKey.v1' (NOT 'mindmapper.user.byok'), with shape {provider, key} (NOT {provider, apiKey})."
+  ],
+  "critical_code_review_comments": [
+    "LlmFuelGauge.jsx line 171: `boxShadow: cubeCount > 0 ? \\`0 0 8px ${st.glow}33\\` : \"none\"` produces invalid CSS — `rgba(...)33` is not parseable. Result: glow never renders at any cube count. Browsers silently drop the property → computed boxShadow == 'none'. This regresses the ENTIRE positive case for the gauge, not just an edge.",
+    "MindMapCanvas keydown arrow handler reads `positions[id]` from closure and passes a non-functional next-map object to onChange. Acceptable for single press but breaks on rapid keystrokes (auto-repeat or fast presses). Either functional update or read-from-latest-ref pattern needed.",
+    "The shape and text annotation right-click menus are well structured, use stable data-testid patterns including the annotation id, and degrade gracefully (open-link button only renders when link is set). Good code quality for FIX3.",
+    "sidebar-expand-btn 'Menu' label + pulse-glow animation are correctly wired and visually verified."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only request)", "frontend": "78% (7/9 named scenarios — FIX5_with_key_glow and FIX4_arrow_nudge cumulative fail)"},
+  "test_credentials": "URL unlock token: ?unlock=mind-mapper67",
+  "seed_data_creation": "None — used clean localStorage and runtime-inserted shape/text annotations.",
+  "retest_needed": true,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "FIX1, FIX2, FIX3 (shape + text), FIX5-empty, REGRESSION are all green and stable. After main agent fixes the box-shadow string in LlmFuelGauge.jsx (line 171) and the stale-closure in MindMapCanvas keydown (~line 607-612), please retest specifically: (a) set localStorage key 'mindmapper.apiKey.v1' = JSON.stringify({provider:'openai',key:'sk-test-1234567890'}) + dispatch 'mindmapper:apikey-changed' and assert getComputedStyle([data-testid=llm-fuel-gauge]).boxShadow !== 'none', and (b) press ArrowRight 5 times on a selected non-root node and assert dx ≈ 30px (use page.keyboard.press in a loop with no inputs focused; dismiss the analytics consent banner first since it can steal focus).",
+  "rca_of_the_issue": {
+    "FIX5_no_glow_with_key": "Inline style template `0 0 8px ${st.glow}33` concatenates the literal string '33' onto an already-complete `rgba(r,g,b,a)` value, producing invalid CSS. The browser drops the property silently, so getComputedStyle returns 'none' regardless of cube count. Reproduction: set a BYOK key → cubes=6 → still no glow. Fix: drop the `33` (rgba already has alpha) or migrate STATES.*.glow back to #rrggbb and keep the hex alpha pair.",
+    "FIX4_arrow_cumulative": "Closure capture: handler reads `positions[id]` once per render; rapid keypresses within the same render frame all see the same value and call `onChange(next)` with `cur + 6`. Only the last write persists in the next render. Fix: pass a functional updater (e.g. `onChange((prev) => ({...prev, positions:{...prev.positions, [id]:{x:(prev.positions?.[id]?.x||0)+dx*step, ...}}}))`) or read from a ref."
+  }
+}

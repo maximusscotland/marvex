@@ -1,0 +1,29 @@
+{
+  "summary": "Iteration 15 verified the NEW 'Deep Research · 2 levels' recursive research feature on /app Studio. All 6 review criteria pass. (1) Seeded a research-source map via localStorage 'mindmapper.maps.v1' — right-click on CENTRAL 'Research Demo' node exposes BOTH [data-testid='mm-ctx-deepen'] AND [data-testid='mm-ctx-deep-research']; the Deep Research row shows exact label 'Deep Research · 2 levels'. (2) Right-click on a CHILD node ('Quantum entanglement basics') also exposes both Deepen + Deep Research. (3) Fresh default map (no source='research'): NEITHER Deepen NOR Deep Research menu items render on root — correctly gated off. (4) Non-Pro, no BYO API key: clicking Deep Research opens the UpgradeDialog (data-testid='upgrade-dialog', role='dialog', aria-modal='true') AND crucially does NOT make any /api/research network call (verified via page.on('request') listener — research_called=False). Pro OR BYO-key gate at Studio.jsx line 384 fires before any LLM call. (5) /intake smoke: page loads cleanly with the intake UI present. (6) REGRESSION: GET /api/billing/plans returns {'available':['monthly','annual']} in test mode; POST /api/research returns 401 for unauthenticated — both unchanged from iter 14. The only console errors captured were 10× 401 responses on /api/auth/me — expected for non-signed-in users and not caused by the new Deep Research code. No page-level JS errors.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mindmapper_api.py",
+    "/app/test_reports/pytest/iteration_14.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Studio.jsx handleDeepResearch() (lines 378-501) duplicates the outline-walker closure and the graft-subtree closure from handleDeepen/handleResearch. Consider extracting buildOutline(active) and graftUnder(focusId, newBranches, map) into /lib/mapOps.js — would cut ~40 lines and keep the three flows consistent.",
+    "L2 Promise.allSettled loop silently swallows per-branch failures (catch → kids:[]). On prod this hides e.g. rate-limit issues. Consider surfacing a partial-failure toast: 'Deep Research complete · 2/3 L1 branches fully expanded' so the user knows something was skipped.",
+    "MAX_L2_PER_BRANCH=2 is a magic number embedded in the UI layer. Move to a named constant at top-of-file (or read from a server-returned quota) so pricing/quota tuning doesn't require a code edit in a deep function body.",
+    "The Pro-OR-BYO gate check (!isPro && !userKey) is duplicated between handleResearch/handleDeepen/handleDeepResearch (all three also respond to 402). A single isQuotaGated() helper would prevent divergence when billing rules change.",
+    "The Deep Research menu-item wiring at Studio.jsx:842 uses the same predicate as Deepen (source === 'research' || 'enriched'). A centralised isDeepenable(map) / isRecursivelyResearchable(map) helper (flagged last iter too) is overdue."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (2/2 smoke: billing/plans + research 401)", "frontend": "100% (12/12 assertions across 5 scenarios)"},
+  "test_credentials": "Access gate: ?unlock=mind-mapper67 OR localStorage['mindmapper.unlocked.v1']='1'. No OAuth needed — all Deep Research tests run pre-LLM (menu visibility + gate behaviour).",
+  "seed_data_creation": "Ephemeral localStorage only: 'mindmapper.maps.v1' seeded with a single research-source map {id:'m1', source:'research', children:[c1,c2]} and 'mindmapper.recents.v1' = ['m1']. Cleared between sub-tests. Activation via ?map=m1 query param (honored by Studio.jsx line 58-63).",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Deep Research feature is live and visually + behaviourally verified. Context-menu testids: mm-ctx-deepen (existing, TreePine icon, 'Deepen this branch') and NEW mm-ctx-deep-research (Zap icon, 'Deep Research · 2 levels'). Both gated on active.source in {'research','enriched'}. Deep Research additionally requires Pro OR BYO API key — non-Pro users trigger UpgradeDialog and NO /api/research call fires. Studio.jsx handleDeepResearch() orchestrates 1+N calls: 1 for L1 on focus node, then Promise.allSettled over L1 children for L2 (capped at MAX_L2_PER_BRANCH=2). The whole L1+L2 subtree is grafted under the focus node via saveMap → handleMapChange. Auth for /api/research still returns 401 unauth (unchanged). /api/billing/plans still returns {available:['monthly','annual']} in test mode. Preview URL: https://mindmap-studio-5.preview.emergentagent.com. No retest needed for iter 14 features — Deepen + Resume + billing/plans all still green on smoke.",
+  "rca_of_the_issue": "N/A — Deep Research ships correctly. Menu visibility, Pro-gate, dialog semantics (role+aria-modal), and 'no LLM call before gate' all confirmed via live Playwright. 10× 401s on /api/auth/me captured in console are the normal unauthenticated poll and unrelated to the new feature."
+}

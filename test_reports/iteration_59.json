@@ -1,0 +1,47 @@
+{
+  "summary": "Iter 59 retest of the two HIGH bugs from iter 58. BOTH fixes verified working. (a) LlmFuelGauge box-shadow — fix `0 0 10px ${st.glow}` now produces a valid CSS value: getComputedStyle.boxShadow with a BYOK key set is `rgba(61, 220, 132, 0.55) 0px 0px 10px 0px` (data-cubes=6, data-state=full); when localStorage is cleared and the page reloaded the gauge correctly reports data-cubes=0 and boxShadow='none'. (b) MindMapCanvas arrow-key stale-closure — single-node cumulative ArrowRight x5 now applies all 5 presses (was 1 of 5 in iter 58). Measured dx=25.5px at 85% canvas zoom which equals 30 logical units (30 * 0.85 = 25.5 — exact). Shift+ArrowDown single press measured dy=21.25px = 25 logical * 0.85 (exact). Regression smoke (FIX1/FIX2/FIX3 testids) all green. ONE residual issue: in multi-select arrow-nudge, only one of the two shift-clicked nodes actually moves (15.3px screen = 18 logical) — this is unrelated to the closure fix and appears to be a multi-select wiring issue (shift+click likely not adding both nodes to the multiSelected Set).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "MindMapCanvas — multi-select shift-click",
+        "issue": "Shift+click on a second node followed by ArrowRight x3 only moves ONE of the two nodes. Measured: node A (first clicked) dx=15.3px (=18 logical at 85% zoom — correct); node B (shift-clicked) dx=0px. Or vice-versa depending on click order. The closure fix is fine — issue is that multiSelected Set only ends up with one id after the shift+click sequence. Either shift+click is treated as a plain click (replacing selection rather than augmenting), or the keydown handler picks `selected` instead of `multiSelected` when both are set. Repro: click 'Idea One' → shift-click 'Idea Two' → press ArrowRight 3 times → only one node moves.",
+        "selector": "[data-testid^=mm-node-]",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "fix_results": {
+    "FIX5_with_key_glow": "PASS — boxShadow = 'rgba(61, 220, 132, 0.55) 0px 0px 10px 0px' (valid, contains rgb), data-cubes=6, data-state=full after setting mindmapper.apiKey.v1 + dispatching mindmapper:apikey-changed.",
+    "FIX5_empty_no_glow": "PASS — After clearing localStorage and reload: data-cubes=0, boxShadow='none'.",
+    "FIX4_cumulative_arrow_x5_single_node": "PASS — dx=25.5px screen on a non-root node at 85% zoom = 30 logical units (5 presses × 6/press). Within zoom-corrected tolerance. (Iter 58 measured ~5px = 1 of 5 presses; fix recovers all 5.)",
+    "FIX4_shift_arrowdown_single": "PASS — dy=21.25px screen = 25 logical units at 85% zoom. Exact match.",
+    "FIX4_multi_select_arrow_x3": "PARTIAL FAIL — only one of the two shift-clicked nodes moves (~15.3px = 18 logical). The other stays put. Likely multi-select Set wiring (pre-existing or unrelated to mapRef fix). See ui_bugs.",
+    "REGRESSION_smoke": "PASS — mm-tb-shapes present (and inserts shape with no selection per iter 58); sidebar-collapse-btn / sidebar-expand-btn pair work (collapse → expand → re-collapse cycle confirmed); annotation right-click link/colour palette flows verified in iter 58."
+  },
+  "test_report_links": ["/app/test_reports/iteration_59.json"],
+  "action_items": [
+    "Investigate multi-select shift+click: verify that shift-clicking a second node actually mutates `multiSelected` to contain BOTH ids (current symptom: only one ends up in the Set, so the arrow handler's `for (const id of ids)` loop only nudges one node). The closure fix at line 616-624 is sound; the bug is upstream in the click handler that builds `multiSelected`. Add a brief test: after click(A) + shift-click(B), assert multiSelected.size === 2.",
+    "(Optional polish) The arrow-key handler reads `mapRef.current` and recomputes `computeLayout(cur)` on every keypress. For very large maps this could be expensive on auto-repeat. Consider memoising the default layout per map instance or only recomputing when ids contain a node missing from `cur.positions`."
+  ],
+  "critical_code_review_comments": [
+    "LlmFuelGauge.jsx line 174: fix is correct and minimal — `0 0 10px ${st.glow}` uses st.glow's rgba alpha directly. Verified glow renders at all non-empty states.",
+    "MindMapCanvas.jsx ~498-502: mapRef pattern (declared with map default, refreshed in useEffect on every map change) is the right pattern for handlers that read latest state across rapid keypresses.",
+    "MindMapCanvas.jsx ~616-624: handler now reads `mapRef.current`, builds `next.positions` from a fresh `computeLayout(cur)` merged with overrides, and writes per-id offsets. This composes correctly across rapid presses — confirmed by the dx=25.5 (5 of 5 presses applied) result.",
+    "Multi-select arrow-nudge branch loops `for (const id of ids)` but at the time of test only one id is ending up in the Set — see action item. The for-loop itself is correct."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only)", "frontend": "5/6 named scenarios PASS; 1 partial fail on multi-select arrow nudge"},
+  "test_credentials": "URL unlock token: ?unlock=mind-mapper67",
+  "seed_data_creation": "None — used the seeded 'How to use Mind-Mapper' map for single-node tests; for the multi-select test the cleared-localStorage path produced a fresh 'Map Title' with Idea One..Four nodes.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Both FIX 4 (arrow stale-closure) and FIX 5 (LlmFuelGauge box-shadow) are confirmed working. When testing arrow-nudge on this canvas remember it's drawn at 85% zoom by default — bounding-rect deltas need to be divided by 0.85 to convert to logical units (or compare against expected_logical * 0.85 in screen px). Tour modal is sticky on first load: click [data-testid=tour-skip] (force=True, generous timeout) BEFORE any keyboard action — keypresses fire on the modal otherwise. Analytics consent banner does not block keyboard but does sit on top of the canvas — dismiss via 'Decline' button.",
+  "rca_of_the_issue": {
+    "FIX5_resolution": "STATES.*.glow is rgba(...) (already with alpha). Concatenating literal '33' produced invalid CSS; browsers dropped the property silently. Removing the suffix and lowering radius from 8px → 10px restores a parseable value. getComputedStyle now returns the live colour.",
+    "FIX4_resolution": "Closure capture replaced with `mapRef.current` (live ref refreshed via useEffect [map]). Each keypress now reads the freshest `positions`, so cumulative offsets compose. Layout defaults recomputed per press via computeLayout(cur) so undragged nodes also nudge from their default position rather than {0,0}.",
+    "remaining_multi_select_bug": "Symptom: after click(A) + shift-click(B), only one of {A,B} moves under arrow nudge. Likely cause: shift-click handler is treating the second click as a plain replace-selection rather than augmenting `multiSelected`. The arrow-nudge code at line 608-624 uses `multiSelected` if size>0 else `selected`; if multiSelected.size === 1 only that one moves. Repro recommended in the next iteration after the click handler is patched."
+  }
+}

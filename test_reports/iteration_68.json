@@ -1,0 +1,78 @@
+{
+  "summary": "Backend + frontend verification of the new 'law-uk' source in the Public-domain Corpus. UK Law search (Equality Act 2010, negligence) works end-to-end: statutes and judgments merge, statutes sort first, citation/court present on judgments, kind/kind_label/pdf_url/has_native_pdf present. Unknown source and empty query correctly 400. Fetch allowlist rejects non-allowed hosts. Regression: gutenberg untested; arxiv currently 429 from upstream on this cluster's egress IP (direct curl to export.arxiv.org also returns 429 — NOT a regression caused by this PR). One CRITICAL blocker: /api/corpus/fetch for legislation.gov.uk returns 502 because CloudFront WAF issues HTTP 202 + x-amzn-waf-action: challenge against urllib — the 'urllib WAF-bypass' documented in the PR does NOT actually work right now, so users cannot fetch the PDF of any UK statute. Frontend is clean: UK Law tab, 3 Featured + 6 Suggestion chips, STATUTE/CASE chip + citation/kind_label rendering, statutes-first ordering, tab independence, empty-state label all verified.",
+  "backend_issues": {
+    "critical": [
+      {
+        "endpoint": "/api/corpus/fetch?source=law-uk&url=https://www.legislation.gov.uk/...data.pdf",
+        "issue": "CloudFront in front of legislation.gov.uk returns HTTP 202 Accepted with header 'x-amzn-waf-action: challenge' to the urllib request (verified by direct curl too: HTTP/1.1 202 Accepted, Server: CloudFront, x-amzn-waf-action: challenge, empty body). The server at server.py:1658-1659 treats 'status != 200' as an upstream error and raises 502 'Upstream returned 202'. Net effect: the whole 'Import PDF' flow for any UK statute is broken — the urllib bypass is NOT actually bypassing the WAF. Bypass needs to add the WAF cookie round-trip, spoof a full browser UA+Accept-Language, or switch to a different TLS fingerprint library (curl_cffi / httpx with http1=True + chrome ja3).",
+        "priority": "CRITICAL"
+      }
+    ],
+    "minor": [
+      {
+        "endpoint": "/api/corpus/search?source=arxiv",
+        "issue": "export.arxiv.org returns 429 to this cluster's egress IP (verified via direct curl outside the app, 429 received without the backend path). Pre-existing environmental rate-limit, not a regression from this PR. Consider adding a short cache or in-process retry-with-jitter so transient 429s don't surface as 502 in the UI."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "PublicCorpusBrowser (all tabs)",
+        "issues": [
+          "Cookie-consent banner continues to overlap bottom-right corner of the modal at 1920x1080 (pre-existing from iteration_67). Not blocking interaction here because modal buttons are top/centre, but still worth dismissing via mm.consent=declined in e2e tests."
+        ]
+      }
+    ]
+  },
+  "passed_tests": [
+    "GET /api/corpus/search?source=law-uk&q=Equality+Act+2010&limit=12 → 200, source=law-uk, items non-empty, BOTH 'statute' + 'judgment' kinds present, statutes sort before judgments, every item has kind_label + pdf_url + has_native_pdf=true",
+    "GET /api/corpus/search?source=law-uk&q=negligence&limit=10 → judgments returned with non-empty citation AND court fields",
+    "GET /api/corpus/search?source=law-uk&q=&limit=5 → 400 (empty query rejected)",
+    "GET /api/corpus/search?source=invalid&q=test → 400 (unknown source)",
+    "GET /api/corpus/fetch?source=law-uk&url=https://example.com/evil.pdf → 400 (allowlist enforced)",
+    "Frontend: /intake → intake-corpus-btn opens modal; all 3 tabs visible (corpus-tab-arxiv, corpus-tab-gutenberg, corpus-tab-law-uk) with label 'UK LAW · CASES & STATUTES'",
+    "Frontend: UK Law tab shows exactly 3 Featured chips (Sale of Goods Act / Judicial review / Trusts · beneficiaries) and 6 Suggestion chips (Equality Act 2010, Human Rights Act, negligence duty of care, criminal mens rea, contract consideration, GDPR data protection)",
+    "Frontend: clicking 'Equality Act 2010' chip returns 20 rows — 10 STATUTE chips (amber) followed by 10 CASE chips (fuchsia), statutes-first order confirmed, each row shows citation OR kind_label (e.g., 'UK PUBLIC GENERAL ACT', '2012 · SCOTTISH STATUTORY INSTRUMENT') below the title",
+    "Frontend: switching to arXiv tab shows arXiv chips (transformer attention, quantum computing, climate change, protein folding, diffusion models, graph neural networks) — no Equality Act chip leaked; tabs independent",
+    "Frontend: empty search on UK Law tab does not crash; 'Common law-school searches' label remains visible and modal still mounted"
+  ],
+  "failed_tests": [
+    "GET /api/corpus/fetch?source=law-uk&url=https://www.legislation.gov.uk/ukpga/2010/15/data.pdf → 502 'Upstream returned 202' (WAF challenge, not PDF)",
+    "GET /api/corpus/search?source=arxiv&q=transformer → 502 (upstream 429 — environmental, not caused by this PR)"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_corpus_law_uk.py",
+    "/app/test_reports/pytest/pytest_corpus_law_uk.xml"
+  ],
+  "action_items": [
+    "CRITICAL: Fix the legislation.gov.uk WAF bypass in /api/corpus/fetch. Current urllib path gets HTTP 202 + x-amzn-waf-action: challenge (CloudFront JS challenge) — it's not bypassing anything. Options: (a) use curl_cffi with impersonate='chrome124'; (b) switch the UA to a real Chrome UA + Accept-Language: en-GB + Referer: https://www.legislation.gov.uk/, then follow the 202→GET cookie round-trip; (c) warm a WAF cookie via an initial GET of the landing page and reuse for the PDF; (d) document the limitation and fall back to the rendered /data.xml or /made then synthesise a PDF server-side (similar to Gutenberg plain-text path).",
+    "LOW: Consider a 1× retry-with-jitter on arXiv 429s in /api/corpus/search before surfacing 502; or cache the last successful response per query for ~5 minutes to mask upstream throttling."
+  ],
+  "critical_code_review_comments": [
+    "server.py:1658 — raising 502 for any status != 200 from legislation.gov.uk is too strict; 202 with a WAF challenge header is distinctly different from a true upstream 5xx and needs its own handling (follow the challenge, or return a 504 with a user-readable 'this source rate-limited us; retry in 30s').",
+    "server.py:1651-1656 — the urllib UA 'Mozilla/5.0 (compatible; mind-mapper/1.0; ...)' looks like a bot to CloudFront; passes the TLS-fingerprint part (urllib != httpx) but fails the UA heuristic. Real-browser UA + full Accept header + Accept-Language will likely pass.",
+    "PublicCorpusBrowser.jsx:303,323,358 — testid naming is inconsistent with the PR description ('corpus-suggest-chip-*' vs actual 'corpus-suggest-*', 'corpus-kind-chip-*' vs actual 'corpus-kind-*', 'corpus-result-*' vs actual 'corpus-item-*'). Cosmetic, but the task agent's expected selectors in the review_request would fail against the shipped code — worth aligning.",
+    "server.py law-uk branch (1314-1381) correctly awaits both upstreams in parallel via asyncio.gather-style (two awaits on pre-created tasks); kind_order tuple sort with (-year) secondary is clean; items[:limit] applied post-merge — correct ordering preserved."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_corpus_law_uk.py (new)"
+  ],
+  "success_rate": {
+    "backend": "5/7 (71%) — 2 failures: legislation.gov.uk PDF fetch (real WAF bypass bug) + arxiv 429 (environmental)",
+    "frontend": "10/10 (100%) — all acceptance points for the UK Law tab pass"
+  },
+  "test_credentials": "?unlock=mind-mapper67",
+  "seed_data_creation": "localStorage keys set before each Playwright run to skip first-run tour + consent banner: mm.tour.completed=1, mm.tourCompleted=1, mm.firstRun.tourSeen=true, mm.consent=declined",
+  "retest_needed": true,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "Testids in PublicCorpusBrowser.jsx are 'corpus-suggest-<slug>', 'corpus-featured-<slug>', 'corpus-item-<id>', 'corpus-kind-<kind>' (NO '-chip' suffix). Tabs: corpus-tab-arxiv | corpus-tab-gutenberg | corpus-tab-law-uk. Modal open via [data-testid=intake-corpus-btn] on /intake. The legislation.gov.uk fetch bug is reproducible via direct curl (HTTP/1.1 202 Accepted, Server: CloudFront, x-amzn-waf-action: challenge) — this is a real WAF-bypass-not-working issue, not test flakiness. arxiv 429 is egress-IP throttling and is not a regression.",
+  "rca_of_the_issue": {
+    "bug": "Fetching any legislation.gov.uk PDF via /api/corpus/fetch returns 502 'Upstream returned 202' → Import PDF flow for UK statutes is broken.",
+    "reproduction": "curl -sI -A 'Mozilla/5.0 (compatible; mind-mapper/1.0)' https://www.legislation.gov.uk/ukpga/2010/15/data.pdf ⇒ HTTP/1.1 202 Accepted, Server: CloudFront, x-amzn-waf-action: challenge, Content-Length: 0. Then: curl '<backend>/api/corpus/fetch?source=law-uk&url=https://www.legislation.gov.uk/ukpga/2010/15/data.pdf' ⇒ 502 {\"detail\":\"Upstream returned 202\"}.",
+    "root_cause": "CloudFront WAF in front of legislation.gov.uk matches on User-Agent heuristics in addition to TLS fingerprint. Switching from httpx (JA3 blocked → HTTP 437) to urllib+requests (different JA3) did bypass the TLS-fingerprint block, but the UA 'Mozilla/5.0 (compatible; mind-mapper/1.0; +https://mind-mapper.com)' is still classified as a bot and gets a 202 JavaScript challenge instead of the PDF.",
+    "mitigation": "Use curl_cffi with impersonate='chrome124' (single-line change in _urllib_get → cffi_get), OR send a fully browser-spoofed UA + Accept + Accept-Language + sec-* headers and handle the 202 by retrying after the challenge expires, OR parse the 202 body for the challenge token and re-submit. As a short-term fallback, fetch /data.xml (not PDF) and synthesise a PDF server-side with the existing _text_to_pdf_bytes helper."
+  }
+}

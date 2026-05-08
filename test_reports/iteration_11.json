@@ -1,0 +1,37 @@
+{
+  "summary": "Frontend-only regression test of the IntakeStudio refactor (792 -> 520 lines; extracted IntakeCard.jsx, IntakeHint.jsx, intakeStatus.js into /components/intake/). Exercised the full upload -> parse -> Fixer -> Create Maps flow end-to-end plus regression on the button toasts and card removal. All 7 review criteria pass, zero runtime / import / duplicate-declaration errors surfaced.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "IntakeCard.jsx addAt() logic: when headings is empty, addAt(-1) correctly inserts at position 0, but the button handler always calls addAt(headings.length - 1). With an empty list that passes -1 so it still works — just a readability nit.",
+    "FixerPanel.indent(): maxDepth = idx === 0 ? 0 : prev.depth+1 — prevents bogus nesting but silently no-ops when user clicks Indent on row 0; consider disabling the arrow for clarity (minor UX polish, not refactor-related).",
+    "Hint cards in /intake empty state: 'Direct upload', 'The Fixer', 'OCR fallback' still lack data-testids (only zotero/dropbox/drive have them). Pre-existing gap, documented in iteration_10 — not introduced by this refactor."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only)", "frontend": "100%"},
+  "test_credentials": "Access gate bypassed via ?unlock=mind-mapper67 URL param (STORAGE_KEY: mindmapper.unlocked.v1).",
+  "seed_data_creation": "Generated /tmp/test.pdf via reportlab (2 pages, 5 headings written; 3 detected by parsePdfHeuristic). Used for upload test; not persisted outside tmp.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 11 verified the IntakeStudio refactor into /components/intake/. Verified selectors: intake-studio, intake-zotero-btn, intake-dropbox-btn, intake-drive-btn, intake-create-maps, intake-file-input, intake-card-<id>, intake-card-toggle-<id>, intake-remove-<id>, intake-fixer-panel, intake-fixer-title, intake-fixer-list, intake-heading-<idx>, intake-heading-input-<idx>, intake-add-heading. The reportlab test PDF yielded only 3 detected headings (Introduction, Research Questions, Methods) despite 5 being written — this is parser behaviour (font-size heuristic), not a refactor bug. Note: 2 harmless 401 resource-load console messages were observed on /app (unrelated user-info endpoint under access-gate); page errors = 0.",
+  "test_results_detail": {
+    "step_1_layout": "intake-studio mounted; 4 top-bar testids visible; 6 hint cards rendered.",
+    "step_2_upload_parse": "intake-card-f_* appeared within 1s; status transitioned to PREVIEW within ~2s; fixer panel auto-expanded; fixer-title='Test Research Paper'; 3 heading-input rows.",
+    "step_3_rename": "intake-heading-input-0 controlled update succeeded ('Introduction' -> 'RENAMED H0').",
+    "step_3_move_down": "After clicking move-down on row 0, 'RENAMED H0' moved from idx 0 to idx 1 (row at idx 0 is now 'Research Questions').",
+    "step_3_indent_outdent": "paddingLeft toggled 0px -> 18px (indent) -> 0px (out-dent).",
+    "step_3_delete": "Trash TinyBtn reduced heading count 4 -> 3.",
+    "step_4_add_heading": "intake-add-heading click grew count 3 -> 4; last row value = 'New heading'.",
+    "step_5_create_maps": "Button enabled; navigated to /app; sidebar reflected new map.",
+    "step_6_remove_card": "intake-remove-<id> dropped card count 1 -> 0.",
+    "step_6_regression_toasts": "Dropbox button toast contains \"Dropbox isn't wired up\"; Drive button toast contains \"Google Drive isn't wired up\". Zotero button opens modal without crashing.",
+    "step_7_console": "0 page errors; 0 'has already been declared' or 'is not defined' messages. Only 2 unrelated 401s on resource loads (pre-existing)."
+  },
+  "rca_of_the_issue": "N/A — refactor is clean. All extracted modules (IntakeCard, IntakeHint, intakeStatus) import correctly, props flow through, and the Fixer interactive handlers (move/indent/rename/remove/add) still mutate parent state via onUpdateHeadings as they did pre-refactor."
+}

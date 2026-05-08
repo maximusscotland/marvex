@@ -1,0 +1,55 @@
+{
+  "summary": "Tested the new 'Enrich with Research Assistant' checkbox on the IntakeCard Fixer panel (POST /api/research/enrich-outline backend endpoint + EnrichToggle UI). All 8 review criteria pass. Backend: 19/19 pytest cases green (5 new tests added for enrich-outline). Frontend: Pro-gate behaves correctly for unauthed users, unlocks correctly when BYO key is present, keyboard (Space) and click both behave identically, UpgradeDialog opens on locked click/space, aria-checked toggles bidirectionally when unlocked. One typo surfaced in the review-request docs (correct localStorage key is 'mindmapper.apiKey.v1' with capital K, not 'mindmapper.apikey.v1').",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "UpgradeDialog", "issues": ["Pressing Escape does not close the dialog — users must click the X button. Minor a11y gap (pre-existing, not introduced this iteration)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_mindmapper_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "DOC ONLY: review_request states the BYO-key storage key as 'mindmapper.apikey.v1' but the actual key used by /app/frontend/src/lib/settings.js and IntakeStudio.jsx's getApiKey() is 'mindmapper.apiKey.v1' (capital K). Update agent docs accordingly. No code fix required — Settings UI writes and getApiKey reads the same key, so the feature works end-to-end.",
+    "OPTIONAL: Wire Escape-to-close on UpgradeDialog for a11y parity."
+  ],
+  "critical_code_review_comments": [
+    "server.py enrich_outline: auth dependency runs AFTER the empty-headings check because the dep is declared after the body param. FastAPI actually resolves Depends() first, so unauthed empty-headings requests correctly return 401 (confirmed by test). Non-issue but worth noting if dependency order is ever refactored.",
+    "EnrichToggle uses role='checkbox' on a div with tabIndex=0 — correct pattern, but consider adding aria-describedby pointing at the 'Mikey adds 2-3…' copy so screen readers announce the Pro gate context.",
+    "IntakeStudio.jsx line 514: item={{ ...it, hasOwnKey: !!getApiKey() }} calls getApiKey() inside every render for every card. Cheap (localStorage + JSON.parse) but not free — a single useMemo/useSyncExternalStore at top of component would reduce work and enable cross-tab updates."
+  ],
+  "updated_files": ["/app/backend/tests/test_mindmapper_api.py"],
+  "success_rate": {"backend": "100% (19/19)", "frontend": "100% (8/8 review criteria)"},
+  "test_credentials": "Access gate: ?unlock=mind-mapper67 URL param. BYO key: localStorage.setItem('mindmapper.apiKey.v1', JSON.stringify({provider:'anthropic', key:'sk-ant-fake'})). No backend auth used (unauthed/401 paths are the contract under test).",
+  "seed_data_creation": "Reportlab-generated /tmp/test_enrich.pdf (~6 headings, 1 page). Not persisted; regenerated each run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "New endpoint POST /api/research/enrich-outline (auth-gated, Pro-or-BYO policy). Test class TestEnrichOutline in /app/backend/tests/test_mindmapper_api.py covers 401/400/422/unknown-provider-no-500/malformed-body paths. Frontend testid 'intake-enrich-toggle' lives inside the Fixer panel; role='checkbox', aria-checked and aria-disabled are driven by item.enrich, isPro, and !!getApiKey(). IMPORTANT: localStorage key for BYO API key is 'mindmapper.apiKey.v1' (capital K) — review_request had a typo. For keyboard testing, the element is a div — Playwright ElementHandle.click() refuses when aria-disabled='true', use page.click(selector, force=True) OR page.evaluate focus + page.keyboard.press(' '). UpgradeDialog (testid 'upgrade-dialog', role='dialog') does NOT close on Escape — click the X (svg) or outside-overlay to dismiss.",
+  "backend_test_results": {
+    "total": 22,
+    "passed": 19,
+    "skipped": 3,
+    "failed": 0,
+    "new_enrich_tests": [
+      "test_enrich_outline_unauthenticated_returns_401",
+      "test_enrich_outline_empty_headings_unauth_returns_401",
+      "test_enrich_outline_missing_headings_returns_422_or_401",
+      "test_enrich_outline_unknown_provider_no_500",
+      "test_enrich_outline_malformed_heading_item_no_500"
+    ]
+  },
+  "frontend_test_results": {
+    "B1_byo_unlocks_toggle": "aria-disabled=false, Pro badge hidden — PASS",
+    "B2_space_flips_aria_checked": "aria-checked=true after Space — PASS",
+    "B3_click_toggles_back": "aria-checked=false after second click — PASS",
+    "B4_no_key_pro_gate": "aria-disabled=true, Pro badge visible — PASS",
+    "B5_unauthed_click_opens_upgrade_dialog": "role='dialog' appears, aria-checked stays false — PASS",
+    "A1_role_checkbox": "role=checkbox, aria-checked=false, aria-disabled=true for unauthed — PASS",
+    "A2_unauthed_click_opens_dialog": "PASS",
+    "A3_unauthed_space_opens_dialog": "PASS"
+  },
+  "rca_of_the_issue": "N/A — feature works correctly. The only discrepancy discovered was documentation (localStorage key name case) which is the reason the first BYO-key simulation did not unlock the toggle on attempt #1. After using the correct key name 'mindmapper.apiKey.v1', every expected unlock + toggle behaviour works."
+}

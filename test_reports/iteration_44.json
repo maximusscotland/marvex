@@ -1,0 +1,55 @@
+{
+  "summary": "Iteration 44 validation: (1) /app/backend/tests/test_sync.py — all 8 async tests PASS with zero PytestRemovedIn9Warning / async-fixture errors after switching @pytest.fixture → @pytest_asyncio.fixture on line 26. (2) Full backend regression green — 40/40 across test_llm_dispatch (6), test_llmgateway_endpoints (5), test_billing_plans (3), test_share (14), test_research_memory (6), test_research_stream (6). (3) Frontend affiliate nested rewrite — test_affiliate_rewrite_map.mjs 10/10 PASS (maybeTagBookshopUrl tags product & search URLs with ?aff/?affiliate=17338, preserves existing aff, skips non-Bookshop hosts; rewriteTextAffiliates rewrites Amazon+Bookshop URLs inside prose, preserves trailing punctuation, leaves unrelated URLs untouched; rewriteMapAffiliates walks children at every depth, tags .summary + .link, returns input immutably, handles null/string/missing fields). Legacy test_affiliate_urls.mjs 9/9 PASS — no regression. (4) Zotero binary PDF upload — test_zotero_upload.mjs 3/3 PASS (full 4-call sequence: create item → authorise → S3 → register; server dedup exists=1 short-circuits after 2 calls; empty blob rejected). Headers verified: Zotero-API-Version: 3 (line 43 zotero.js) and If-None-Match: * on both authorise+register POSTs (lines 379, 424). (5) Code review of /app/frontend/src/lib/api.js confirms all 4 AI endpoints wrap responses through rewriteMapAffiliates (lines 29, 49, 115 via finalMap in stream, 139). (6) CloudSaveMenu.jsx targetSupports accepts both 'md' AND 'pdf' for zotero (line 51); PDF branch calls saveMapToZoteroFull (line 103). (7) package.json has spark-md5: ^3.0.2 (line 58). (8) All 9 existing frontend .mjs tests (build_map_blob, cloud_save_all, dropbox_push, zotero_push, map_history, onboarding_tour_state, share_nudge_event, i18n_bundles, localized_seed) still PASS — 68 total = 6+4+3+5+9+5+3+28+5 + 10+9+3 new. (9) Live smoke: Landing (/?unlock=mind-mapper67), /tools (tools-card-llmgateway + tools-card-perplexity present), and Studio /app (api-key-status-chip visible) all load with no JS pageerrors and clean hydration. Frontend builds cleanly — no broken imports after api.js change.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "tests_executed": [
+    "PASS: pytest backend/tests/test_sync.py → 8/8 in 0.71s (test_free_user_gets_402, test_status_disabled_for_free, test_push_then_pull_roundtrip, test_lww_keeps_server_newer, test_since_filter_only_returns_recent, test_delete_creates_tombstone_and_shows_in_pull, test_user_isolation, test_purge_old_tombstones) — NO async-fixture deprecation warnings",
+    "PASS: pytest backend/tests/test_llm_dispatch.py test_llmgateway_endpoints.py test_billing_plans.py test_share.py test_research_memory.py test_research_stream.py → 40/40 in 6.81s (full regression clean)",
+    "PASS: node tests/test_affiliate_rewrite_map.mjs → 10/10 (nested map walks, punctuation preservation, immutability, null/string guards)",
+    "PASS: node tests/test_affiliate_urls.mjs → 9/9 (legacy maybeTagAmazonUrl, buildBookLink, getEffectiveConfig — no regression)",
+    "PASS: node tests/test_zotero_upload.mjs → 3/3 (full 3-step MD5 protocol with all 4 calls; exists=1 dedup short-circuit after 2 calls; empty blob rejection)",
+    "PASS: node tests/test_build_map_blob.mjs → 6/6",
+    "PASS: node tests/test_cloud_save_all.mjs → 4/4",
+    "PASS: node tests/test_dropbox_push.mjs → 3/3",
+    "PASS: node tests/test_zotero_push.mjs → 5/5 (markdown-note path unchanged)",
+    "PASS: node tests/test_map_history.mjs → 9/9",
+    "PASS: node tests/test_onboarding_tour_state.mjs → 5/5",
+    "PASS: node tests/test_share_nudge_event.mjs → 3/3",
+    "PASS: node tests/test_i18n_bundles.mjs → 28/28",
+    "PASS: node tests/test_localized_seed.mjs → 5/5",
+    "PASS: Code grep — /app/frontend/src/lib/api.js imports rewriteMapAffiliates (line 2) and wraps all 4 AI endpoint return paths (lines 29 generateMindMapFromPdf, 49 runResearchAssistant, 115+124 runResearchAssistantStream via finalMap, 139 enrichOutline)",
+    "PASS: Code grep — zotero.js has 'Zotero-API-Version': '3' in base headers (line 43) and If-None-Match: '*' on both authorise (line 379) and register (line 424) POSTs",
+    "PASS: Code grep — CloudSaveMenu.jsx targetSupports allows 'md' OR 'pdf' for zotero (line 51); saveMapToZoteroFull invoked for PDF (line 103); saveMapToZotero still used for MD (line 107)",
+    "PASS: Code grep — package.json line 58: 'spark-md5': '^3.0.2'",
+    "PASS: Live smoke — Landing loads, /tools renders tools-card-llmgateway + tools-card-perplexity, Studio /app renders api-key-status-chip — no JS pageerrors (only expected 401s from unauthenticated /api/auth/me probes)"
+  ],
+  "test_report_links": [
+    "/app/test_reports/pytest/iteration_44_sync.xml",
+    "/app/test_reports/pytest/iteration_44_regression.xml",
+    "/app/backend/tests/test_sync.py",
+    "/app/frontend/tests/test_affiliate_rewrite_map.mjs",
+    "/app/frontend/tests/test_zotero_upload.mjs"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "test_sync.py needs PYTHONPATH=/app/backend to resolve 'from sync import ...' — no pytest.ini / pyproject sets rootdir/pythonpath so running 'pytest' from /app fails with ModuleNotFoundError. Non-blocking (iteration_43 hit the same thing and the review called it pre-existing). Consider adding a tiny /app/backend/conftest.py with `sys.path.insert(0, os.path.dirname(__file__))` or a pytest.ini with pythonpath=backend so test_sync.py runs from any cwd. Same applies to all other backend tests that do top-level imports like 'from sync import ...' or 'from billing import ...'.",
+    "zotero.js uploadFileAttachment builds the S3 multipart body as prefix+bytes+suffix — spark-md5 runs on the raw blob bytes (correctly, per Zotero docs) and the filesize sent in step 2 is the blob size (NOT prefix+blob+suffix size). That's right per Zotero spec, but worth a one-line comment in the code since it's easy to regress: MD5/size describe the file itself, the prefix/suffix are only for the S3 multipart envelope.",
+    "CloudSaveMenu.jsx:51 targetSupports toast wording 'Zotero accepts Markdown notes and PDF attachments' is now factually correct after this iteration — no change needed, just calling out it's no longer stale.",
+    "rewriteTextAffiliates URL_RE = /https?:\\/\\/[^\\s<>\"')]+/g intentionally stops at a closing paren — handles 'Read here (https://amazon.com/x)' cleanly but will mis-segment a URL that legitimately contains a closing paren in the path (e.g. Wikipedia-style '/wiki/Foo_(bar)'). Real Amazon/Bookshop URLs don't contain literal ')' so this is fine for the affiliate use-case, but if the helper is ever re-used for general URL tagging it should be revisited. Mentioning so future iterations don't hit surprise.",
+    "rewriteMapAffiliates does a structuredClone-equivalent recursive copy (children are mapped) — confirmed immutable by test 'rewriteMapAffiliates walks children ... Immutability — original untouched'. Good pattern.",
+    "test_zotero_upload.mjs node warning: 'Module type of file:///app/frontend/src/lib/zotero.js is not specified and it doesn\\'t parse as CommonJS' — zero functional impact, tests still pass. To eliminate: add '\"type\": \"module\"' to /app/frontend/package.json OR rename test files to .cjs. CRA build uses its own webpack pipeline so this only affects ad-hoc node-on-ESM test runs. Low priority cosmetic.",
+    "No data-testid on CloudSaveMenu's format dropdown rows in the review — rely on visible text. If the team wants Playwright E2E coverage of the zotero-pdf path, add data-testid='cloud-save-format-pdf' and data-testid='cloud-save-target-zotero' to the respective buttons/options."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (48/48 in-scope: 8 sync + 40 regression)", "frontend": "100% (68/68 mjs tests + live smoke clean)"},
+  "test_credentials": "App gate: ?unlock=mind-mapper67 (from /app/frontend/.env:REACT_APP_UNLOCK_KEY). Zotero upload test uses a fetch mock (no real API key). /app/memory/test_credentials.md currently has no user credentials — only the unlock gate is needed for this iteration.",
+  "seed_data_creation": "None — test_sync.py creates and drops its own db via fixture (db[DB_NAME+'_sync_tests']), cleaned up on teardown.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend tests MUST be run from /app/backend (or with PYTHONPATH=/app/backend) because there is no conftest.py/pytest.ini configuring pythonpath. Commands that worked this iteration: `cd /app/backend && PYTHONPATH=/app/backend pytest tests/test_sync.py -v`. Iteration 43 testing agent noted test_sync.py was failing with 8 ERRORs due to deprecated async fixture pattern; this iteration fixed it via @pytest_asyncio.fixture and all 8 pass cleanly. Unrelated pre-existing failures in tests/test_mindmapper_api.py::TestCorpusSearch (arxiv network) and tests/test_share_unfurl.py (external HTTP probing) are NOT in scope for this review and remain as-is (not re-verified). Frontend route for Studio remains /app (NOT /studio). spark-md5 is now a runtime dependency — any future refactor of zotero.js should keep it; Web Crypto has no MD5.",
+  "rca of the issue": "N/A — no bugs found. All three iteration goals delivered correctly: (a) pytest-asyncio fix via @pytest_asyncio.fixture restores 8 sync tests to green with no warnings; (b) affiliate rewrites now walk nested node trees via rewriteMapAffiliates applied at every AI endpoint's return path in api.js; (c) Zotero PDF binary push uses the 4-call MD5 protocol with correct headers and proper dedup short-circuit. All 48 backend + 68 frontend tests pass."
+}

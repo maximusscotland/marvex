@@ -1,0 +1,44 @@
+{
+  "summary": "Frontend-only testing for the new Cloud Save (Google Drive WRITE side) popover on the MindMap Studio toolbar. All 8 acceptance criteria from the review request PASS. No Google OAuth/apis requests are triggered for non-Pro users — Pro gating correctly fires BEFORE the OAuth flow, surfacing the UpgradeDialog instead. 6 format buttons render, Pro badge + inline Upgrade link appear, and the header copy reads 'Save to Google Drive'. Regression check on the 6 existing export buttons (mm-tb-export-png, png-4x, svg, pdf, md, json) passes — all trigger a successful file download after the exportPng.js refactor (buildMapPdf shared helper). One pre-existing CORS console error during PDF export (logo asset fetch) is unrelated to this iteration's refactor.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "MindMap Studio right toolbar", "issues": ["Cloud-Save popover and Backdrop-picker popover can both be open simultaneously — they stack at the bottom-right and visually overlap. Consider auto-closing one when the other opens (mutual-exclusion), similar to how one would expect toolbar popovers to behave. Not blocking, purely cosmetic."]}
+    ]
+  },
+  "tests_executed": [
+    "PASS: mm-tb-cloud-save Cloud button renders in right toolbar",
+    "PASS: cloud-save-menu opens on click",
+    "PASS: All 6 format buttons present (cloud-save-pdf / png / png-4x / svg / md / json)",
+    "PASS: cloud-save-pro-badge rendered for non-Pro user",
+    "PASS: cloud-save-upgrade-link rendered",
+    "PASS: Header text reads 'Save to Google Drive' (mono uppercase caption)",
+    "PASS: Click cloud-save-pdf (non-Pro) — menu closes, UpgradeDialog opens (data-testid='upgrade-dialog'), ZERO requests to apis.google.com / accounts.google.com / googleapis.com triggered",
+    "PASS: Click cloud-save-upgrade-link — menu closes, UpgradeDialog opens",
+    "PASS: mm-tb-export-svg downloads Core_Concept.svg (no console errors)",
+    "PASS: mm-tb-export-md downloads Core_Concept.md (no console errors)",
+    "PASS: mm-tb-export-json downloads Core_Concept.mindmap.json (no console errors)",
+    "PASS: mm-tb-export-pdf downloads Core_Concept.pdf (WARN: pre-existing CORS console error on logo fetch — non-blocking, PDF file generated successfully)",
+    "PASS: mm-tb-export-png downloads Core_Concept.png (no console errors)",
+    "PASS: mm-tb-export-png-4x downloads Core_Concept@4x.png (no console errors)"
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "(Optional / minor) Consider auto-closing the Backdrop popover when the Cloud-Save popover opens (and vice-versa) to avoid the two popovers overlapping visually in the bottom-right corner.",
+    "(Pre-existing, not caused by this iteration) The PDF export triggers a CORS console error when fetching the m-logo.jpeg from customer-assets.emergentagent.com. The PDF still generates correctly. Either (a) host the logo on the same origin, (b) serve it with Access-Control-Allow-Origin: *, or (c) skip the logo fetch on CORS failure silently."
+  ],
+  "critical_code_review_comments": [
+    "CloudSaveMenu.jsx looks clean — proper Pro-gating before any OAuth call (isPro check runs BEFORE isDriveConfigured / saveBlobToDrive, so non-Pro users never hit the Google path).",
+    "MindMapCanvas.jsx is now 1561 lines — approaching the 700-line guideline ceiling. Consider extracting TopToolbar + LinkDialog + ShortcutsOverlay into their own files in a future iteration (out of scope for this bug-fix-style iteration).",
+    "Good: all new interactive elements have data-testid (cloud-save-menu, cloud-save-{format}, cloud-save-pro-badge, cloud-save-upgrade-link, cloud-save-open-link, mm-tb-cloud-save)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (14/14 checks passed; 2 minor non-blocking observations)"},
+  "test_credentials": "Access gate key: mind-mapper67 (auto-unlocked via ?unlock=mind-mapper67 query param). REACT_APP_GOOGLE_DRIVE_* env vars are empty on preview — confirmed non-Pro gating never reaches that config check.",
+  "seed_data_creation": "None — default 'Core Concept' map auto-created on first visit was used.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Cloud Save WRITE side (Google Drive) is working per spec for the non-Pro flow. Pro flow cannot be tested on this preview because REACT_APP_GOOGLE_DRIVE_CLIENT_ID is empty — when real OAuth creds are configured in a future deploy, a retest of the Pro path should verify: (1) requestWriteAccessToken() triggers the Google OAuth popup, (2) ensureMindMapperFolder() creates the 'Mind-Mapper' folder, (3) uploadBlobToDrive() multipart upload succeeds, (4) the success toast includes a working webViewLink. The existing /app/frontend/tests/test_build_map_blob.mjs (6/6) already covers the pure-logic buildMapBlob() paths."
+}

@@ -1,0 +1,50 @@
+{
+  "summary": "Targeted BYOK + 3-plan pricing validation pass. All 27 product checks PASS (9 BYOK chip/Settings + 18 UpgradeDialog/regression). ApiKeyStatusChip renders correctly in both empty-state (fuchsia border, pulsing dot, 'Add AI key') and set-state (cyan border, steady dot, 'Your anthropic') and refreshes live via 'mindmapper:apikey-changed' custom event without any page reload. Settings modal opens on chip click; provider grid shows 3 cards (Anthropic / OpenAI / Gemini) with correct signup deep-links (console.anthropic.com/settings/keys, platform.openai.com/api-keys, aistudio.google.com/apikey) all opening target=_blank. Saving a key persists to localStorage under `mindmapper.apiKey.v1` (not `mindmapper.apikey` as stated in review request — actual key has `.v1` suffix, fine as long as docs reflect). Removing the key reverts the chip and shows toast. UpgradeDialog renders 3 plan pills with pricing exactly $15/mo, $150/yr, $200 once; POPULAR on Annual, BEST VALUE on Lifetime, no badge on Monthly; Annual is pre-selected. Perks list has exactly 7 items with 'Bring your own AI key — zero quota limits' as the leading perk. Checkout button is alive across all three plan selections. Backend GET /api/billing/plans returns the expected structure {monthly:1500/month, annual:15000/year, lifetime:20000/null}. Regressions clean: /learn + landing render, CloudSaveMenu PDF-all Pro-gates to 3-plan UpgradeDialog for non-Pro user.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "tests_executed": [
+    "PASS: api-key-status-chip empty state — text 'Add AI key', fuchsia border classes, pulsing fuchsia dot (animate-pulse)",
+    "PASS: Clicking chip opens Settings modal (api-key-provider-grid becomes visible)",
+    "PASS: api-key-signup-anthropic href=https://console.anthropic.com/settings/keys target=_blank",
+    "PASS: api-key-signup-openai href=https://platform.openai.com/api-keys target=_blank",
+    "PASS: api-key-signup-gemini href=https://aistudio.google.com/apikey target=_blank",
+    "PASS: Save flow — select anthropic → paste 'sk-ant-test…' → save → chip live-updates to cyan 'Your anthropic' without page reload (via mindmapper:apikey-changed event)",
+    "PASS: localStorage.getItem('mindmapper.apiKey.v1') contains {provider:'anthropic', key:'sk-ant-...'} after save",
+    "PASS: Remove flow — chip reverts to fuchsia 'Add AI key' pulsing state immediately",
+    "PASS: 'API key removed' toast shown on remove",
+    "PASS: UpgradeDialog opens via CloudSaveMenu → select 'All' target pill → click cloud-save-pdf-all (non-Pro gate)",
+    "PASS: upgrade-plan-monthly shows '$15' + '/mo' suffix, no badge",
+    "PASS: upgrade-plan-annual shows '$150' + '/yr' suffix + POPULAR badge",
+    "PASS: upgrade-plan-lifetime shows '$200' + 'once' suffix + BEST VALUE badge",
+    "PASS: Annual pre-selected by default (border-cyan-400 + bg-cyan-400/10)",
+    "PASS: Clicking monthly / lifetime pills correctly re-selects (cyan glow moves)",
+    "PASS: Perks list has exactly 7 items and first perk is 'Bring your own AI key — zero quota limits'",
+    "PASS: upgrade-checkout button rendered and not disabled — safe to click (triggers signIn for unauthenticated user)",
+    "PASS: Backend GET /api/billing/plans returns available=['monthly','annual','lifetime'] and plans with amounts 1500/15000/20000 and lifetime.interval=null",
+    "PASS: Regression — /learn page renders (learn-page testid present)",
+    "PASS: Regression — landing page / renders (body text > 500 chars)",
+    "PASS: Regression — CloudSaveMenu still Pro-gates 'All' flow to UpgradeDialog for non-Pro user"
+  ],
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Review request refers to localStorage key as 'mindmapper.apikey' but actual key in /app/frontend/src/lib/settings.js is 'mindmapper.apiKey.v1' (note camelCase + .v1 suffix). Functionally correct, just a docs/PRD drift worth noting so any future tests or backend sync logic that introspect localStorage use the right key.",
+    "ApiKeyStatusChip listens to both 'storage' and custom 'mindmapper:apikey-changed' events — the custom event is dispatched on save/remove from within the same tab, and 'storage' event would cover cross-tab sync. Good belt-and-braces; no action needed.",
+    "UpgradeDialog's availablePlans fetch from /api/billing/plans is correctly gating which pills render. Preview backend returns all three, so all three show. Good graceful fallback to defaults on fetch error (.catch() keeps defaults).",
+    "UpgradeDialog renders an unauthenticated user 'Sign in to start trial' label on the checkout button rather than a checkout redirect (confirmed in screenshot) — verified startCheckout() branches on !user → signIn(). Behaviour is clean, no dead-button risk.",
+    "Non-blocking (carried over from iter_41): repeated 401 console noise for public map/profile probes pre-auth. Unchanged from prior iterations; not a regression.",
+    "BYOK provider hint copy in /app/frontend/src/lib/settings.js mentions '~$0.003 per 1k tokens' for Anthropic — price is stale vs Anthropic's current public pricing. Cosmetic only; consider periodic copy audits."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (/api/billing/plans spot-checked via curl — returns expected schema)", "frontend": "100% (27/27 checks passed)"},
+  "test_credentials": "Access gate: ?unlock=mind-mapper67. No Stripe/OAuth real creds on preview — user-less checkout path verified (signIn() trigger).",
+  "seed_data_creation": "None — localStorage manipulated in-flight to reset BYOK + onboarding flags.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All BYOK + pricing flows green. For future test authors: (1) localStorage key for API key is `mindmapper.apiKey.v1` (camelCase + .v1), NOT `mindmapper.apikey`. (2) To trigger UpgradeDialog via CloudSaveMenu, click cloud-save-target-all first, THEN click cloud-save-pdf-all (the PDF format becomes -all-suffixed when All target is selected). (3) ApiKeyStatusChip refreshes on custom event `mindmapper:apikey-changed` — if you manipulate localStorage directly in a test, fire the event too via window.dispatchEvent(new CustomEvent('mindmapper:apikey-changed')). (4) /api/billing/plans returns all 3 plans on preview; if a downstream test needs the 1-plan fallback, it must mock the endpoint.",
+  "rca of the issue": "N/A — no product issues found."
+}

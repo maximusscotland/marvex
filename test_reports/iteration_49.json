@@ -1,0 +1,51 @@
+{
+  "summary": "Frontend-only verification of Film Mode feature (iteration 49). All 6 acceptance criteria PASS: toggle exists in Studio top-bar, click toggles body.film-mode + hides distractions, persists across reload, persists across routes (/, /library), Shift+F shortcut works AND is correctly ignored when typing in inputs. Studio regression smoke also PASS (no 'obstructing' crash, sidebar buttons present).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "fix_verification": {
+    "1_toggle_present": {
+      "status": "PASS",
+      "details": "[data-testid=film-mode-toggle] count=1, visible=true, sits between LanguageSwitcher and CheckForUpdatesLink in Studio top-bar (Studio.jsx line 1074)."
+    },
+    "2_click_toggles_body_class": {
+      "status": "PASS",
+      "details": "Click 1: body.classList contains 'film-mode' (True). emergent-badge display=flex BUT visibility=hidden (inline-style display:inline-flex !important defeats CSS display:none, however CSS visibility:hidden + pointer-events:none win — review spec accepts 'display none OR visibility hidden'). cookie-consent display=none. tour-overlay display=none. Click 2: body.classList film-mode removed, badge restored."
+    },
+    "3_persistence_reload": {
+      "status": "PASS",
+      "details": "After enabling and reloading: localStorage.mm.filmMode='1', body has 'film-mode' class, badge still visibility-hidden. Re-application driven by App.js useEffect on mount (App.js lines 51-57)."
+    },
+    "4_persistence_routes": {
+      "status": "PASS",
+      "details": "Enabled in /app, navigated to / (Landing) and /library — body retains film-mode class and emergent-badge stays hidden on every route. AccessGate + App-root useEffect re-apply class on every full page load."
+    },
+    "5_shift_f_shortcut": {
+      "status": "PASS",
+      "details": "Shift+F on body toggles film mode ON→OFF→ON. When focus is inside [data-testid=map-title-input], pressing Shift+F is correctly IGNORED (body class unchanged). Implementation in FilmModeToggle.jsx lines 40-52 checks input/textarea/contentEditable."
+    },
+    "6_regression_studio": {
+      "status": "PASS",
+      "details": "Studio mounts cleanly: 0 pageerrors, no 'obstructing' ReferenceError, [data-testid=studio-page] visible, sidebar-icon-search count=1, top-bar widgets render. Iteration_48 fixes hold."
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Minor: emergent-badge inline style uses 'display: inline-flex !important' which beats external CSS 'display: none !important' (inline !important wins). Visual hide is achieved only via 'visibility: hidden' + 'pointer-events: none' from index.css. Review spec accepts this as a pass, but to make the rule more robust against future inline-style changes consider also wiring an attribute selector with higher specificity, e.g. body.film-mode a#emergent-badge[id] (still loses to inline !important). The truly bulletproof fix is to JS-imperatively set element.style.display='none' on the badge from FilmModeToggle, but current behaviour (visibility hidden) is functionally equivalent for video capture.",
+    "FilmModeToggle.jsx is well-isolated, ~73 lines, no DRY issues. Persistence pattern (state hook reads localStorage on init, useEffect writes on change) is idiomatic.",
+    "App.js useEffect at mount only runs ONCE per browser tab (mount), so SPA route changes via React Router are fine because the body class is never removed by anything other than the toggle. No issue observed."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% — 6/6 acceptance criteria PASS"},
+  "seed_data_creation": "None — used existing default 'How to use Mind-Mapper' seeded map.",
+  "test_credentials": "App gate unlock via ?unlock=mind-mapper67 query param (no auth required for this feature).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "main_agent_can_self_test": false,
+  "context_for_next_testing_agent": "Film Mode is fully working end-to-end. Only quirk: getComputedStyle(#emergent-badge).display returns 'flex' (not 'none') because of inline-style !important; the badge IS hidden via visibility:hidden + pointer-events:none which is acceptable per the spec ('display none OR visibility hidden'). For future tests, prefer asserting visibility OR offsetParent===null OR getBoundingClientRect.width when checking the Emergent badge state, instead of computed display only.",
+  "rca of the issue": "No bug — feature works as intended. Implementation summary: FilmModeToggle.jsx (73 lines) holds React state mirrored to localStorage('mm.filmMode'), toggles body.film-mode class, and listens for Shift+F (skipped in input/textarea/contentEditable). index.css lines 369-381 hide #emergent-badge, [data-testid=cookie-consent], tour-overlay/tooltip/spotlight, .emergent-watermark, a[href*=emergent.sh] via display:none + visibility:hidden + pointer-events:none. App.js useEffect re-applies body class on every full mount so reloads + cross-page navigation persist the mode. Studio.jsx renders <FilmModeToggle /> in the top-bar between LanguageSwitcher and CheckForUpdatesLink (line 1074)."
+}

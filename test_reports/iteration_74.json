@@ -1,0 +1,29 @@
+{
+  "summary": "Both backend (pytest) and frontend (Playwright) verifications for the new AI Case Summary endpoint and its frontend regression PASSED. Backend: extended /app/backend/tests/test_premium_addon.py with 3 new tests (case-summary unauth on a real BAILII URL, case-summary unauth with non-allowlisted host (must 401 BEFORE the allowlist check leaks 400), case-summary unauth on empty body) plus a new test for PUT /api/premium/lexisnexis/token unauth. All 12 tests in the file PASSED. Regression confirmed: GET /api/premium/status, GET /api/premium/bailii/search, GET /api/premium/lexisnexis/probe, PUT /api/premium/lexisnexis/token, POST /api/premium/case-summary all return 401 unauth — no 402 leakage. GET /api/license/verify still 401 unauth. GET /api/share/fd6fwvpewsvj returns 200 with referral_code='' present (slug owner has no affiliate code) and owner_user_id stripped from response (separately re-confirmed via curl + test_share_referral.py 4/4). Frontend (/intake?unlock=mind-mapper67, unauth): cookie banner declined, Public-domain → UK Law tab renders [data-testid=premium-uk-law-upsell] (REGRESSION OK — new {summaries, summaryBusy} state did NOT break the upsell render path). Switching to arXiv tab: upsell disappears, arXiv chips render. Switching back to UK Law: upsell re-renders cleanly, no React state corruption. Zero corpus-summarise-* testids on the unauth UK Law tab in either initial state OR after submitting a search — the buttons are correctly gated to entitled users on BAILII judgment rows only.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_premium_addon.py",
+    "/app/backend/tests/test_share_referral.py",
+    "/app/test_reports/pytest/iteration_74_premium.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "premium.py case_summary correctly orders the dependency chain: require_premium (auth + addon entitlement) runs BEFORE the URL allowlist check, so unauth callers can never probe the allowlist. Verified with the `evil.com` test — returns 401, not 400.",
+    "premium.py imports `from server import call_llm, normalize_provider, EMERGENT_LLM_KEY` lazily inside the handler — good, avoids circular-import at module load. But this means import errors only surface at request time; consider catching ImportError to return a clean 500 instead of a 502 wrapped in `AI service error`.",
+    "_strip_html_full() drops <head>/<nav>/<footer>/<aside>/<noscript> which is correct for BAILII judgments, but does NOT strip inline <style> attributes — minor; the regexes after it eat all tags so style noise can't survive.",
+    "Hard-coded 24 000-char trim is a sensible token-budget guard (≈6k tokens), but consider returning the trimmed length in the response so the frontend can show a 'judgment was truncated' notice — currently the user has no way to know the AI only saw the first 24k chars of an 80k-word HL judgment.",
+    "Code-fence stripping regex is solid (handles ```json and bare ``` both ends). Falls back to {summary: null, raw: response_text[:4000]} when JSON.parse fails — good UX: user still sees the model's prose.",
+    "PublicCorpusBrowser.jsx new {summaries, summaryBusy} state keyed by item id is correctly memoised and doesn't bleed across tab switches — confirmed by the arXiv↔UK round-trip test (no React state corruption).",
+    "data-testid=corpus-summarise-<id> is correctly conditional on kind==='judgment' && entitled — verified zero buttons rendered to unauth viewers across both empty and post-search UK Law states.",
+    "lib/corpus.js summariseCase() helper signature accepts (item, byok) — clean separation. Posts to /api/premium/case-summary with x-user-api-key + x-user-api-provider headers as designed."
+  ],
+  "updated_files": ["/app/backend/tests/test_premium_addon.py"],
+  "success_rate": {"backend": "100% (12/12 in test_premium_addon.py + 4/4 in test_share_referral.py)", "frontend": "100% (4/4 requested checks: upsell render, arXiv switch, UK round-trip, no summarise testids on Official source)"},
+  "test_credentials": "?unlock=mind-mapper67 only. No login. Positive case-summary path requires authed user with premium_uk_law addon + BYOK LLM key + real BAILII URL (out of scope per request).",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "test_premium_addon.py now has 12 tests covering all 5 /api/premium/* endpoints' unauth gates plus billing/plans + corpus-law-uk regressions. The case_summary endpoint's positive path needs an authed Premium-UK-Law user with a BYOK LLM key OR EMERGENT_LLM_KEY fallback + a real BAILII URL — out of scope for unauth testing. Frontend summarise buttons only render on PublicCorpusBrowser BAILII judgment rows for entitled users; verified zero leak to unauth/Official-source rows. The 'Not authenticated' toast that appears after submitting a search query on the UK Law tab while unauth is pre-existing behaviour (the upsell card still renders correctly above it).",
+  "rca of the issue": "n/a — no bugs reproduced."
+}

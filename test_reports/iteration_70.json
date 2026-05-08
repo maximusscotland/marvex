@@ -1,0 +1,68 @@
+{
+  "summary": "Tested the new Pricing/Licence v2 layer. Backend: GET /api/license/verify correctly returns 401 for unauth requests (and 401 for bogus bearer/cookie). Authenticated /verify shape NOT tested in-environment because no /api/auth/dev-login exists (Google OAuth only) — a synthetic token-format contract test was added to lock the documented `payload.signature` shape. Corpus law-uk search regression PASS (statutes-first ordering — first item kind_label='UK Statutory Instrument'). Frontend: on an unauthenticated session at /app?unlock=mind-mapper67, the welcome tour was dismissed via [data-testid=tour-close], then '+ New Map' (btn-new-map) opened RenewWall (renew-wall) with the signed-out variant — headline 'Sign in to keep going', subline mentions 'maps live in this browser', and 'Sign in with Google' button (renew-wall-signin) is present. Clicking the X (renew-wall-close) and 'Not now' (renew-wall-dismiss) both close the wall correctly. Clicking 'Sign in with Google' closes the wall and navigates to https://auth.emergentagent.com/?redirect=...%2Fauth%2Fcallback (Emergent's google-auth proxy) — redirect verified. founder-badge correctly absent on signed-out session. Library /library?unlock=mind-mapper67 still renders the Categories mini-map (7 category nodes: All, Work, Study, Personal, Research, Finances, +New) with cards listing — page loads cleanly. UpgradeDialog (testid upgrade-dialog) source verified present and wired in Studio.jsx (8 setUpgradeOpen call sites + <UpgradeDialog open={upgradeOpen}/> mounted line 1250); could not click-trigger because no Upgrade entry-point is exposed to anonymous users (UserBadge shows only 'Sign in') — but structurally regression-free.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "RenewWall (or its consuming Studio state)",
+        "issue": "React warning: 'Maximum update depth exceeded. This can happen when a component calls setState inside useEffect, but useEffect either doesn't have a dependency array, or one of the dependencies changes on every render.' Logged in the console when closing the renew-wall via the X button. Functionally the wall closes and the rest of the app keeps responding, but this points to a missing/unstable dependency in a useEffect somewhere in the renew-wall + handleNew flow.",
+        "selector": "[data-testid=renew-wall-close]",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "GET /api/license/verify (no auth) → 401 with 'detail' field",
+    "GET /api/license/verify (bogus bearer) → 401",
+    "GET /api/license/verify (bogus session cookie) → 401",
+    "Token format contract: payload.signature with base64url JSON payload containing ttl_seconds=86400 + offline_grace_days=14 + tier in {lifetime,annual,monthly,free}",
+    "GET /api/corpus/search?source=law-uk&q=Equality+Act+2010 → 200, statutes-first (first item kind_label='UK Statutory Instrument')",
+    "Frontend /app?unlock=mind-mapper67 loads, tour dismissable via [data-testid=tour-close]",
+    "Click [data-testid=btn-new-map] on unauth session → [data-testid=renew-wall] opens with signed-out variant (headline 'Sign in to keep going', subline mentions existing maps, [data-testid=renew-wall-signin] reads 'Sign in with Google')",
+    "[data-testid=renew-wall-close] closes the wall",
+    "[data-testid=renew-wall-dismiss] ('Not now') closes the wall",
+    "[data-testid=renew-wall-signin] closes wall AND navigates to https://auth.emergentagent.com/?redirect=...%2Fauth%2Fcallback (Emergent google-auth)",
+    "[data-testid=founder-badge] correctly NOT present on signed-out session",
+    "/library?unlock=mind-mapper67 renders Categories mini-map (7 category nodes) + cards grid"
+  ],
+  "failed_tests": [],
+  "skipped_tests": [
+    "Authenticated /api/license/verify shape test (TOKEN_TTL_SECONDS=86400, offline_grace_days=14, founder/founder_number passthrough, deterministic-prefix double-call) — skipped: no /api/auth/dev-login endpoint to synthesise a session in this preview environment. Main agent should add a DEV-only session shortcut or run this test in a staging env with a real Google session.",
+    "UpgradeDialog click-trigger regression — skipped: anonymous UserBadge only exposes 'Sign in' (which navigates away); no upgrade entry-point reachable without auth. Source-level review confirms 8 setUpgradeOpen call-sites and <UpgradeDialog/> mount untouched."
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_license_verify.py",
+    "/app/test_reports/pytest/iteration_70_license.xml"
+  ],
+  "action_items": [
+    "Investigate React 'Maximum update depth exceeded' warning fired when closing RenewWall via X. Likely culprit: a useEffect inside Studio.jsx (renewAction state, lic object from useLicense) where the dep array includes a freshly-derived object/array each render. Memoise the lic return in useLicense (already useMemo'd — but the consumer effect may be using `lic` itself as a dep instead of stable primitives like lic.active / lic.tier).",
+    "Optional: add a DEV-only session helper (e.g. POST /api/auth/dev-login behind FEATURE_DEV_LOGIN env) so the authenticated /api/license/verify shape test can run in CI.",
+    "Optional: expose the +New Map / Upgrade testids on the marketing/anonymous header so QA can hit UpgradeDialog without OAuth — currently anonymous users have NO way into UpgradeDialog (the only path is via 402-AI-limit and signed-in user-menu)."
+  ],
+  "critical_code_review_comments": [
+    "/app/backend/license.py — solid: persisted HMAC key via /backend/.license_key (chmod 600, 32 random bytes), graceful fallback to ephemeral key on read-only FS, proper canonical-JSON sig (sort_keys=True, separators=(',',':')) so the signature is reproducible across Python builds. Good separation from JWT_SECRET (concerns isolated). _is_active() correctly handles trialing/active + lifetime + period_end past-tense.",
+    "/app/backend/license.py:152 — minor: `if (sub.get('lifetime') or tier == 'lifetime') and active:` — when a lifetime user is somehow inactive (status=canceled), expires_at falls through to whatever sub['current_period_end'] is, which for lifetime users may be unset/empty — that's fine but worth an inline comment.",
+    "/app/frontend/src/lib/license.js:64 — `expired = !!periodEnd && !active && status !== 'free'` — correct, but a 'canceled' status with no period_end will read as expired=false; if the desired UX is to treat 'canceled-mid-period-but-grace-ended' as expired, this is a gap. Probably fine for now (option B treats expired and free identically for gating).",
+    "/app/frontend/src/lib/license.js:75 — blocksAction kinds list is hard-coded inside the closure; if Studio.jsx ever calls blocksAction('new-map') via a typo'd kind, it silently returns false. Consider exporting a BLOCKED_KINDS constant from license.js so call-sites can be type-checked at build time.",
+    "/app/frontend/src/components/RenewWall.jsx — clean. Backdrop click closes (onMouseDown={onClose}) which is good UX. Uses createPortal so it lifts above the canvas transform — correct. ARIA: role=dialog + aria-modal=true present, but no aria-labelledby pointing to the H3 — minor a11y nit.",
+    "Possible source of the React 'Max update depth' warning: Studio.jsx ~137 `const [renewAction, setRenewAction] = useState(null)` combined with `<RenewWall open={!!renewAction} action={renewAction} onClose={() => setRenewAction(null)} ... />`. If anything inside useLicense() returns a new object on every parent render (e.g. blocksAction is a fresh fn each call — it IS, because it's defined inside useMemo factory only when [user, loading] change, so should be stable), and a downstream useEffect uses `lic` as a dep, that effect re-fires forever. Inspect Studio.jsx around lines 137–145 and 320–330."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_license_verify.py (new — 5 tests for /api/license/verify auth + token-format contract + corpus search regression)"
+  ],
+  "success_rate": {
+    "backend": "5/5 (100%) on tests we could run; 1 authed-shape test skipped (no dev-login)",
+    "frontend": "12/12 (100%) on the unauth flows; 1 React warning logged"
+  },
+  "test_credentials": "Not required for the executed tests — App gate ?unlock=mind-mapper67 only.",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration_70 tests cover: (1) /api/license/verify 401 contract for anonymous + bogus-creds, (2) corpus law-uk search regression (statutes-first), (3) RenewWall full UX on unauthenticated /app — open via btn-new-map, close via X / Not now / Sign-in-with-Google (which redirects to auth.emergentagent.com), (4) founder-badge absent when signed out, (5) /library categories mini-map renders. The authenticated /api/license/verify shape (token, user_id, tier, active, expires_at, founder, founder_number, issued_at, ttl_seconds=86400, offline_grace_days=14, deterministic prefix) is INTENTIONALLY unverified in this iteration — needs a DEV-login or a real Google session to exercise. The React 'Maximum update depth' warning logged on RenewWall close is likely a useEffect dep issue in Studio.jsx around the renewAction/useLicense interaction; functionally the wall closes correctly so it's not blocking, but worth fixing before next release.",
+  "rca_of_the_issue": "No new bugs found. One MEDIUM warning surfaced: React 'Maximum update depth exceeded' on RenewWall close — see action_items[0] for the most likely useEffect-dep root-cause (consumer effect using `lic` object identity instead of primitive lic.active/lic.tier flags)."
+}

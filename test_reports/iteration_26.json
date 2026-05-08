@@ -1,0 +1,32 @@
+{
+  "summary": "Iteration 26 bundled review: (A) Markdown export on /highlights and (B) Server-rendered unfurl HTML at /api/share/:slug/unfurl + baseline og/twitter tags in public/index.html. Backend 6/6 green (new test_share_unfurl.py pytest: fallback 'no longer available' HTML, Cache-Control public max-age=300, real-share og:title containing map title, '2-branch' in description, https:// scheme honouring X-Forwarded-Proto, public URL serving unfurl via ingress, baseline index.html og/twitter tags). Frontend 6/6 green via Playwright: empty-ledger state hides [data-testid='highlights-export-md']; seeded 3 highlights across 2 PDFs reveals the MARKDOWN button; click triggers download of 'mindmapper-highlights-2026-04-24.md' with correct filename pattern, markdown body contains '# My highlights', '## ethics.pdf' + '## quantum.pdf' sections, '> Utilitarianism' blockquote, and 'mind-mapper.com' footer; toast 'Exported 3 highlights' appears; ShareDialog signed-out shows sign-in variant (no unfurl disclosure — matches spec); index.html at preview root contains og:title 'mind-mapper · Turn any PDF into a mind-map' + twitter:card summary_large_image.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_share_unfurl.py",
+    "/app/test_reports/pytest/iteration_26.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "share.py L116-117: host fallback to request.url.hostname + port logic won't handle IPv6 (would need brackets). Non-blocking behind ingress.",
+    "share.py L114: default proto='https' when X-Forwarded-Proto is absent is a safe choice for OG crawlers, but means local dev (http://localhost) gets https:// in meta URLs. Acceptable since dev is never unfurl'd.",
+    "ShareDialog.jsx L225: The unfurl URL uses window.location.origin rather than REACT_APP_BACKEND_URL. Works because ingress routes /api/* to backend on the same origin — but if the frontend is ever served from a different domain than the API, the unfurl URL would 404. Consider using process.env.REACT_APP_BACKEND_URL for symmetry with createShare() in lib/api.js.",
+    "Highlights.jsx L89: a.click() works in modern browsers without appending to document, but older Safari/Firefox occasionally required document.body.appendChild(a) before .click(). Low risk given the target audience, non-blocking.",
+    "Highlights.jsx L61-93: exportMarkdown does not sanitise user-controlled fileName/mapTitle for markdown meta-characters (e.g. a mapTitle of '**X**' would bold twice). Aesthetic only — no XSS since the .md is not rendered in-app.",
+    "public/index.html: og:image meta tag is NOT present in the baseline, only og:title/og:description/twitter:card. Crawlers that fall back to og:image may show a blank preview for / — consider adding <meta property='og:image' content='https://mind-mapper.com/og-default.png' /> once a default share card asset exists."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_share_unfurl.py (new — 6 pytest cases covering unfurl endpoint + baseline og tags)"
+  ],
+  "success_rate": { "backend": "100% (6/6 new + existing test_share.py still green)", "frontend": "100% (all requested flows verified; signed-in unfurl-disclosure inspected via static code review since Google OAuth can't be simulated)" },
+  "test_credentials": "Access gate: REACT_APP_UNLOCK_KEY=mind-mapper67 (URL param ?unlock=mind-mapper67 or Unlock input on gate). No backend auth bypass used for UI tests — the ShareDialog signed-out branch is the correct signal.",
+  "seed_data_creation": "localStorage.mindmapper.maps.v1 seeded with 2 maps (ethics.pdf x2 highlights + quantum.pdf x1) on /highlights for the export test. localStorage.mindmapper.shares.v1 seeded with {<activeMapId>:'fakeslug123'} on /app to attempt the slug-present ShareDialog branch (did not trigger because user is signed out — spec-compliant). Backend: TestClient with dependency_override on current_user_dep for POST /api/share; cleaned up via DELETE in try/finally.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Markdown export + unfurl HTML features are green. /api/share/:slug/unfurl correctly returns text/html 200 with og:title/og:image/og:url/twitter:card/http-equiv=refresh meta tags, Cache-Control 'public, max-age=300', and honours X-Forwarded-Proto for https:// scheme. Baseline index.html has og:title + twitter:card (no og:image yet — noted). For future: if a main agent wants to verify the signed-in ShareDialog unfurl disclosure end-to-end via Playwright, monkey-patch the AuthContext user or mock the /api/auth/me endpoint before opening the dialog — the code at ShareDialog.jsx L183-242 does render share-unfurl-details/url/copy when both user && slug are truthy (collapsed <details> by default).",
+  "rca of the issue": "N/A — no failing features in this iteration."
+}

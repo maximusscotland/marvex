@@ -1,0 +1,194 @@
+name: desktop-release
+
+# When this runs:
+#   • push of a `v*` tag (e.g. `v1.0.0`)        → build, sign, publish to GitHub Releases
+#   • manual click of "Run workflow" in GitHub  → build only, no publish (dry-run)
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#
+#   --- macOS signing & notarisation (all 5 must be set together) ---
+#   APPLE_ID                       Apple ID email (e.g. you@example.com)
+#   APPLE_APP_SPECIFIC_PASSWORD    App-specific password from appleid.apple.com
+#                                  (NOT your Apple ID password — generate one
+#                                  in Sign-In & Security → App-Specific Passwords)
+#   APPLE_TEAM_ID                  10-char team ID (developer.apple.com → Membership)
+#   MAC_CERTS                      Base64-encoded `.p12` of your Developer ID
+#                                  Application certificate exported from Keychain
+#   MAC_CERTS_PASSWORD             Password you set when exporting the .p12
+#
+#   How to make MAC_CERTS without owning a Mac:
+#     1. Trial MacInCloud / Scaleway Apple Silicon for ~5 minutes (~$1).
+#     2. Open Keychain Access → Certificate Assistant →
+#        "Request a Certificate from a CA" → save .certSigningRequest.
+#     3. Apple Developer portal → Certificates → "+" →
+#        "Developer ID Application" → upload the .certSigningRequest →
+#        download the .cer.
+#     4. Double-click the .cer in Keychain → expand it → right-click the
+#        private key → Export → save as developer-id.p12 with a password.
+#     5. Base64-encode it: `base64 -i developer-id.p12 | pbcopy`
+#     6. Paste into the MAC_CERTS GitHub secret; password into MAC_CERTS_PASSWORD.
+#
+#   --- Windows code-signing (all 2 must be set together) ---
+#   WIN_CSC_LINK                   Base64-encoded `.pfx` code-signing cert.
+#                                  Cheapest options: Certum Open Source
+#                                  Code Signing (~€26/yr, requires public
+#                                  GitHub repo — which you have) or SSL.com
+#                                  EV Code Signing (~$199/yr, instant SmartScreen
+#                                  reputation, requires hardware token).
+#   WIN_CSC_KEY_PASSWORD           Password you set when exporting the .pfx
+#
+#   When either bundle is missing, the matching OS still builds — just
+#   unsigned. This is intentional: it lets you ship now and switch on
+#   signing later without a workflow edit.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write   # needed so electron-builder can create a Release + upload assets
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: yarn
+          cache-dependency-path: |
+            frontend/yarn.lock
+            desktop/yarn.lock
+
+      - name: Install frontend deps
+        run: yarn install --frozen-lockfile
+        working-directory: ./frontend
+
+      - name: Install desktop deps
+        run: yarn install --frozen-lockfile
+        working-directory: ./desktop
+
+      - name: Build renderer
+        env:
+          REACT_APP_BACKEND_URL: https://marvex.app
+        run: yarn build:renderer
+        working-directory: ./desktop
+
+      # On a tag push (`v1.0.0`) we publish to GitHub Releases. On a manual
+      # `workflow_dispatch` we only build artifacts so you can sanity-check
+      # without burning a release tag.
+      #
+      # Tags ending in `-beta`, `-rc`, `-alpha`, or containing `-preview` are
+      # treated as PRE-RELEASES. GitHub doesn't auto-flag these as "Latest",
+      # so `mind-mapper.com/download` (which follows /releases/latest) keeps
+      # pointing at the last stable build. Perfect for sharing betas with
+      # a handful of testers without exposing them to the public.
+      #
+      # Why the `-c.publish.provider=generic ...` block on dry-runs?
+      # electron-builder auto-detects the github remote and injects a github
+      # publisher whenever it sees a github repo — even when --publish never.
+      # Then in v25.x there's a bug where computeChannelNames crashes with
+      # "Cannot read properties of null (reading 'channel')" because we
+      # build from a non-tagged commit (no `latest` channel context).
+      # Forcing a benign generic provider on dry-runs sidesteps both issues:
+      # auto-detection is skipped, channel resolves to the explicit `latest`,
+      # builds succeed, no real upload happens (--publish never).
+      - name: Pick publish flag
+        id: flag
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            # Detect pre-release tags (beta / rc / alpha / preview) so the
+            # GitHub release is created as a pre-release rather than latest.
+            if [[ "${GITHUB_REF}" =~ -(beta|rc|alpha|preview) ]]; then
+              release_type="prerelease"
+              channel="beta"
+            else
+              release_type="release"
+              channel="latest"
+            fi
+            echo "value=--publish always -c.publish.provider=github -c.publish.releaseType=${release_type} -c.publish.vPrefixedTagName=true -c.publish.channel=${channel}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=--publish never -c.publish.provider=generic -c.publish.url=https://marvex.app/updates -c.publish.channel=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build & publish (macOS)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Apple signing/notarisation env. ALL FOUR vars must be set
+          # for electron-builder to attempt code-signing — if any one is
+          # missing/empty, electron-builder skips signing & notarisation
+          # entirely and produces an unsigned .dmg.  This lets us ship
+          # immediately while we sort out the Apple Developer cert
+          # dance, and start signing automatically the moment the
+          # secrets exist (no workflow edit needed).
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CSC_LINK: ${{ secrets.MAC_CERTS }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERTS_PASSWORD }}
+          # When CSC_LINK is empty, electron-builder still attempts to
+          # use any "Developer ID" identity from the macOS Keychain.
+          # The CI runner has none, so we must explicitly tell it to
+          # skip signing instead of failing the build.
+          CSC_IDENTITY_AUTO_DISCOVERY: ${{ secrets.MAC_CERTS != '' && 'true' || 'false' }}
+        run: yarn electron-builder --mac ${{ steps.flag.outputs.value }} ${{ secrets.MAC_CERTS == '' && '-c.mac.identity=null -c.mac.notarize=false' || '' }}
+        working-directory: ./desktop
+
+      - name: Build & publish (Windows)
+        if: matrix.os == 'windows-latest'
+        # Force bash so PowerShell doesn't split `-c.publish.provider=generic`
+        # into two args (`-c` + `.publish.provider=...`), which tricks
+        # electron-builder into treating the latter as a config FILE PATH
+        # and crashing with ENOENT. Git Bash is preinstalled on
+        # windows-latest runners.
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Optional Windows signing — auto-enables when both secrets exist,
+          # falls back to unsigned otherwise. electron-builder picks these
+          # up by name; no config change needed in package.json.
+          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        run: yarn electron-builder --win ${{ steps.flag.outputs.value }}
+        working-directory: ./desktop
+
+      - name: Build & publish (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: yarn electron-builder --linux ${{ steps.flag.outputs.value }}
+        working-directory: ./desktop
+
+      # Dry-run uploads: when triggered manually (no tag), keep the binaries
+      # for 14 days as workflow artifacts so you can download + smoke-test
+      # them without cutting a public release.
+      - name: Upload dry-run artifacts
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: marvex-${{ runner.os }}
+          path: |
+            desktop/dist/*.exe
+            desktop/dist/*.dmg
+            desktop/dist/*.zip
+            desktop/dist/*.AppImage
+            desktop/dist/*.deb
+            desktop/dist/*.rpm
+            desktop/dist/*.blockmap
+            desktop/dist/latest*.yml
+          if-no-files-found: ignore
+          retention-days: 14

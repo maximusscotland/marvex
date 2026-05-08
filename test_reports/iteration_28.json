@@ -1,0 +1,30 @@
+{
+  "summary": "Iteration 28 — RAG-memory plumbing for /api/research and Research Memory settings panel. Backend: 6/6 pytest cases in test_research_memory.py pass; live POST /api/research with memory=[] and memory=[{...}] returns 401 (auth) — schema accepts the new optional memory field (no 422). Frontend: research-memory-panel renders in Settings with correct empty/singular/plural count text ('0 notes stored', '1 note stored', '3 notes stored'), Clear button only appears when count>0, confirm-dialog clear flow wipes localStorage key 'mindmapper.researchMemory.v1' and resets count to 0. Landing CTA regression verified: [data-testid='nav-launch-btn'] renders 'Try Free' (not 'Launch App').",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_research_memory.py",
+    "/app/test_reports/pytest/iteration_28.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "ResearchSettings refreshes memoryCount only on mount/focus/storage events — works because Settings modal unmounts on close, so re-opening re-reads localStorage. If you ever convert it to always-mounted, add a visibility/open-prop dependency to re-tick.",
+    "countResearchMemories() is called synchronously in useState initializer — fine for small JSON, but if MAX_ENTRIES grows beyond 50 consider lazy/idle loading.",
+    "window.confirm is used for Clear — acceptable for now; a custom modal would give better UX + easier testing without page.on('dialog') dance."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "App gate: ?unlock=mind-mapper67 (no user login needed to reach Studio/Settings).",
+  "seed_data_creation": "Injected ephemeral entries into localStorage key 'mindmapper.researchMemory.v1' during frontend test; cleared at end of flow. No persistent seed data.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "RAG-memory plumbing end-to-end verified. Backend model (ResearchRequest.memory: List[ResearchMemoryEntry]) is accepted on the live API — authenticated runs were NOT exercised (would trigger real LLM). If future tests want to verify prompt injection, stub out call_llm and assert build_memory_blob output appears in user_text for both /api/research and /api/research/stream. Frontend library /app/frontend/src/lib/researchMemory.js exports (appendResearchMemory, findRelatedMemories, buildMemoryContext, countResearchMemories, clearResearchMemory) were exercised indirectly via ResearchSettings; a direct unit-ish check could be added by importing them in a Studio console eval.",
+  "rca of the issue": "No issues found."
+}

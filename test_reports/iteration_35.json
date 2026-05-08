@@ -1,0 +1,40 @@
+{
+  "summary": "Iteration 35 — Sync Diff overlay (mapHistory ring buffer + sync-pulled event + Undo toast) regression + smoke pass. All unit, backend, and frontend regression checks green.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/frontend/tests/test_map_history.mjs",
+    "/app/backend/tests/test_sync.py",
+    "/app/test_reports/pytest/iteration_35_sync.xml"
+  ],
+  "test_results": {
+    "unit_map_history_mjs": "9/9 passed (empty-read, push, newest-first, cap=10, pop, pop-empty, clearHistoryFor, isolation, deep-copy)",
+    "pytest_test_sync": "8/8 passed (free_user_gets_402, status_disabled_for_free, push_pull_roundtrip, lww_keeps_server_newer, since_filter, tombstone_pull, user_isolation, purge_old_tombstones)",
+    "curl_sync_maps_401": "PASS — 401 returned as expected",
+    "event_dispatch_signed_out": "PASS — CustomEvent('mindmapper:sync-pulled') dispatched with no runtime error; [data-testid=sync-badge] correctly absent for signed-out user",
+    "library_state_after_dispatch": "PASS — localStorage.mindmapper.maps.v1 contains title='NEW'; mindmapper.mapHistory.v1.m1 has 1 snapshot with title='OLD'",
+    "studio_canvas_load": "PASS — /app?unlock=mind-mapper67 loads, 6 seed node elements rendered, no runtime error banner",
+    "regression_pages": "PASS — /memory (200), /download (200), /tools (200), /highlights (200) all render with usePageMeta titles, no runtime errors"
+  },
+  "notes": {
+    "console_401_on_regression_pages": "Expected — /api/me or /api/sync/status calls for unauthenticated users return 401. Non-blocking.",
+    "canvas_bg_testid": "Queried `[data-testid=canvas-bg]` returned null but broader node query found 6 seed nodes (primary assertion). If E1 wants strict canvas-bg testid coverage, add data-testid to the canvas wrapper; minor nit only.",
+    "toast_undo_e2e": "Not E2E-tested (requires Pro auth as documented); library-layer coverage via event + localStorage validation is green."
+  },
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Optional: add `data-testid=\"canvas-bg\"` to the canvas wrapper div for more robust future regression selectors (current regression sweep still works via node count)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "App gate only: ?unlock=mind-mapper67 (no login used)",
+  "seed_data_creation": "Ephemeral localStorage seed inside browser during event-dispatch probe (mindmapper.mapHistory.v1, mindmapper.maps.v1 for mapId=m1); not persisted in backend.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Sync Diff overlay is stable at library + event layer. For Pro-user E2E (toast visibility + Undo click flow), a real authenticated session is needed; current coverage stops at event dispatch contract + localStorage state.",
+  "rca of the issue": "N/A — no issues found."
+}

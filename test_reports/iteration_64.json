@@ -1,0 +1,56 @@
+{
+  "summary": "Frontend-only review of (a) Landing #features re-order, (b) /lib/openLink.js helper, (c) PdfReader ?src= deep-link. Features grid renders all 9 cards in the spec order with correct icons + badges. Helper logic regressions (PDF detection / data-URL handling) verified inline and match spec. CRITICAL: PdfReader does NOT pick up the ?src= query param — verified twice (once with a remote .pdf URL, once with a same-origin data:application/pdf URL). Root cause is a React.StrictMode double-mount bug in the new deep-link useEffect inside /app/frontend/src/pages/PdfReader.jsx (≈line 242). Because of this the Studio→Reader hand-off is broken end-to-end: clicking a node's PDF link icon will navigate to /read?src=… but the Reader will only show the dropzone.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PdfReader (/app/frontend/src/pages/PdfReader.jsx ~L241–273)",
+        "issue": "Deep-link ?src= never loads the PDF. In React.StrictMode the effect runs → cleanup → re-runs. First run does `openedSrcRef.current.add(src)` BEFORE the async fetch resolves; cleanup sets cancelled=true so the catch path is silenced; second run hits `if (openedSrcRef.current.has(src)) return;` and bails out. Net result: handleFilesPicked is never called, the dropzone view is shown, no toast, no error. Verified with both https://www.africau.edu/images/default/sample.pdf and a tiny inlined data:application/pdf — both stay on the dropzone. window.location.search confirms ?src=… was preserved (the unlock gate did NOT strip it). Fix: only add to openedSrcRef AFTER the fetch resolves successfully (move `openedSrcRef.current.add(src)` inside the async IIFE just before/after handleFilesPicked, or drop the ref entirely and dedupe by checking sessions for an existing fileKey).",
+        "selector": "[data-testid=\"reader-dropzone-page\"] (shown instead of [data-testid=\"reader-tabbar\"])",
+        "priority": "HIGH"
+      },
+      {
+        "component": "PdfReader deep-link fetch (same file ~L251)",
+        "issue": "Even after the StrictMode bug is fixed, fetching arbitrary cross-origin PDFs (e.g. africau.edu sample) will fail in the browser due to CORS — the code throws but the toast is suppressed when cancelled. Recommend: (a) bypass fetch for data: URLs (decode → File directly, no network); (b) for http(s) URLs, attempt fetch but show a clearer error / fall back to opening the URL in a new tab when CORS blocks it.",
+        "selector": "PdfReader useEffect on qs",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Studio node link icon → PDF → /read?src=… → Reader session",
+        "issue": "Routing helper correctly pushes /read?src=<encoded>, but the Reader never creates a session because of the StrictMode deep-link bug above. The user sees an empty dropzone instead of the linked PDF.",
+        "affected_selectors": ["[data-testid=\"reader-tabbar\"]", "[data-testid=\"reader-page-1\"]", "[data-testid=\"reader-title\"]"]
+      }
+    ],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Landing #features renders exactly 9 FeatureCard tiles in the spec-mandated order: 1) Drop a PDF · Get a map, 2) Maps → Polished documents, 3) Every map · One search, 4) Your key · Zero cloud, 5) Built-in PDF Reader, 6) Open anything · the right way, 7) Reminders on a real calendar, 8) Chrome bookmarks → reading list, 9) Push to Drive · Dropbox · Zotero. Each card has lucide icon SVG + uppercase badge.",
+    "openLink helper regex regressions (replicated inline): isPdf('https://x/a.pdf?x=1')=true, isPdf('data:application/pdf;base64,…')=true, isPdf('https://x/page.html')=false, isPdf('data:audio/mpeg;…')=false. Anchor-download fallback for data: URLs creates a valid <a download> element.",
+    "MindMapCanvas openNodeLink and AnnotationsLayer 'Open link' both delegate to the shared openLink helper (verified via grep)."
+  ],
+  "tests_not_executed_with_reason": [
+    "Studio: attach PDF/data-audio/non-PDF link via right-click → click link icon — blocked by the deep-link bug above. The first hop (router push to /read?src=) is wired; the second hop (Reader actually opening it) is broken, so end-to-end PDF flow cannot be verified until the StrictMode bug is fixed.",
+    "Annotations 'Open link' end-to-end — same reason; code path is wired identically to the node-link path."
+  ],
+  "test_report_links": [],
+  "action_items": [
+    "FIX (HIGH): /app/frontend/src/pages/PdfReader.jsx ~L241–273 — make the ?src= deep-link effect StrictMode-safe. Suggested patch: drop the openedSrcRef gate and instead dedupe inside the async function by checking `sessions.some(s => s.deepLinkSrc === src)` (and tag new sessions with deepLinkSrc), OR only add to openedSrcRef AFTER handleFilesPicked succeeds.",
+    "FIX (MEDIUM): For data: URLs, decode synchronously into a Blob/File without going through fetch — saves a round-trip and works regardless of CORS.",
+    "FIX (MEDIUM): For http(s) URLs that CORS-block, surface the error visibly (toast + fall back to window.open in a new tab so the user still sees the PDF)."
+  ],
+  "critical_code_review_comments": [
+    "openLink.js looks clean and well-documented. Minor: isPdfLink only matches http(s)+.pdf or data:application/pdf — local file:// URLs and blob: URLs aren't matched. The comment hints at a `forcePdf` arg but the public API (openLink) doesn't accept one. Either implement it or drop the comment.",
+    "PdfReader.jsx is now ~1180 lines — close to the 700-line guideline. Consider extracting HighlightsSidebar / DrawToolbar / PdfPage / ReaderHeader into separate files.",
+    "Deep-link useEffect dependency is `[qs]` but `qs` is rebuilt by useMemo on every location.search change — fine. Just be aware that the dedupe ref pattern is incompatible with StrictMode (see action item)."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a", "frontend": "≈55% (Landing + helper logic OK; PdfReader deep-link broken)" },
+  "test_credentials": "App gate password applied via ?unlock=mind-mapper67",
+  "seed_data_creation": "None",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The StrictMode deep-link bug is reproducible 100% — open https://<host>/read?src=data%3Aapplication%2Fpdf%3Bbase64%2CJVBERi0xLjQ%3D&unlock=mind-mapper67 and observe the dropzone instead of a session. After the fix, the same URL must show [data-testid=\"reader-tabbar\"] with one tab. Landing-features test is stable using `[data-testid^=\"feature-card-\"]` and reading h3 text in document order.",
+  "rca_of_the_issue": "PdfReader.jsx adds the src to openedSrcRef synchronously at the top of its deep-link useEffect. React.StrictMode (enabled in /app/frontend/src/index.js) intentionally mounts components twice in development, calling each effect → cleanup → effect again. The cleanup function flips a local `cancelled` flag but does NOT remove the src from openedSrcRef, so the second run short-circuits. handleFilesPicked is therefore never invoked, and because the catch path checks `if (!cancelled)` no toast surfaces — the failure is completely silent. Mitigation: defer the openedSrcRef.add until after the fetch resolves, or remove the ref-based dedupe and rely on session-level dedupe."
+}

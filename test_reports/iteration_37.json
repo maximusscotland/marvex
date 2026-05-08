@@ -1,0 +1,40 @@
+{
+  "summary": "Verified Electron offline-fallback feature. Static file checks: all required functions/keys/scripts present in main.js, preload.js, package.json, .gitignore, workflow. Frontend Playwright tests: browser-mode hides banner, simulated-Electron-offline shows banner with text 'You're offline', Reconnect + Dismiss buttons work, failed reconnect keeps banner visible, regression confirms no banner on /app, /memory, /download, /tools, /highlights in plain browser. Canvas still renders 6 nodes with banner overlaid. All 5 UI tests passed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "static_file_checks": {
+    "electron/main.js": "PASS — probeOnline, loadOfflineBundle, loadLive, startOnlineProbe all defined. OFFLINE_BUNDLE = path.join(__dirname,'assets','web','index.html') present. did-fail-load handler guards errorCode===-3 and calls loadOfflineBundle() for other codes. Help menu has 'Try to reconnect' and 'Force offline mode'. IPC handlers mm:get-mode and mm:try-reconnect present.",
+    "electron/preload.js": "PASS — contextBridge exposes mindMapperDesktop.getMode and mindMapperDesktop.tryReconnect returning ipcRenderer.invoke promises.",
+    "electron/package.json": "PASS — 'bundle' script builds frontend + copies build/ into assets/web/. dist, dist:win, dist:mac, dist:linux, dist:all, publish all prefixed with `yarn bundle &&`.",
+    "electron/.gitignore": "PASS — 'assets/web/' present.",
+    ".github/workflows/electron-build.yml": "PASS — 'Build the React frontend (static bundle)' and 'Copy React build into electron/assets/web' steps sit between Setup Node and 'Install electron wrapper deps'. Cache key includes frontend/yarn.lock + electron/yarn.lock.",
+    "frontend/App.js HashRouter fallback": "PASS — Router = window.location.protocol === 'file:' ? HashRouter : BrowserRouter. OfflineBanner mounted inside Router."
+  },
+  "frontend_test_results": {
+    "test_1_browser_mode_no_banner": "PASS",
+    "test_2_simulated_offline_banner_visible": "PASS — banner + [data-testid='offline-reconnect'] + [data-testid='offline-dismiss'] all present, text 'You're offline.' confirmed",
+    "test_3_dismiss_hides_banner": "PASS",
+    "test_4_failed_reconnect_keeps_banner": "PASS — banner persists after tryReconnect returns {ok:false}, button returns from 'Probing…' to 'Reconnect'",
+    "test_5_regression_no_banner_other_routes": "PASS — /app, /memory, /download, /tools, /highlights show no offline banner in plain browser mode"
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "main.js:207 — 'Try to reconnect' menu item silently no-ops when probe fails; consider a dialog.showMessageBox('Still offline') for better UX.",
+    "OfflineBanner.jsx:52-56 — tryReconnect has a dead-code comment block for visual feedback; either implement the failure toast or remove the comments to avoid reader confusion.",
+    "main.js:146 — when !HAS_OFFLINE_BUNDLE, the app loads WEB_URL with no retry/fallback; a completely offline first-launch without a bundle will show the raw Chromium error. Acceptable but worth a TODO.",
+    "package.json 'bundle' script runs `yarn install --frozen-lockfile` inside frontend every time — CI already has a Build-Frontend step doing the same, so locally this is fine but the double install in CI (workflow step 'Build the React frontend' + electron 'bundle' in `yarn dist`) is redundant if someone runs `yarn dist` in CI. Current workflow avoids this by calling steps separately, but the `yarn dist` path should be documented as local-only."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only task)", "frontend": "100% (5/5)"},
+  "test_credentials": "App gate: ?unlock=mind-mapper67",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Electron offline-mode verified via desktop shim injected with page.add_init_script before goto. Static checks cover the bits that can't be browser-tested (file:// HashRouter, main.js IPC handlers, GH workflow bundle steps). Canvas renders 6 nodes with banner overlay — no regression. 401 console errors on /app are pre-existing unauthenticated /api/* calls unrelated to this feature.",
+  "rca of the issue": "N/A — feature verification only, no bugs found."
+}

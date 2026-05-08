@@ -1,0 +1,24 @@
+{
+  "summary": "Frontend-only review of iteration 34 (Export Pack + /memory page). All 13 requested flows pass: 6 toolbar export buttons present with correct tooltips/testids; SVG/Markdown/4× PNG/regression PNG downloads fire with correct filenames; Markdown content starts with '# Core Concept', contains the '---' separator and the 'Exported from [mind-mapper.com](https://mind-mapper.com)' attribution; /memory empty state, seeded 2 rows, 2 NOTES badge, search filter (quantum → only m1), single-row delete (localStorage reduced to [m2]), Clear-all (localStorage key removed + empty state returned), memory Export-MD download with filename starting 'research-memory-', sidebar memory icon present and navigates to /memory. No issues found.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "exportPng.js is ~700 lines and mixes SVG building, PNG rasterising, PDF drawing, Markdown building and screen-capture. Consider splitting into exportSvg.js / exportPdf.js / exportMarkdown.js for easier maintenance.",
+    "Memory.jsx exportMarkdown duplicates markdown-building logic already present in buildMarkdown() — could share a small util and keep a single attribution footer.",
+    "window.confirm() is used for destructive actions in /memory; a shadcn AlertDialog would be on-brand with the rest of the product and avoid the native dialog box."
+  ],
+  "updated_files": [],
+  "success_rate": { "backend": "n/a", "frontend": "100%" },
+  "test_credentials": "App gate: ?unlock=mind-mapper67",
+  "seed_data_creation": "Injected 2 rows into localStorage['mindmapper.researchMemory.v1'] (m1 Quantum gravity, m2 Stoic ethics) per reviewer-supplied seed — cleared again at end of run.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All Export-Pack + /memory testids stable: mm-tb-export-{png,png-4x,svg,pdf,md,json}, sidebar-icon-memory, memory-page, memory-empty, memory-search, memory-row-<id>, memory-row-delete-<id>, memory-clear-all, memory-export-md. Markdown export filename uses the map title (slug). Downloads localStorage key is 'mindmapper.researchMemory.v1'.",
+  "rca of the issue": "N/A — no issues found."
+}

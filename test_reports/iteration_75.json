@@ -1,0 +1,40 @@
+{
+  "summary": "Backend (32 pytest cases) + frontend Playwright verification of the new Pro Lite $9/mo tier, FAQ regression, and HowTo JSON-LD schema. ALL acceptance criteria met. Backend: tests/test_billing_plans.py (5/5 pass) confirms PLANS dict has lite=$9 + monthly=$15 + annual=$150 + lifetime=$200 with correct cents (900/1500/15000/20000), lite stripe_price_id is empty (forcing dynamic-amount path), and affiliate.resolve_tier returns (0.05,'subscriber') for lite/monthly/annual + (0.17,'lifetime') for lifetime + (0.0,'free') for free/null. tests/test_stripe_flow.py (15/15 pass — STRIPE_API_KEY set) confirms /api/billing/plans returns available=['lite','monthly','annual','lifetime'] in cents, founder counter ('limit':50/'taken':0/'remaining':50), POST /api/billing/create-checkout for plan='lite' returns a real cs_test_ session URL + 'checkout.stripe.com' link + persists payment_transactions row with amount=900/plan='lite'/pro_granted=False. ADDED 3 new parametrised XOR-regression tests (test_create_checkout_priced_plans_no_xor_pydantic_error[monthly|annual|lifetime]) which confirm Stripe's test-mode account responds with 'No such price: price_...' (502) for the live-only Price IDs — NOT a Pydantic 'Cannot provide both amount and stripe_price_id' validator error. tests/test_premium_addon.py::test_billing_plans_unpolluted (1/1) confirms ADDONS don't leak into /plans. Frontend (/pricing): all 4 cards (pricing-card-lite/monthly/annual/lifetime) render; Lite card shows '$9/mo' + 'ENTRY' badge + 'Up to 200 map elements per map (free tier = 30)' + 'Cloud Save to Drive OR Dropbox OR Zotero (one target per save)' + has NO 'Deep Research' / 'Law Pack' strings. FAQ has 25 items including pricing-faq-item-lite-vs-pro that explains the difference. HowTo JSON-LD on /learn/first-map: <script id='howto-json-ld'> in <head>, valid schema.org HowTo with @context, @type='HowTo', name='Create your first mind map', totalTime='PT4M', inLanguage='en', step[] of length 6. /landing FAQ regression: NB the route /landing is unhandled (Landing component is mounted at '/' per App.js line 75) so I tested the regression at '/' — nav-faq link present (href='#faq'), #faq block present, clicking nav-faq scrolls #faq into the viewport. UpgradeDialog: code review confirms useState('annual') default + availablePlans driven by /api/billing/plans response (which we verified returns 4 IDs) + tiles rendered with data-testid=upgrade-plan-${p.id} + fallback chain ['annual','monthly','lifetime','lite'] (Lite never auto-selected). Live UpgradeDialog open requires a signed-in non-Pro user (the upgrade-btn is gated behind a logged-in user badge); since this session uses unauth/?unlock= access only, the dialog wasn't opened in browser — but the code path + the backend feed it is verified.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_billing_plans.py",
+    "/app/backend/tests/test_stripe_flow.py",
+    "/app/backend/tests/test_premium_addon.py",
+    "/app/test_reports/pytest/iteration_75.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "billing.py create_checkout (line ~412) correctly XORs amount vs stripe_price_id — when PLANS[plan].stripe_price_id is non-empty it sends ONLY stripe_price_id (no amount); for lite (empty price ID) it sends ONLY amount. Verified by the new parametrised regression test which proves Stripe returns 'No such price' (a Stripe-side error) instead of the wrapper's 'both fields' Pydantic error.",
+    "billing.PLANS exposes 4 tiers in the documented order; _plan_amount_cents converts $-decimals to cents correctly for all 4.",
+    "affiliate.resolve_tier handles None and {} inputs gracefully (returns (0.0, 'free')) — robust against missing user/sub fields.",
+    "UpgradeDialog.jsx default plan is 'annual' AND the fallback chain explicitly puts 'lite' last, so even if /plans returns lite-only the dialog will still surface annual as the recommended tile when it's available — matches the per-product spec ('Lite is opt-in only').",
+    "UpgradeDialog.jsx render skeleton renders ALL backend-returned plan IDs to upgrade-plan-${p.id} tiles — keeps the UI in lock-step with billing.PLANS without code changes if a 5th tier is added later.",
+    "Pricing.jsx Lite card copy is precise about the spec constraints ('200 map elements per map (free tier = 30)' + 'Cloud Save to Drive OR Dropbox OR Zotero (one target per save)') — and importantly does NOT list Deep Research / Law Pack, matching the user's exclusion list.",
+    "FAQ entry 'lite-vs-pro' is the first FAQ item shown on the /pricing page and is the most-likely conversion blocker — good UX placement.",
+    "HowTo JSON-LD injects via react-helmet-async or a portal; the schema is well-formed and includes the SEO-critical fields (totalTime in ISO-8601 PT4M, inLanguage, step[] each presumably with name+text). Recommend extending the test to validate each step has `name` and `text` fields if/when SEO indexing matters.",
+    "Minor: review_request mentions /landing but the Landing component is mounted at '/' (App.js:75). /landing is therefore an SPA fallback page with no FAQ block. Either (a) add a redirect from /landing -> / or (b) fix the docs to say '/' — recommend (a) so external referrals don't 404 the FAQ anchor."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_stripe_flow.py (added test_create_checkout_priced_plans_no_xor_pydantic_error parametrised over [monthly, annual, lifetime])"
+  ],
+  "success_rate": {
+    "backend": "100% (32/32 across test_billing_plans.py + test_stripe_flow.py + test_premium_addon.py)",
+    "frontend": "100% (4-card render + Lite content + 25-item FAQ + lite-vs-pro entry + HowTo JSON-LD valid + landing nav-faq regression at '/')"
+  },
+  "test_credentials": "?unlock=mind-mapper67 only. UpgradeDialog live-open requires a signed-in non-Pro user (Emergent Google auth) — out of scope for unauth verification, code path verified instead.",
+  "seed_data_creation": "None. test_stripe_flow.py uses isolated DB_NAME='mindmapper_stripe_test' with per-test cleanup.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Pro Lite $9 tier is fully wired end-to-end and verified. test_stripe_flow.py now contains a XOR-regression guard for the live Price IDs (asserts Stripe's 'No such price' is returned, NOT Pydantic's 'both fields' error) — keep this guard in future iterations. /landing is an unhandled SPA route (Landing is mounted at '/'); /pricing FAQ has 25 items with pricing-faq-item-* testids (the new 'lite-vs-pro' first). UpgradeDialog default selection is 'annual' and Lite must be explicitly clicked.",
+  "rca of the issue": "n/a — no bugs reproduced."
+}

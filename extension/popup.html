@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Mind-Mapper Clip</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">
+      <div class="dot"></div>
+      <div class="brand-text">
+        <div class="brand-name">Mind-Mapper</div>
+        <div class="brand-sub">Clip to Map</div>
+      </div>
+    </div>
+
+    <div id="preview" class="card">
+      <div class="row">
+        <div class="label">TITLE</div>
+        <div id="title" class="value truncate">—</div>
+      </div>
+      <div class="row">
+        <div class="label">URL</div>
+        <div id="url" class="value mono truncate">—</div>
+      </div>
+      <div id="selection-row" class="row hidden">
+        <div class="label">SELECTION</div>
+        <div id="selection" class="value selection-value">—</div>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="send-page" class="primary" data-testid="clip-send-page">
+        <span class="icon">↗</span>
+        <span>Send page</span>
+      </button>
+      <button id="send-selection" class="secondary hidden" data-testid="clip-send-selection">
+        <span class="icon">"</span>
+        <span>Send selection</span>
+      </button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div class="footnote">
+      Tip: right-click anywhere on a page → <b>Send this page to Mind-Mapper</b>.
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

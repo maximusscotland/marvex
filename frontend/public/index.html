@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#03040a" />
+        <!-- Brand icon — cyan neon "M" on cosmic dark background. Multi-res
+             favicon covers browser tabs (16/32/48/64), apple-touch-icon for
+             iOS home-screen add, manifest.json points at 192/512 for PWA +
+             Android install prompts. -->
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="description" content="AI mind map generator — turn any PDF into an interactive mind map in 60 seconds. Local-first, BYO-key, free tier. No login required." />
+        <meta name="keywords" content="PDF to mind map, AI mind map generator, AI mind mapping tool, mind map maker, mind map from PDF, free mind mapping software, interactive mind maps, summarize PDF mind map, concept map software, research mind map, mind mapping for students, visual learning tool, local-first mind mapping, BYO-key AI" />
+        <link rel="canonical" href="https://marvex.app/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="marvex.app" />
+        <meta property="og:url" content="https://marvex.app/" />
+        <meta property="og:title" content="Marvex Studio - Create Interactive Mind Maps from PDFs" />
+        <meta property="og:description" content="AI mind map generator — turn any PDF into an interactive mind map in 60 seconds. Local-first, BYO-key, free tier. No login required." />
+        <meta property="og:image" content="https://marvex.app/teaser/mind-mapper-1.png" />
+        <meta property="og:image:alt" content="Marvex Studio interactive canvas — drag-and-drop map elements, free-floating shapes and AI-generated mind maps from PDFs" />
+        <meta property="og:image:width" content="1827" />
+        <meta property="og:image:height" content="838" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Marvex Studio - Create Interactive Mind Maps from PDFs" />
+        <meta name="twitter:description" content="AI mind map generator — turn any PDF into an interactive mind map in 60 seconds. Local-first, BYO-key, free tier. No login required." />
+        <meta name="twitter:image" content="https://marvex.app/teaser/mind-mapper-1.png" />
+        <meta name="twitter:image:alt" content="Marvex Studio interactive canvas — drag-and-drop map elements, free-floating shapes and AI-generated mind maps from PDFs" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
+        <!--
+          Mind-map node typography pack — 30 curated faces.  Loaded with
+          display=swap so the canvas renders immediately in fallback fonts and
+          re-flows when each face arrives.  Subset is intentionally light:
+          one weight per family except where a display weight reads better.
+        -->
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600&family=Inter:wght@400;600&family=Outfit:wght@400;600&family=Manrope:wght@400;600&family=Lora:wght@400;600&family=Playfair+Display:wght@400;700&family=Crimson+Text:wght@400;700&family=Cormorant+Garamond:wght@400;600&family=Spectral:wght@400;600&family=JetBrains+Mono:wght@400;600&family=Fira+Code:wght@400;600&family=IBM+Plex+Mono:wght@400;600&family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Space+Grotesk:wght@400;600&family=Archivo+Black&family=Anton&family=Righteous&family=Russo+One&family=Caveat:wght@400;700&family=Kalam:wght@400;700&family=Patrick+Hand&family=Indie+Flower&family=Shadows+Into+Light&family=Quicksand:wght@400;600&family=Nunito:wght@400;600&family=Poppins:wght@400;600&family=DM+Sans:wght@400;600&family=Work+Sans:wght@400;600&display=swap"
+        />
+        <!--
+        manifest.json provides metadata used when your web app is installed on a
+        user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
+        -->
+        <!--
+        Notice the use of %PUBLIC_URL% in the tags above.
+        It will be replaced with the URL of the `public` folder during the build.
+        Only files inside the `public` folder can be referenced from the HTML.
+
+        Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
+        work correctly both with client-side routing and a non-root public URL.
+        Learn how to configure a non-root public URL by running `npm run build`.
+        -->
+        <title>Marvex Studio - Create Interactive Mind Maps from PDFs</title>
+        <!-- JSON-LD: Organization + WebSite + SoftwareApplication + FAQPage.
+             Helps Google build rich-results (FAQ accordion, sitelinks search
+             box) and registers the product in the Knowledge Graph. -->
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": "https://marvex.app/#org",
+              "name": "Marvex Studio",
+              "alternateName": "Marvex",
+              "url": "https://marvex.app/",
+              "logo": "https://marvex.app/logo192.png",
+              "sameAs": ["https://github.com/maximusscotland/marvex"]
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://marvex.app/#site",
+              "url": "https://marvex.app/",
+              "name": "Marvex Studio",
+              "description": "Mind mapping software that transforms any PDF into an interactive mind map in under a minute.",
+              "publisher": { "@id": "https://marvex.app/#org" },
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": { "@type": "EntryPoint", "urlTemplate": "https://marvex.app/learn?q={search_term_string}" },
+                "query-input": "required name=search_term_string"
+              }
+            },
+            {
+              "@type": "SoftwareApplication",
+              "name": "Marvex Studio",
+              "alternateName": "Marvex",
+              "url": "https://marvex.app/",
+              "applicationCategory": "EducationalApplication",
+              "applicationSubCategory": "Mind Mapping Software",
+              "operatingSystem": "Web, Windows, macOS, Linux",
+              "description": "Marvex Studio turns any PDF into an interactive mind map in under a minute. Local-first, BYOK, free to start.",
+              "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+            },
+            {
+              "@type": "FAQPage",
+              "mainEntity": [
+                {
+                  "@type": "Question",
+                  "name": "What is mind mapping?",
+                  "acceptedAnswer": { "@type": "Answer", "text": "Mind mapping is a visual note-taking technique where a central idea sits at the centre of the page and related concepts radiate outward as labelled branches, mirroring how the brain naturally associates information." }
+                },
+                {
+                  "@type": "Question",
+                  "name": "How do I create a mind map from a PDF?",
+                  "acceptedAnswer": { "@type": "Answer", "text": "Drop the PDF onto Marvex Studio's canvas, choose your AI provider (Claude, GPT, or Gemini), and the AI extracts every concept and relationship as a draggable, editable mind map in about 60 seconds." }
+                },
+                {
+                  "@type": "Question",
+                  "name": "Is Marvex Studio good for students?",
+                  "acceptedAnswer": { "@type": "Answer", "text": "Yes — and it's free for educational use during the founders' round. Most early users are PhD candidates, medical students, and law-school readers who use it to compress dense reading lists." }
+                },
+                {
+                  "@type": "Question",
+                  "name": "Are my mind maps private?",
+                  "acceptedAnswer": { "@type": "Answer", "text": "Yes. By default every map lives in your browser's local storage — no account, no upload, no tracking. You can opt in to back up to Google Drive, Dropbox, or Zotero with a single click." }
+                },
+                {
+                  "@type": "Question",
+                  "name": "Does Marvex Studio work offline?",
+                  "acceptedAnswer": { "@type": "Answer", "text": "Yes — the core editing experience is local-first. AI features need a network call to your chosen provider. The desktop app caches everything for full offline reading and editing." }
+                }
+              ]
+            }
+          ]
+        }
+        </script>
+        <!-- JSON-LD: ImageObject schema for the 7 teaser screenshots.
+             Surfaces them in Google Image Search with rich captions and
+             feeds the Knowledge Graph the visual side of the brand.
+             Captions mirror the keyword-rich alt text in CinematicTeaser.jsx
+             so the on-page <img alt> and the structured data agree. -->
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "ImageObject",
+              "@id": "https://marvex.app/teaser/mind-mapper-1.png",
+              "contentUrl": "https://marvex.app/teaser/mind-mapper-1.png",
+              "url": "https://marvex.app/teaser/mind-mapper-1.png",
+              "name": "Marvex Studio interactive canvas",
+              "caption": "Marvex Studio interactive canvas — drag-and-drop map elements, free-floating shapes, lines, clipart and images on a dark cosmic mind map.",
+              "description": "Screenshot of the Marvex Studio editing canvas showing a complete mind map with multiple map element shapes, semantic connectors and floating annotations.",
+              "width": 1827,
+              "height": 838,
+              "encodingFormat": "image/png",
+              "representativeOfPage": true,
+              "creator": { "@id": "https://marvex.app/#org" },
+              "license": "https://marvex.app/terms",
+              "acquireLicensePage": "https://marvex.app/"
+            },
+            {
+              "@type": "ImageObject",
+              "@id": "https://marvex.app/teaser/book-to-map.png",
+              "contentUrl": "https://marvex.app/teaser/book-to-map.png",
+              "url": "https://marvex.app/teaser/book-to-map.png",
+              "name": "PDF to mind map in 60 seconds",
+              "caption": "Marvex Studio screenshot — a PDF document being converted into an interactive AI-generated mind map on an infinite canvas.",
+              "width": 1376,
+              "height": 768,
+              "encodingFormat": "image/png",
+              "creator": { "@id": "https://marvex.app/#org" }
+            },
+            {
+              "@type": "ImageObject",
+              "@id": "https://marvex.app/teaser/mind-mapper-2.png",
+              "contentUrl": "https://marvex.app/teaser/mind-mapper-2.png",
+              "url": "https://marvex.app/teaser/mind-mapper-2.png",
+              "name": "Marvex Studio onboarding tour",
+              "caption": "Marvex Studio onboarding tour — interactive walkthrough teaching mind-map shortcuts, right-click menus and AI workflow.",
+              "width": 1838,
+              "height": 860,
+              "encodingFormat": "image/png",
+              "creator": { "@id": "https://marvex.app/#org" }
+            },
+            {
+              "@type": "ImageObject",
+              "@id": "https://marvex.app/teaser/mind-mapper-3.png",
+              "contentUrl": "https://marvex.app/teaser/mind-mapper-3.png",
+              "url": "https://marvex.app/teaser/mind-mapper-3.png",
+              "name": "Marvex Studio research workspace",
+              "caption": "Marvex Studio research workspace — PDF highlights dropped onto a mind map with semantic connectors, mini-maps and floating heading shapes.",
+              "width": 1532,
+              "height": 637,
+              "encodingFormat": "image/png",
+              "creator": { "@id": "https://marvex.app/#org" }
+            },
+            {
+              "@type": "ImageObject",
+              "@id": "https://marvex.app/teaser/zero-cloud.png",
+              "contentUrl": "https://marvex.app/teaser/zero-cloud.png",
+              "url": "https://marvex.app/teaser/zero-cloud.png",
+              "name": "Zero cloud · local-first mind mapping",
+              "caption": "Marvex Studio local-first privacy — mind maps stored in the browser, no accounts required, no telemetry, no silent cloud uploads.",
+              "width": 1376,
+              "height": 768,
+              "encodingFormat": "image/png",
+              "creator": { "@id": "https://marvex.app/#org" }
+            },
+            {
+              "@type": "ImageObject",
+              "@id": "https://marvex.app/teaser/byok-ai.png",
+              "contentUrl": "https://marvex.app/teaser/byok-ai.png",
+              "url": "https://marvex.app/teaser/byok-ai.png",
+              "name": "Bring Your Own Key AI mind mapping",
+              "caption": "Marvex Studio Bring-Your-Own-Key AI — connect OpenAI, Anthropic Claude or Google Gemini API keys to power mind-map generation.",
+              "width": 1376,
+              "height": 768,
+              "encodingFormat": "image/png",
+              "creator": { "@id": "https://marvex.app/#org" }
+            },
+            {
+              "@type": "ImageObject",
+              "@id": "https://marvex.app/teaser/byok-launchpad.png",
+              "contentUrl": "https://marvex.app/teaser/byok-launchpad.png",
+              "url": "https://marvex.app/teaser/byok-launchpad.png",
+              "name": "Every map element a launchpad",
+              "caption": "Marvex Studio launchpad — every mind-map element linking to local files, documents, music, video, images and browser bookmarks.",
+              "width": 1376,
+              "height": 768,
+              "encodingFormat": "image/png",
+              "creator": { "@id": "https://marvex.app/#org" }
+            }
+          ]
+        }
+        </script>
+        <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
+        <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
+    </head>
+    <body>
+        <noscript>You need to enable JavaScript to run this app.</noscript>
+        <div id="root"></div>
+        <!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+        <a
+            id="emergent-badge"
+            target="_blank"
+            href="https://app.emergent.sh/?utm_source=emergent-badge"
+            style="
+                display: inline-flex !important;
+                box-sizing: border-box;
+                width: 178px;
+                height: 40px;
+                padding: 8px 12px 8px 12px;
+                align-items: center !important;
+                gap: 8px;
+                border-radius: 50px !important;
+                background: #000 !important;
+                position: fixed !important;
+                bottom: 16px;
+                right: 16px;
+                text-decoration: none;
+                font-family: -apple-system, BlinkMacSystemFont,
+                    &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell,
+                    &quot;Open Sans&quot;, &quot;Helvetica Neue&quot;,
+                    sans-serif !important;
+                font-size: 12px !important;
+                z-index: 9999 !important;
+            "
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M15.5702 8.13142C15.7729 8.0412 16.0007 8.18878 15.9892 8.4103C15.8374 11.3192 14.0965 14.0405 11.2531 15.3065C8.40964 16.5725 5.2224 16.0453 2.95912 14.2117C2.78676 14.072 2.82955 13.804 3.03219 13.7137L4.95677 12.8568C5.04866 12.8159 5.15446 12.823 5.24204 12.8725C6.73377 13.7153 8.59176 13.8649 10.2772 13.1145C11.9626 12.3641 13.0947 10.8833 13.4665 9.21075C13.4883 9.11256 13.5539 9.02918 13.6457 8.98827L15.5702 8.13142Z" fill="white"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M15.3066 4.74698L15.5067 5.19653C15.5759 5.35178 15.5061 5.53366 15.3508 5.60278L1.29992 11.8586C1.14467 11.9278 0.962794 11.8579 0.893675 11.7027L0.701732 11.2716L0.693457 11.2531C-1.10317 7.21778 0.711626 2.49007 4.74692 0.693443C8.78221 -1.10318 13.51 0.711693 15.3066 4.74698ZM2.82356 8.55367C2.63552 8.63739 2.41991 8.51617 2.40853 8.31065C2.28373 6.05724 3.53858 3.85787 5.72286 2.88536C7.90715 1.91286 10.3813 2.45199 11.9724 4.05256C12.1175 4.19854 12.0633 4.43988 11.8753 4.5236L2.82356 8.55367Z" fill="white"/>
+            </svg>
+            <p
+                style="
+                    color: #FFF !important;
+                    font-family: 'Inter', sans-serif !important;
+                    font-size: 13px !important;
+                    font-style: normal !important;
+                    font-weight: 600 !important;
+                    line-height: 20px !important;
+                    margin: 0 !important;
+                    white-space: nowrap !important;
+                "
+            >
+                Made with Emergent
+            </p>
+        </a>
+        <script>
+            !(function (t, e) {
+                var o, n, p, r;
+                e.__SV ||
+                    ((window.posthog = e),
+                    (e._i = []),
+                    (e.init = function (i, s, a) {
+                        function g(t, e) {
+                            var o = e.split(".");
+                            2 == o.length && ((t = t[o[0]]), (e = o[1])),
+                                (t[e] = function () {
+                                    t.push(
+                                        [e].concat(
+                                            Array.prototype.slice.call(
+                                                arguments,
+                                                0,
+                                            ),
+                                        ),
+                                    );
+                                });
+                        }
+                        ((p = t.createElement("script")).type =
+                            "text/javascript"),
+                            (p.crossOrigin = "anonymous"),
+                            (p.async = !0),
+                            (p.src =
+                                s.api_host.replace(
+                                    ".i.posthog.com",
+                                    "-assets.i.posthog.com",
+                                ) + "/static/array.js"),
+                            (r =
+                                t.getElementsByTagName(
+                                    "script",
+                                )[0]).parentNode.insertBefore(p, r);
+                        var u = e;
+                        for (
+                            void 0 !== a ? (u = e[a] = []) : (a = "posthog"),
+                                u.people = u.people || [],
+                                u.toString = function (t) {
+                                    var e = "posthog";
+                                    return (
+                                        "posthog" !== a && (e += "." + a),
+                                        t || (e += " (stub)"),
+                                        e
+                                    );
+                                },
+                                u.people.toString = function () {
+                                    return u.toString(1) + ".people (stub)";
+                                },
+                                o =
+                                    "init me ws ys ps bs capture je Di ks register register_once register_for_session unregister unregister_for_session Ps getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty Es $s createPersonProfile Is opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing Ss debug xs getPageViewId captureTraceFeedback captureTraceMetric".split(
+                                        " ",
+                                    ),
+                                n = 0;
+                            n < o.length;
+                            n++
+                        )
+                            g(u, o[n]);
+                        e._i.push([i, s, a]);
+                    }),
+                    (e.__SV = 1));
+            })(document, window.posthog || []);
+            posthog.init("phc_xAvL2Iq4tFmANRE7kzbKwaSqp1HJjN7x48s3vr0CMjs", {
+                api_host: "https://us.i.posthog.com",
+                person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well,
+                session_recording: {
+                    recordCrossOriginIframes: true,
+                    capturePerformance: false,
+                },
+            });
+        </script>
+    </body>
+</html>

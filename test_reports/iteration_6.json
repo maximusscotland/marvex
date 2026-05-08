@@ -1,0 +1,32 @@
+{
+  "summary": "Iteration-6 retest of /intake after the 5 fixes from iteration_5. All 5 requested frontend checks PASS. (1) Outer IntakeCard toggle is now <div role='button' tabIndex=0> — confirmed TAG_NAME=DIV, role=button, tabindex=0 on [data-testid^='intake-card-toggle-']. (2) Zero React console warnings of the form '<button> cannot be a descendant of <button>' during the full upload→preview→fixer→remove flow. (3) intake-remove-<id> click removed the card on first click (cards 1→0 reliably, not flaky). (4) Dropping a 2nd PDF on a free session surfaces UpgradeDialog queryable via [role='dialog'] with aria-modal='true'. (5) Keyboard accessibility works — focusing the toggle row and pressing Enter collapses the previously-expanded card (fixer panel present → absent). (6) Fixer hover controls (↑/↓/←/→/trash) in Fixer rows all fire on first click: Move-down reordered headings correctly (['Research…','1.Intro','2.Solar','3.Wind','4.Concl'] → ['1.Intro','Research…','2.Solar','3.Wind','4.Concl']), Delete removed the last heading (5→4 rows). Backend regression skipped per request.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_5.json",
+    "/app/backend/tests/test_mindmapper_api.py"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "IntakeStudio.jsx FixerPanel Indent (←/→): cannot indent item at idx=0 (no previous sibling to parent to). Observed paddingLeft unchanged on first heading after clicking →. This is expected tree-indent behaviour, but consider disabling/greying the → button on idx=0 for discoverability (currently it silently no-ops).",
+    "IntakeStudio.jsx TinyBtn controls (↑/↓/←/→/trash) rely solely on title attributes — no data-testid. Adding testids like intake-heading-move-down-<idx>, intake-heading-trash-<idx> etc. would make UI tests more resilient across icon/locale changes.",
+    "Two 401s logged in console on /intake (unrelated to /intake feature — likely /api/auth/me probe on unauthenticated session). Harmless but noisy; consider silencing when no token is present."
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (skipped per request)",
+    "frontend": "100% (6/6 targeted checks passed)"
+  },
+  "test_credentials": "Access gate password 'mind-mapper67' (REACT_APP_UNLOCK_KEY) works. No login used.",
+  "seed_data_creation": "Two synthetic PDFs generated via reportlab: /tmp/test_intake.pdf (Research On Clean Energy, 4 headings), /tmp/test_intake2.pdf (Second Report On AI, 2 headings). No persistent backend data created.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "All iteration_5 HIGH and minor bugs are now verified fixed. IntakeCard outer element is a <div role='button' tabIndex=0> with onKeyDown(Enter/Space); UpgradeDialog has role='dialog' aria-modal='true'. Fixer TinyBtns (↑↓←→trash) are still missing data-testid — match them via button[title='Move up'|'Move down'|'Out-dent'|'Indent'|'Delete'] inside [data-testid^='intake-heading-']. Heading <li> testid pattern: intake-heading-<idx>; input testid: intake-heading-input-<idx>; fixer panel: intake-fixer-panel; fixer list: intake-fixer-list."
+}

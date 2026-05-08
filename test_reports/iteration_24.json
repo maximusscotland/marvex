@@ -1,0 +1,30 @@
+{
+  "summary": "RETEST of iteration_23 CRITICAL fix (PdfReader.jsx infinite re-render loop) — VERIFIED FIXED. Uploaded /app/backend/tests/fixtures/tiny.pdf on /read (unlock=mind-mapper67); within 3s 'Rendering PDF…' spinner disappears and [data-testid='reader-page-1'] renders the PDF content ('Hello Mind-Mapper…'). Console captured ZERO 'Maximum update depth exceeded' errors and ZERO pageerrors. Multi-tab flow works: opened a 2nd PDF via the reader-view hidden file input → both tabs render in [data-testid='reader-tabbar'] (reader-tab-<id1>, reader-tab-<id2>, reader-tab-add). Clicking back to the first tab shows [data-testid='reader-page-1'] instantly with spinner=0 even at 50ms post-click — confirms loadedOnceRef dedup + pdfDoc cache work (no re-load). Highlights panel regression clean (reader-highlights-panel + 'This session' heading intact). Regression routes /app, /share/fakeslug-xyz, /intake, /tools all mount with 0 pageerrors. Backend smoke: /api/health=200 {status:ok}, /api/billing/plans=200 returns both plans [monthly, annual], /api/share/anything/og.png=200 valid PNG 1200x630 43,819 bytes.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_24.json",
+    "/app/backend/tests/fixtures/tiny.pdf"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PdfReader.jsx L428-435: the second hidden <input type='file'> (reader-view) still has NO data-testid attribute — only the dropzone input (L311-319) has data-testid='reader-file-input'. This input gets the fileInputRef assignment last, so after a session loads the visible dropzone unmounts and only this non-testid'd input remains in the DOM. Adding data-testid='reader-file-input' to BOTH inputs would make Playwright uploads uniform (currently required fallback to `input[type=\"file\"]`.last in tests). Non-blocking but hinders automation robustness — called out in iter_23 review as well, still not addressed.",
+    "PdfReader.jsx L116 eslint-disable react-hooks/exhaustive-deps is intentional and documented in the comment — acceptable given loadedOnceRef guards re-entry and sessions.find() inside the effect reads fresh state at mount. Fix is sound.",
+    "loadedOnceRef delete on error (L111) correctly allows tab-switch retry; good defensive pattern."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (3/3 smoke endpoints)", "frontend": "100% (all retest assertions pass)"},
+  "test_credentials": "Access gate: REACT_APP_UNLOCK_KEY=mind-mapper67 (also accepts ?unlock=mind-mapper67 in URL — used in tests to bypass gate modal).",
+  "seed_data_creation": "Reused /app/backend/tests/fixtures/tiny.pdf (1472 bytes) created in iteration_23. Copied to /tmp/tiny2.pdf for the second-tab test so the two sessions have distinct filenames in the tab bar.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Infinite re-render loop in PdfReader.jsx is conclusively fixed. The keyed-on-activeSessionId useEffect with loadedOnceRef Set (lines 92-117) correctly loads each PDF exactly once and avoids the patchSession feedback loop. Tab switching is instant from cache. The only outstanding (non-blocking) issue is the missing data-testid on the reader-view hidden file input at L428 — if you need to upload a 2nd PDF via Playwright, use `page.locator('input[type=\"file\"]').last.set_input_files(...)` in reader view.",
+  "rca of the issue": "Original bug (iter_23): useEffect depended on the memoised activeSession object, and each patchSession produced a new sessions array → new activeSession identity → effect re-fired → patchSession again → 'Maximum update depth exceeded'. Fix applied (iter_24): dependency reduced to [activeSessionId] only (stable primitive) + loadedOnceRef Set guards the effect body so each session id triggers getDocument exactly once, even across unrelated sessions[] identity changes. Verified by (a) PDF rendering to reader-page-1 within 3s, (b) zero 'Maximum update depth exceeded' entries in console, (c) instant tab-switch from cache with no spinner flash."
+}

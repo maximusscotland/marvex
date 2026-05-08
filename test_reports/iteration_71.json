@@ -1,0 +1,47 @@
+{
+  "summary": "Tested the new Premium UK Law ($10 one-off) add-on end-to-end. Backend (pytest, 8/8 PASS): /api/premium/status, /api/premium/bailii/search, /api/premium/lexisnexis/probe all correctly return 401 (NOT 402) for anonymous callers — the 402-reserved-for-entitlement contract is honoured. POST /api/billing/create-addon-checkout returns 401 on anon for both a valid {addon:'premium_uk_law'} body AND a malformed {addon:'invalid_key'} body (auth runs before the 400 'Unknown add-on' check — this is FastAPI-standard and correct, not a bug). Regressions: /api/license/verify still 401 unauth, /api/billing/plans still returns exactly the 3 plans (monthly 1500c / annual 15000c / lifetime 20000c) with NO leakage of ADDONS keys, and /api/corpus/search?source=law-uk&q=Equality+Act+2010 still returns 200 with at least one UK Statutory Instrument in the top 10. Frontend (Playwright on /intake?unlock=mind-mapper67 anon): cookie banner dismissed, 'Public domain' → 'UK Law' tab renders the gold-bordered [data-testid=premium-uk-law-upsell] card with 'UNLOCK · PREMIUM UK LAW', '$10 ONCE' chip, BAILII + AI-summaries + LexisNexis-BYOK pitch, and a 'NO SUBSCRIPTION · PAY ONCE, KEEP FOREVER · BYOK KEEPS YOU IN CONTROL' footer. The source-switcher [data-testid=premium-uk-law-source-switch] and its two children [data-testid=lawsource-bailii-btn] and [data-testid=lawsource-official-btn] are correctly ABSENT for the unentitled user (count=0). Clicking the upsell card fires POST /api/billing/create-addon-checkout which returns 401; the UI renders a 'Not authenticated' error toast and does NOT navigate to Stripe. Switching arXiv ↔ UK Law keeps the upsell card visible (no state leak). Clicking the 'Equality Act 2010' chip still runs the normal corpus search with the upsell card preserved above the results.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "passed_tests": [
+    "GET /api/premium/status (no auth) → 401",
+    "GET /api/premium/bailii/search?q=negligence (no auth) → 401 (NOT 402 — paywall not leaked to anon)",
+    "GET /api/premium/lexisnexis/probe (no auth) → 401",
+    "POST /api/billing/create-addon-checkout (no auth, valid body) → 401",
+    "POST /api/billing/create-addon-checkout (no auth, invalid addon key) → 401 (auth guard fires before schema check, as expected)",
+    "GET /api/license/verify (no auth) → 401 (regression)",
+    "GET /api/billing/plans → 200 with exactly {monthly,annual,lifetime}; amounts 1500/15000/20000 cents; 'premium_uk_law' does NOT appear (regression — ADDONS did not pollute PLANS)",
+    "GET /api/corpus/search?source=law-uk&q=Equality+Act+2010 → 200 with UK Statutory Instrument in top results (regression)",
+    "Frontend /intake?unlock=mind-mapper67 loads; cookie banner decline works; 'Public domain' intake-corpus-btn opens modal; corpus-tab-law-uk selects UK Law tab",
+    "[data-testid=premium-uk-law-upsell] visible with 'UNLOCK · PREMIUM UK LAW', '$10 ONCE' chip, BAILII + AI summaries + LexisNexis pitch",
+    "[data-testid=lawsource-bailii-btn] and [data-testid=lawsource-official-btn] correctly absent (count=0) for unentitled user",
+    "Clicking upsell card fires POST /api/billing/create-addon-checkout (observed in network trace); server returns 401; UI shows 'Not authenticated' toast; NO navigation to Stripe",
+    "Tab roundtrip arXiv → UK Law keeps upsell card visible (no state leak)",
+    "Equality Act 2010 suggestion chip on UK Law tab still runs corpus search; upsell card remains visible above results"
+  ],
+  "failed_tests": [],
+  "skipped_tests": [
+    "Authenticated paths for /api/premium/* (202 entitled, 402 authed-but-not-entitled, Fernet token round-trip, BAILII HTML parse) — skipped: no /api/auth/dev-login in this preview environment (Google OAuth only). Source-level review of /app/backend/premium.py confirms the entitlement check (_has_premium_uk_law reads subscription.addons.premium_uk_law.active) and the Fernet key-derivation (32-byte pad of LICENSE_SIGNING_KEY → urlsafe_b64) look correct.",
+    "Actual Stripe checkout round-trip — deliberately out-of-scope per review_request agent_to_agent_context_note."
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_premium_addon.py",
+    "/app/test_reports/pytest/iteration_71_premium.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "/app/backend/premium.py _fernet() pads LICENSE_SIGNING_KEY to exactly 32 bytes via null-byte padding when too short. If LICENSE_SIGNING_KEY is unset or ephemeral (read-only FS fallback in license.py), the Fernet key is effectively deterministic-per-pod but CHANGES across pod restarts — meaning stored LexisNexis tokens become UN-DECRYPTABLE after a redeploy. Mitigation in place (license.py persists /backend/.license_key with chmod 600), but worth a one-line comment flagging the cross-pod invariant.",
+    "/app/backend/premium.py:218 except clause catches `(InvalidToken, Exception)` — `Exception` supersedes `InvalidToken`, making the tuple redundant. Cosmetic.",
+    "/app/backend/premium.py:155–165 _parse_bailii_results uses regex over BAILII HTML. Brittle-by-design (acknowledged in the docstring). Consider a small bs4 swap if BAILII refreshes their template; the dependency is already in requirements.txt.",
+    "/app/backend/billing.py _activate_addon is idempotent by virtue of $set overwrite, but does NOT check the already-active guard before writing — a concurrent double-webhook would refresh purchased_at/session_id. The 409 Conflict guard is only at CREATE-checkout time, not at _activate_addon. Low-severity because Stripe won't fire paid twice for the same session_id, and the payment_transactions.pro_granted guard in _mark_paid (line 176) short-circuits before the second activation fires.",
+    "/app/backend/billing.py:205 reads tx.get('amount_base') then falls back to tx.get('amount') for commission — add-on rows now have amount_base set too (line 375), so the affiliate-commission branch *could* accrue on add-on purchases if an add-on tx ever carried a referrer_user_id. Currently it never will (create-addon-checkout doesn't look up referrals), so this is defensively fine. Leave as-is.",
+    "/app/frontend/src/components/PublicCorpusBrowser.jsx — upsell card sits above the search input; BAILII source switcher correctly gated on hasAddon('premium_uk_law'). No visible regressions; design looks clean."
+  ],
+  "updated_files": ["/app/backend/tests/test_premium_addon.py"],
+  "success_rate": {"backend": "8/8 (100%) on unauth contract + regressions", "frontend": "7/7 (100%) on unauth upsell flow"},
+  "test_credentials": "App gate ?unlock=mind-mapper67. No authed tests executed — no /api/auth/dev-login available in preview.",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration_71 validates the new Premium UK Law $10 add-on on the UNAUTH axis only (anon browser + anon curl). Authenticated paths remain un-exercised — to cover them, main agent needs to add a DEV-only /api/auth/dev-login endpoint OR run tests in a staging pod with a real Google session. When that lands, the next agent should exercise: (a) /api/premium/bailii/search 200 with parsed items for an entitled user, (b) 402 for an authed-but-not-entitled user (contract currently unverified end-to-end), (c) Fernet PUT/GET/DELETE round-trip on /api/premium/lexisnexis/token, (d) create-addon-checkout 409 when already owned, (e) webhook → _mark_paid → _activate_addon idempotency for kind='addon' rows, (f) LexisNexisSettings three-state card (signed-out / unowned / owned) in Studio Settings modal — not reachable anonymously.",
+  "rca_of_the_issue": "No bugs found in this iteration. All 8 backend unauth contract tests + all 7 frontend unauth UX tests passed on first run."
+}

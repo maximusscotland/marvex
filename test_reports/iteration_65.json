@@ -1,0 +1,65 @@
+{
+  "summary": "LAUNCH-DAY pre-flight smoke for mind-mapper.com waitlist gating + signup. ALL critical paths green. Public/private split works (/, /pricing, /privacy, /terms unfettered; /library, /app, /read, /calendar all return AccessGate); ?unlock=mind-mapper67 bypasses the gate. Waitlist API (POST /api/waitlist, GET /api/waitlist/count) passes happy-path, dedupe (new:false on second submit), validation (400 on garbage), and IP rate-limit (6th rapid POST → 429). UI: form submit shows the green 'on the list' confirmation AND the 'Junk/Spam folder' helper text. Landing #features renders the 9 cards in EXACT spec order. CinematicTeaser slide-1 contains 'infinite, interactive canvas'; slide-7 title is 'Master Information\\nOrganisation Visually' (newline-split in DOM, NOT a single line) and the body ends with 'Mind-Mapper is the indispensable tool!'. Resend→SMTP fallback chain logs exactly as documented (Resend 403 'domain not verified' → 'falling back to SMTP for …' → 'smtp send OK host=mail.spacemail.com:465'). Cleaned up all 5 launch-test waitlist rows after the run — DB now back to count=0 ready for launch.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Landing #teaser anchor",
+        "issue": "Two DOM elements share id='teaser' (a wrapper <div id='teaser'> from a ScrollReveal block in Landing.jsx ~L148 AND the <section id='teaser'> in CinematicTeaser.jsx ~L91). HTML id must be unique; some tooling (Playwright strict-mode locator, screen-readers, anchor jumps) breaks. Recommend keeping the id on the <section> only and dropping it from the ScrollReveal wrapper, or renaming the wrapper.",
+        "selector": "#teaser",
+        "priority": "LOW"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "GET / loads landing-page; waitlist input NOT rendered on home",
+    "GET /pricing public; contains 'cup of coffee per week'",
+    "GET /privacy and GET /terms public",
+    "GET /library, /app, /read, /calendar each render AccessGate (waitlist-email-input visible)",
+    "GET /library?unlock=mind-mapper67 bypasses gate and renders Library UI (3 example maps + sidebar)",
+    "POST /api/waitlist happy-path → 200 {ok:true,new:true,count:int}",
+    "POST /api/waitlist dedupe → second submit returns new:false; count unchanged",
+    "POST /api/waitlist with 'not-an-email' → 400",
+    "POST /api/waitlist 6-rapid-from-same-IP → 6th request returns 429 with 'minute' in the friendly message",
+    "GET /api/waitlist/count → returns int and increments by exactly +1 after a fresh signup",
+    "AccessGate form: fill email + click [data-testid=waitlist-submit] → [data-testid=waitlist-joined] visible with 'on the list' text",
+    "AccessGate confirmation surfaces the 'Don't see it? Check your Junk/Spam folder' helper",
+    "Landing #features renders exactly 9 [data-testid^=feature-card-] cards, h3 titles match the spec order 1→9 verbatim",
+    "CinematicTeaser slide-1 sub contains 'infinite, interactive canvas' (verified in source CinematicTeaser.jsx:9 and live DOM)",
+    "CinematicTeaser slide-7 title 'Master Information\\nOrganisation Visually' + body ends with 'Mind-Mapper is the indispensable tool!' (verified in source CinematicTeaser.jsx:52-53 and live DOM)",
+    "Backend pytest suite test_waitlist.py — 6/6 unit tests pass after rate-limit-bucket fixture reset",
+    "Backend pytest suite test_launch_smoke.py — 5/5 live-URL tests pass against the preview backend",
+    "Resend→SMTP email fallback logs match design: 'resend send failed (… domain is not verified) → falling back to SMTP' followed by 'smtp send OK → … host=mail.spacemail.com:465'"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_waitlist.py",
+    "/app/backend/tests/test_launch_smoke.py",
+    "/app/test_reports/pytest/launch_smoke.xml"
+  ],
+  "action_items": [
+    "OPTIONAL (LOW): de-duplicate the id='teaser' attribute — keep on the <section> in CinematicTeaser.jsx and remove from the ScrollReveal wrapper at Landing.jsx ~L148, or rename one. Cosmetic; doesn't block launch.",
+    "Domain verification on Resend is still pending — every welcome email is going through SMTP. Functional but worth completing post-launch so Resend's deliverability + analytics kick in."
+  ],
+  "critical_code_review_comments": [
+    "waitlist.py rate-limit is in-memory only — multi-replica deployments will undercount across pods. Fine for the single-pod preview/launch but flag for scale-out.",
+    "test_waitlist.py originally had a test-isolation bug where the in-memory rate-limit bucket leaked across tests, causing 3/6 to fail with 429s on a clean DB. Fixed by clearing waitlist._recent_hits in the db fixture (setup + teardown).",
+    "waitlist.py imports `os` lazily via __import__('os') on line 196 inside _send_welcome — works but unidiomatic; prefer a top-level `import os`.",
+    "Resend domain status is logged at WARNING (good); recommend a Slack/email ping when ALL Resend sends fail in a window so we notice if SMTP also breaks."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_waitlist.py (added rate-limit bucket reset to db fixture)",
+    "/app/backend/tests/test_launch_smoke.py (NEW — 5 live-URL launch smoke tests)"
+  ],
+  "success_rate": {
+    "backend": "100% (11/11 pytest cases — 6 unit + 5 live smoke)",
+    "frontend": "100% (25/25 — 11 routing/gate, 14 form+features+teaser)"
+  },
+  "test_credentials": "Access key: ?unlock=mind-mapper67 (verified live)",
+  "seed_data_creation": "Created 5 launch-test+*@mind-mapper.com waitlist rows during the run; ALL deleted at end. db.waitlist.count_documents({}) == 0 confirmed — DB ready for launch from a clean slate.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Waitlist DB is empty; running test_launch_smoke.py will repopulate then auto-clean within the test (each run leaves the DB at the count it had at start, except the count test which adds 1 and does not delete). For a perfectly-clean state run the cleanup snippet at the end of iteration_65 (delete_many on email regex ^launch-test\\+). The id='teaser' duplicate is the only loose end and it's cosmetic.",
+  "rca_of_the_issue": "N/A — no blocking issues found. Pre-existing test_waitlist.py failures were due to the in-memory _recent_hits dict surviving across pytest test functions (state-leak); fixed by resetting it in the fixture. Email Resend 403 is expected (domain pending verification) and SMTP fallback succeeds — confirmed in supervisor logs."
+}

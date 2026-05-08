@@ -1,0 +1,127 @@
+# electron-builder config for cross-platform packaging.
+#
+# Outputs map 1:1 to the URLs already advertised in /app/frontend/src/pages/Download.jsx:
+#   Marvex-Studio-Setup-x64.exe       (Windows installer)
+#   Marvex-Studio-Setup-arm64.exe
+#   Marvex-Studio-Portable-x64.exe
+#   Marvex-Studio-arm64.dmg           (Mac Apple-Silicon)
+#   Marvex-Studio-x64.dmg             (Mac Intel)
+#   Marvex-Studio-x86_64.AppImage
+#   Marvex-Studio-amd64.deb
+#   Marvex-Studio-x86_64.rpm
+appId: app.marvex.desktop
+productName: Marvex Studio
+# Default artifact name — overridden per-target below for the friendlier
+# customer-facing names (Marvex-Studio-arm64.dmg, Marvex-Studio-Setup-x64.exe,
+# etc.). Kept simple here so unconfigured targets never produce
+# `Marvex-Studio-undefined.dmg` if a future contributor adds a new target.
+artifactName: ${productName}-${version}-${arch}.${ext}
+copyright: Copyright © marvex.app
+
+# Files actually packed into the app.asar inside the installer.
+files:
+  - "src/**/*"
+  - "renderer/**/*"
+  - "package.json"
+  - "!**/.DS_Store"
+
+# Register .mmap and .mmlib so double-clicking them in the OS opens
+# Marvex Studio. Custom file-type icons live at build/file-icon-{ext}.{ico,icns,png}
+# (generated via /app/backend/generate_file_icons.py). electron-builder
+# auto-picks the right format per platform — .ico on Windows, .icns on
+# macOS — from the path WITHOUT extension.
+fileAssociations:
+  - ext: mmap
+    name: Marvex Studio Map
+    description: Marvex Studio map
+    role: Editor
+    mimeType: application/x-marvex-map
+    icon: build/file-icon-mmap
+  - ext: mmlib
+    name: Marvex Studio Library
+    description: Marvex Studio library archive
+    role: Editor
+    mimeType: application/x-marvex-library
+    icon: build/file-icon-mmlib
+
+# Auto-update feed: GitHub Releases. Configured at build time via CLI
+# overrides (-c.publish.provider=github) ONLY when actually publishing
+# (i.e. a tag push). Keeping it out of the static config means dry-run
+# builds (workflow_dispatch / yarn dist) don't trip electron-builder's
+# `getAppUpdatePublishConfiguration` → null-channel crash when there's
+# no real release context to compute auto-updater metadata against.
+#
+# When you tag v1.x.x and the desktop-release CI runs `--publish always`,
+# the workflow injects the github provider so installed apps still know
+# where to look for updates.
+
+# ----------------- macOS -----------------
+mac:
+  category: public.app-category.productivity
+  # electron-builder auto-generates a multi-res .icns from build/icon.png
+  # (1024×1024 recommended; we ship 512×512 for smaller installer size).
+  icon: build/icon.png
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: true     # requires APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD + APPLE_TEAM_ID env vars
+
+dmg:
+  artifactName: Marvex-Studio-${arch}.${ext}
+
+# ----------------- Windows -----------------
+# Shipping unsigned for v0.1. Users will see a SmartScreen warning the first
+# time they run the installer — "Windows protected your PC". They click
+# "More info → Run anyway". Reputation builds with downloads over time, OR
+# we buy an EV cert later (~$200-400/yr) for instant trust.
+win:
+  # Multi-resolution Windows icon (16/24/32/48/64/128/256 all embedded).
+  # Shows in Explorer, taskbar, Alt-Tab, nsis installer wizard chrome.
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64, arm64]
+    - target: portable
+      arch: [x64]
+  # signtoolOptions intentionally omitted — unsigned for v0.1.
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  artifactName: Marvex-Studio-Setup-${arch}.${ext}
+  shortcutName: Marvex Studio
+  uninstallDisplayName: Marvex Studio
+
+portable:
+  artifactName: Marvex-Studio-Portable-${arch}.${ext}
+
+# ----------------- Linux -----------------
+linux:
+  category: Office
+  # Linux uses icon.png; electron-builder picks it up for .desktop entries
+  # and installer chrome. Hi-DPI renderings are handled automatically.
+  icon: build/icon.png
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+    - target: rpm
+      arch: [x64]
+  maintainer: "marvex.app"
+  vendor: "marvex.app"
+  desktop:
+    Name: Marvex Studio
+    Comment: PDF → mind map, in 60 seconds
+    Categories: Office;Utility
+appImage:
+  artifactName: Marvex-Studio-${arch}.${ext}
+deb:
+  artifactName: Marvex-Studio-${arch}.${ext}
+rpm:
+  artifactName: Marvex-Studio-${arch}.${ext}

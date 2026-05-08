@@ -1,0 +1,25 @@
+# robots.txt for marvex.app
+# Welcome crawlers — we want to be found.
+
+User-agent: *
+Allow: /
+
+# Gated app surface (waitlist required) — no benefit to crawling.
+Disallow: /app
+Disallow: /library
+Disallow: /intake
+Disallow: /output
+Disallow: /calendar
+Disallow: /read
+Disallow: /highlights
+Disallow: /memory
+Disallow: /feedback
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /api/
+
+# Sitemap — every canonical URL for efficient discovery.
+Sitemap: https://marvex.app/sitemap.xml
+
+# AI crawlers: see llms.txt at the site root for a structured, machine-
+# readable summary of Marvex Studio and its public documentation.

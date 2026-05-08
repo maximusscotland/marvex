@@ -1,0 +1,52 @@
+{
+  "summary": "Iter 60 retest of iter_59 multi-select fix. FIX4 MULTI-SELECT REMAINS BROKEN despite the added auto-promotion code at MindMapCanvas.jsx line 1480. After click(A=Idea One) + shift-click(B=Idea Two): both nodes' computed outline is 'none' (no magenta dashed ring on either — expected rgb(255,106,213) dashed), then ArrowRight x3 moves only node B by 15.31px while A stays at dx=0.00. This is identical symptom to iter_59. Regression items PASS: single-node ArrowRight x5 → dx=25.50 ✓; FIX5 LlmFuelGauge glow with key → data-cubes=6, boxShadow='rgba(61, 220, 132, 0.55) 0px 0px 10px 0px' ✓. Three independent click-harness variants all failed (locator.click+modifiers, keyboard.down('Shift')+mouse.click, with and without tour dismissal). Two React 'Maximum update depth exceeded' warnings were logged during the shift-click sequence — suggests the new fix may be involved in an update storm.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "MindMapCanvas — shift-click multi-select (iter_59 fix ineffective)",
+        "issue": "At line 1474-1488 the shift-click branch now tries to auto-promote the previously-`selected` node into multiSelected on the first shift-click: `setMultiSelected(prev => { const next = new Set(prev); if (next.size === 0 && selected) next.add(selected); ... })`. This does NOT take effect. ROOT CAUSE suspected in /app/frontend/src/components/mindmap/hooks/useCanvasDrag.js line 103: `startNodeDrag` (bound to onMouseDown on the node div at MindMapCanvas.jsx line 1431) unconditionally calls `setSelected?.(id)` — so when the user shift-clicks node B, the mousedown fires FIRST and promotes `selected` to B before the onClick runs. By the time the onClick handler's setMultiSelected functional updater is called, the CLOSURE'S `selected` value (captured at last render, which was A) may or may not reflect this depending on React-18 batching vs. commit timing. Observed behaviour: multiSelected ends up EMPTY (outline='none' on both nodes) and only node B moves on ArrowRight — consistent with mousedown overwriting `selected` to B, the onClick branch then running with a closure where `selected`===B, so `next.add(selected)===next.add(B)` adds B, then `next.add(node.id)===next.add(B)` no-ops; but then the next render must be clearing the Set back to empty. OR the shift-click branch isn't even reached because another handler intercepts. Either way, the user-observed fix is not working. Suggested fixes to try: (1) in startNodeDrag, skip setSelected when e.shiftKey/ctrlKey/metaKey so onClick's closure keeps the original `selected`; (2) keep a `selectedRef` (like mapRef) refreshed via useEffect and read it inside the setMultiSelected updater instead of closure `selected`; (3) do the auto-promote synchronously by computing the set BEFORE calling setSelected — e.g., capture selectedRef.current into a local var at the top of the handler.",
+        "selector": "[data-testid^=mm-node-]",
+        "priority": "HIGH"
+      },
+      {
+        "component": "MindMapCanvas — React re-render loop",
+        "issue": "Two 'Maximum update depth exceeded' warnings emitted during the shift-click sequence. Potentially related to the iter_59 setMultiSelected change (functional updater with setState inside useEffect? or cascading setState between mousedown/click handlers). Should be investigated alongside the multi-select fix.",
+        "selector": "(console)",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "fix_results": {
+    "FIX4_multi_select_arrow_x3_after_shift_click": "FAIL — Both nodes' outline = 'none' after click(A)+shift-click(B). Expected magenta dashed outline containing rgb(255,106,213) on both. ArrowRight x3: dx A=0.00, dx B=15.31 (expected both ≈15.3 at 85% zoom). Identical to iter_59 symptom; the iter_59 fix is ineffective.",
+    "REGRESSION_single_node_arrow_x5": "PASS — dx=25.50px (= 30 logical × 0.85 zoom, exact). Five of five presses composed correctly.",
+    "REGRESSION_FIX5_glow_with_key": "PASS — data-cubes=6, boxShadow='rgba(61, 220, 132, 0.55) 0px 0px 10px 0px' after setting localStorage mindmapper.apiKey.v1 + dispatching mindmapper:apikey-changed."
+  },
+  "test_report_links": ["/app/test_reports/iteration_60.json"],
+  "action_items": [
+    "Re-fix multi-select shift-click. Root cause: onMouseDown → startNodeDrag → setSelected(id) fires BEFORE the onClick handler. Recommended patch: in useCanvasDrag.js startNodeDrag (line 93-105), skip setSelected when e.shiftKey || e.ctrlKey || e.metaKey — let the onClick handler own the selection for additive multi-select. Alternative: add a selectedRef (mirroring mapRef pattern at MindMapCanvas.jsx line 501-502) refreshed via useEffect on selected change, and read selectedRef.current inside the setMultiSelected updater at line 1480 instead of the closure `selected`.",
+    "Investigate 'Maximum update depth exceeded' warning during shift-click. Likely a setState cascade between mousedown/click handlers plus the new auto-promote branch. If the first suggested patch (skip setSelected on modifier keys) is applied, the cascade probably resolves as well."
+  ],
+  "critical_code_review_comments": [
+    "MindMapCanvas.jsx line 1431: `onMouseDown={(e) => startNodeDrag(e, node.id)}` — unconditionally calls startNodeDrag which mutates `selected`. This races against the onClick's shift-click handler that reads `selected` from its (stale) closure. Needs modifier-aware gating.",
+    "useCanvasDrag.js line 103: `setSelected?.(id)` inside startNodeDrag is the actual overwrite. Gate on !e.shiftKey && !e.ctrlKey && !e.metaKey.",
+    "MindMapCanvas.jsx line 1475-1484: the functional-updater form is correct in isolation; the bug is upstream in which `selected` value the closure sees. A selectedRef pattern would make this robust.",
+    "FIX5 LlmFuelGauge.jsx remains correctly wired (PASS verified for 2nd time).",
+    "FIX4 single-node arrow nudge via mapRef pattern (line 501-502, 616) remains correctly wired (PASS verified for 2nd time)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only)", "frontend": "2/3 named scenarios PASS; FIX4 multi-select still FAIL"},
+  "test_credentials": "URL unlock token: ?unlock=mind-mapper67",
+  "seed_data_creation": "None — used the seeded 'Map Title' (Idea One..Five) map after clearing localStorage.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "After main agent applies the modifier-aware gate in useCanvasDrag.js startNodeDrag (or adds a selectedRef and reads it inside the setMultiSelected updater), retest ONLY the shift-click branch: click Idea One → shift-click Idea Two → assert BOTH nodes' getComputedStyle(el).outline contains 'rgb(255, 106, 213)' → press ArrowRight 3× → assert dx ≈ 15.3px on BOTH (at 85% canvas zoom). Tour modal dismissal in this environment is unreliable with the [data-testid=tour-skip] selector (timeout); but click.(force=True) with element already off-screen/covered still registers on the nodes — dialog does NOT block canvas node clicks because the dialog is centred and the nodes sit around it. Node bounding rects verified: Idea One at (1018,238,140,60), Idea Two at (1276,426,140,60) at viewport 1920×1080.",
+  "rca_of_the_issue": {
+    "symptom": "After click(A) + shift-click(B), only node B ends up selected/moved by ArrowRight. multiSelected is empty. Outline shows no magenta dashed ring on either node.",
+    "hypothesis": "The iter_59 auto-promote fix at MindMapCanvas.jsx line 1480 runs INSIDE a setMultiSelected functional updater and reads `selected` from the click handler's CLOSURE. But onMouseDown fires BEFORE onClick, and startNodeDrag (useCanvasDrag.js line 103) unconditionally calls setSelected(node.id) on every mousedown — including shift-clicks. React 18 may (depending on event-priority) flush this between mousedown and click, causing the onClick closure's `selected` to already reflect the NEW node.id (=B). Then `next.add(selected)===next.add(B)` + `next.add(node.id)===next.add(B)` results in a single-element Set {B}. A subsequent re-render with no other triggers should keep multiSelected={B}; however the observed outline='none' suggests something downstream is also clearing it (candidate: the selectNode() path or a useEffect syncing multiSelected to [selected]).",
+    "recommended_mitigation": "Two-step fix: (a) gate setSelected in startNodeDrag on NON-modifier clicks only (`if (!e.shiftKey && !e.ctrlKey && !e.metaKey) setSelected?.(id);`); (b) introduce a selectedRef refreshed via useEffect and read selectedRef.current at line 1480 instead of closure `selected`. Either alone should fix the symptom; both together is safest.",
+    "repro_steps": "1. Navigate /app?unlock=mind-mapper67. 2. Dismiss/ignore tour dialog (clicks on nodes still land through). 3. page.locator('[data-testid^=mm-node-]', has_text='Idea One').click(). 4. page.keyboard.down('Shift') + page.mouse.click(ideaTwoCx, ideaTwoCy) + page.keyboard.up('Shift'). 5. Assert getComputedStyle(ideaOne).outline contains '255, 106, 213' — FAILS (both are 'none'). 6. Press ArrowRight 3× → only Idea Two moves 15.31px."
+  }
+}

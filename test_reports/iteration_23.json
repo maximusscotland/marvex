@@ -1,0 +1,50 @@
+{
+  "summary": "Iteration 23 bundled review: (A) OG upgrade with real map-tree render, (B) PDF Reader v2 multi-tab + persistent highlights. Backend 14/14 pytest green — added test_og_real_map_tree_render_is_larger_than_fallback which asserts real-map PNG > 30KB AND > fallback PNG, plus Pillow decode + centre-pixel sanity check. Frontend: all multi-tab testids wire up correctly (tabbar, tab-<id>, tab-close-<id>, tab-add), file input carries `multiple` attr, highlights panel renders 'This session' heading + session count '0 sent to —' on first open (no history block), and after seeding localStorage with a matching fileKey the reader-highlights-history section renders exactly one reader-history-item — clicking it navigates to /app?map=seedMap1. Regression mounts for /share/:fakeslug, /app, /intake, /tools, /library all clean. HOWEVER a CRITICAL front-end bug prevents actual PDF pages from ever rendering — see frontend_issues below.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/share/:slug/og.png", "issue": "Cloudflare/ingress still overrides backend Cache-Control with 'no-store' on the public URL — unchanged from iteration_22, flagged again for infra ticket."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "PdfReader.jsx",
+        "issue": "CRITICAL: Infinite re-render loop. useEffect at lines 88-106 depends on `activeSession` and synchronously calls `patchSession(activeSession.id, { loading: true })` on every run. Because `activeSession` is derived via useMemo from `sessions`, each patchSession creates a new sessions array → new activeSession reference → effect re-fires → patchSession again → ... React bails out with 'Maximum update depth exceeded' (console flooded, 100+ errors in under 2s). Visible symptom: PDF pages stay stuck at 'Rendering PDF…' forever — the pdfjs.getDocument promise never settles because the effect keeps getting cancelled+re-started. Tab-bar UI still renders (which is why all testid assertions passed) but the actual reader is non-functional.",
+        "selector": "[data-testid='reader-pages'] > 'Rendering PDF…' spinner never goes away",
+        "priority": "CRITICAL"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_share.py",
+    "/app/test_reports/pytest/iteration_23.xml",
+    "/app/backend/tests/fixtures/tiny.pdf"
+  ],
+  "action_items": [
+    "FIX INFINITE LOOP in /app/frontend/src/pages/PdfReader.jsx useEffect (lines 88-106). Concrete fix: guard the `loading:true` set so it only fires when !activeSession.loading, OR depend on `[activeSession?.id, activeSession?.pdfDoc]` instead of the whole `activeSession` object, OR move the load side-effect into handleFilesPicked so the async pdf load kicks off exactly once per new session. Example minimal patch: change the effect dependency from `[activeSession, patchSession]` to `[activeSession?.id, activeSession?.pdfDoc, patchSession]` AND early-return if activeSession.loading is already true.",
+    "After the loop is fixed, re-run iteration 23 frontend test — specifically verify PDF renders to [data-testid='reader-page-1'] within 5s of upload and the 'Rendering PDF…' spinner disappears.",
+    "(Infra, unchanged) CF override of Cache-Control on /api/share/*/og.png."
+  ],
+  "critical_code_review_comments": [
+    "PdfReader.jsx L88-106: effect has a classic self-retriggering pattern — patchSession inside an effect whose deps include the patched object. This is the root cause of the infinite loop.",
+    "PdfReader.jsx L417-424: the reader view adds a SECOND hidden <input type='file'> with no data-testid — but fileInputRef is shared (refs can only hold one element; the later render wins). Works in practice but confusing; consider one input at the top of the component tree.",
+    "PdfReader.jsx L28-39: collectPersistedHighlights iterates every map on every render that calls it — fine for small libraries but O(N*H). Once user has many maps this becomes a re-render hot-path. Consider memoising by fileKey.",
+    "PdfReader.jsx L244-250: setSessions after patchSession creates TWO consecutive state updates — React batches them but the second recomputes persisted via collectPersistedHighlights which reads localStorage. Could be merged.",
+    "og_image.py: _render_real_map_png catches Exception silently — if cairosvg throws, the card falls back to text-only without any log. Add a logger.warning so future regressions are visible.",
+    "og_image.py _build_real_map_svg: inline-styles SVG text with font-family='DejaVu Sans, Arial, sans-serif' — cairosvg will try to resolve these via fontconfig; on slim containers DejaVu may be absent. Verified present in this container (DejaVuSans-Bold.ttf in FONT_CANDIDATES) so render succeeded."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_share.py (added test_og_real_map_tree_render_is_larger_than_fallback)",
+    "/app/backend/tests/fixtures/tiny.pdf (new, 1.5KB generated via reportlab for Playwright upload harness)"
+  ],
+  "success_rate": {"backend": "100% (14/14)", "frontend": "90% — tab-bar/history UI PASS but PDF rendering broken due to infinite loop"},
+  "test_credentials": "Access gate password: mind-mapper67. Backend auth via dependency_override (unchanged from iter 19).",
+  "seed_data_creation": "Created /app/backend/tests/fixtures/tiny.pdf (1-page reportlab PDF, 1472 bytes) for multi-tab upload testing. Playwright test seeds localStorage 'mindmapper.maps.v1' with a map carrying readerMeta.highlights[fileKey='tiny.pdf::1472::0'] — Chromium sends lastModified=0 for set_input_files so the fileKey matches and history renders.",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "The NEW OG real-map render test (test_og_real_map_tree_render_is_larger_than_fallback) confirms render_og_png(map_doc=...) produces a ~40-80KB PNG with an embedded SVG tree — the fallback card is ~10-15KB, so the >30KB assertion is solid. For PDF Reader v2: all multi-tab testids and history testids work structurally, but PDF page rendering is blocked by an infinite useEffect loop. AFTER main agent fixes PdfReader.jsx L88-106, rerun: (1) upload tiny.pdf; (2) wait for [data-testid='reader-page-1']; (3) simulate text selection and + Node click; (4) verify readerMeta.highlights is persisted on the target map via localStorage.getItem('mindmapper.maps.v1'). Use /app/backend/tests/fixtures/tiny.pdf for uploads (set_input_files on [data-testid='reader-file-input'] even though hidden — works fine without wait_for_selector).",
+  "rca of the issue": "PdfReader.jsx L88: `useEffect(() => { if (!activeSession || activeSession.pdfDoc) return; patchSession(activeSession.id, { loading: true }); ... }, [activeSession, patchSession]);` — patchSession synchronously updates sessions; useMemo at L77 derives a fresh activeSession object; React re-runs the effect; activeSession.pdfDoc is still null (async getDocument hasn't resolved); patchSession fires again; loop. Even though loading was already true, `sessions.map(s => s.id === id ? {...s, ...patch} : s)` always produces a new array + new session object, so identity changes every cycle. Fix: either (a) dep array on `[activeSession?.id]` only, (b) guard with `if (activeSession.loading) return;`, or (c) move the async load out of the effect into the handleFilesPicked handler so it fires exactly once per session."
+}

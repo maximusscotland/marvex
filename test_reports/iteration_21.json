@@ -1,0 +1,38 @@
+{
+  "summary": "Frontend-only testing of the new Share Card Generator feature on /app. Verified ShareCardDialog flow end-to-end: opens from ShareDialog via share-open-card button (visible even when not signed in), renders 1200x630 blob preview, all 4 action buttons (download/copy/tweet/linkedin) enabled once blob ready, tweet/linkedin intents invoke window.open with correct URLs, copy doesn't crash, Escape & backdrop close work, download triggers file download. Regression routes /app /intake /tools /library load without pageerrors. research-progress-share testid present in bundle (component code path exists).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": ["/app/test_reports/iteration_21.json"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "shareCard.js uses Math.random() for speckle dots — non-deterministic output; fine for share cards but worth noting if ever snapshot-tested.",
+    "ShareCardDialog does NOT focus-trap inside the modal; keyboard users can tab out into the canvas behind. Low priority since Escape works.",
+    "Studio.jsx line 973 parses localStorage inline on every render for shareSlug — minor perf, acceptable.",
+    "buildShareCardBlob has no network timeout; if map SVG contains remote images (unusual), img.onload could hang. Consider a setTimeout reject guard."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "test_credentials": "Access gate password: mind-mapper67 (no auth tested; share-open-card works unauthenticated as specified)",
+  "seed_data_creation": "Used the default seeded Core Concept map that Studio auto-creates on first visit.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Share card feature is fully functional. Test environment: headless Chromium required addInitScript to monkey-patch window.open to verify tweet/linkedin URLs (popups blocked in headless). Download triggers via anchor click work fine in Playwright. navigator.clipboard.write works in Playwright headless for this page — copy clicked without throwing. ResearchProgressOverlay's share button code path verified via bundle source search only (not triggered live); to test interactively, a real streaming-research run with an API key would be needed.",
+  "test_results_detail": {
+    "share_open_card_visible_unauth": "PASS (text: 'GENERATE SHARE CARD (IMAGE)')",
+    "share_card_dialog_opens": "PASS",
+    "preview_image_renders": "PASS (blob URL)",
+    "4_action_buttons_enabled": "PASS (all 4 non-disabled once blob ready)",
+    "tweet_intent": "PASS (twitter.com/intent/tweet?text=... captured via window.open interceptor)",
+    "linkedin_intent": "PASS (linkedin.com/sharing/share-offsite/?url=... captured)",
+    "copy_no_crash": "PASS (dialog still intact after click)",
+    "download_file": "PASS (Core_Concept-share.png)",
+    "escape_closes": "PASS",
+    "backdrop_closes": "PASS",
+    "research_progress_share_in_bundle": "FOUND",
+    "regression_routes": "PASS (/intake, /tools, /library load, 0 pageerrors)"
+  }
+}

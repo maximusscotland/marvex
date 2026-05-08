@@ -1,0 +1,34 @@
+{
+  "summary": "Tested 6 fixes on /app?unlock=mind-mapper67. FIX 1 (toolbar default pos 290/145 + draggable + localStorage persistence) PASS. FIX 6 (sidebar button parity, no amber classes, cyan border rgb(6,182,212)) PASS. FIX 3 (count selector appears as <select> in node ctx menu with Child/Sibling buttons) UI PASS from visual confirmation. FIX 5 (close button exists, clicking navigates to /library) FUNCTIONAL PASS (hover-opacity not explicitly verified due to test-selector using wrong testid, but element is clickable). FIX 2 (canvas right-click shape) NOT CONFIRMED — initial right-click didn't surface ctx menu (likely analytics overlay intercepting). FIX 4 (connector line properties panel) CRITICAL FAIL — SelectionPropertiesPanel throws ReferenceError: SectionTitle is not defined, crashing the panel when a connector is selected.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "SelectionPropertiesPanel", "issue": "ReferenceError: SectionTitle is not defined — lines 69, 82, 96 of /app/frontend/src/components/SelectionPropertiesPanel.jsx reference <SectionTitle> for the isConnector branch, but the component is neither imported nor declared in the file. This crashes the entire panel whenever a connector line is selected (Fix 4 is entirely broken). React error boundary warning also logged. Either import SectionTitle from wherever it is defined or inline a small helper (e.g. const SectionTitle = ({children}) => <div className='mono text-[10px] uppercase tracking-[0.18em] text-cyan-300/70 mb-1.5'>{children}</div>)", "selector": "[data-testid=studio-selection-panel]", "priority": "CRITICAL"},
+      {"component": "AddChildSiblingRow / ContextMenu", "issue": "Console hydration warning: 'In HTML, <span> cannot be a child of <option>'. The <option> elements inside [data-testid=mm-ctx-add-count] must only contain text — no spans/React components. Check if any wrapper/shadcn Select is rendering spans inside native <option>. Functionally the SELECT still renders and count persists, but the warning should be cleaned up.", "selector": "[data-testid=mm-ctx-add-count]", "priority": "LOW"},
+      {"component": "Studio / Canvas right-click", "issue": "Canvas right-click did not surface the context menu on first attempt when the analytics consent popup ('A small, honest ask') was still present at bottom-right. Could not verify [data-testid=mm-canvas-ctx-shape]. Suggest either delaying the analytics popup until after first interaction OR auto-dismissing on right-click, OR ensuring context menu renders above overlay. Re-test with consent accepted.", "selector": "[data-testid=mm-canvas-ctx-shape]", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [
+      {"flow": "Connector line insertion + selection → line-properties panel", "issue": "Entire flow broken due to SectionTitle ReferenceError crashing SelectionPropertiesPanel. Cannot test studio-conn-color-*, studio-conn-width-*, studio-conn-arrow-on.", "affected_selectors": ["[data-testid=studio-selection-panel]", "[data-testid=studio-conn-color-ff6ad5]", "[data-testid=studio-conn-width-4]", "[data-testid=studio-conn-arrow-on]"]}
+    ],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "CRITICAL: Define or import SectionTitle in /app/frontend/src/components/SelectionPropertiesPanel.jsx (used on lines 69/82/96 in the isConnector branch). Until fixed, selecting any connector crashes the panel and breaks FIX 4 entirely.",
+    "Remove any <span> descendants from <option> elements in AddChildSiblingRow (ContextMenu.jsx ~line 789) to clear React hydration warning.",
+    "Investigate canvas right-click context menu interaction when analytics consent popup is active — verify overlay z-index or dismiss popup on right-click.",
+    "Also observed 'Maximum update depth exceeded' console error triggered during connector interaction — likely a setState loop cascading from the SelectionPropertiesPanel crash; should clear once SectionTitle is fixed, but re-verify."
+  ],
+  "critical_code_review_comments": [
+    "SelectionPropertiesPanel.jsx uses <SectionTitle> in the new isConnector branch without defining/importing it — a compile-time concern missed because it's only reached via selectionType==='annotation' && node.type==='connector'. Add a unit-level smoke test that mounts the panel with a connector node.",
+    "Mixing a native <select> rendering <option> children and any Radix/shadcn Select wrapper needs caution — if AddChildSiblingRow used a shadcn Select at any point, the <span> residual causes the hydration warning noted above."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "~60% (4 of 6 fixes verified working; 1 critical fail, 1 partially unverified)"},
+  "test_credentials": "?unlock=mind-mapper67",
+  "seed_data_creation": "none",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "After main agent fixes SectionTitle in SelectionPropertiesPanel.jsx, retest FIX 4: insert a connector via canvas right-click mm-canvas-ctx-line, click it, confirm studio-selection-panel renders with 'Line properties' and color/width/arrow buttons work. Also retest FIX 2 after accepting the analytics consent popup so canvas right-click isn't intercepted. For FIX 5 hover, use selector [data-testid=map-title-input] (not map-title) to trigger group-hover. For FIX 3 UI confirmation, node testids use [data-testid^=mm-node-] — confirmed visually in screenshots that the 1× select and + Child / + Sibling are rendered.",
+  "rca of the issue": "FIX 4 root cause: SelectionPropertiesPanel.jsx was extended with an isConnector code path that uses a <SectionTitle> helper component, but the component is not declared within the file nor imported from any module. Bundler succeeds because JSX lowercases unknown identifiers to React.createElement(SectionTitle, ...) referencing the identifier SectionTitle which is undefined at runtime — throwing ReferenceError on first render when selectionType==='annotation' && node.type==='connector'. Mitigation: either add `import { SectionTitle } from './SectionTitle'` if one exists, or inline a tiny functional component at the top of the file."
+}

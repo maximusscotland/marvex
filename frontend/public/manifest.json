@@ -1,0 +1,18 @@
+{
+  "short_name": "Mind-Mapper",
+  "name": "Marvex Studio — PDF → mind map, in 60 seconds",
+  "description": "Turn any PDF into an interactive mind map. Local-first, BYOK AI, zero-signup free tier.",
+  "icons": [
+    { "src": "/favicon.ico", "sizes": "64x64 32x32 24x24 16x16", "type": "image/x-icon" },
+    { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" },
+    { "src": "/apple-touch-icon.png", "type": "image/png", "sizes": "180x180" }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#03040a",
+  "background_color": "#03040a",
+  "categories": ["productivity", "education", "utilities"]
+}

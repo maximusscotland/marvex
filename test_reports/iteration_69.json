@@ -1,0 +1,47 @@
+{
+  "summary": "Re-verified the CRITICAL legislation.gov.uk PDF-fetch fix from iteration_68. The new approach (data.pdf → data.htm rewrite → _strip_html → _text_to_pdf_bytes synth) works end-to-end. Equality Act 2010 and Human Rights Act 1998 both return HTTP 200 application/pdf, body starts with %PDF, 110 KB and 80 KB respectively (well above the 5 KB floor). Caselaw (nationalarchives.gov.uk) native-PDF passthrough still works — no rewriting applied to the case-law domain. Allowlist security regression is clean (evil.com → 400 'URL not allowed'). /api/corpus/search?source=law-uk&q=Human+Rights+Act still returns 200 with mixed statute+judgment items — search path untouched and regression-free. All 5 targeted tests pass in 3.34s.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "GET /api/corpus/fetch?source=law-uk&url=...ukpga/2010/15/data.pdf&title=Equality+Act+2010 → 200, application/pdf, %PDF, 110088 bytes (>5KB)",
+    "GET /api/corpus/fetch?source=law-uk&url=...ukpga/1998/42/data.pdf&title=Human+Rights+Act → 200, application/pdf, %PDF, 80675 bytes (>5KB)",
+    "GET /api/corpus/fetch?source=law-uk&url=...caselaw.nationalarchives.gov.uk/.../data.pdf → 200, application/pdf, %PDF (native passthrough, no rewrite)",
+    "GET /api/corpus/fetch?source=law-uk&url=https://evil.com/fake.pdf → 400 'URL not allowed' (allowlist enforced)",
+    "GET /api/corpus/search?source=law-uk&q=Human+Rights+Act&limit=8 → 200, source=law-uk, statutes present, every item has kind_label + pdf_url (search path regression-free)"
+  ],
+  "failed_tests": [],
+  "test_report_links": [
+    "/app/backend/tests/test_corpus_law_uk.py",
+    "/app/test_reports/pytest/pytest_corpus_law_uk_iter69.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py:1701-1716 — the data.pdf → data.htm rewrite is a clean, low-maintenance fix. Consider handling the edge case where a user passes a non-.pdf legislation.gov.uk URL (e.g. /contents or /made) — currently the rewrite only triggers when fetch_url.lower().endswith('.pdf'); other paths fall through to urllib+htm-strip+PDF-synth which is still correct, but worth an inline comment to flag the intent.",
+    "server.py:1715 — urllib timeout (45s) and outer client timeout (60s) are fine for Equality Act (~1s), but consider extending to 90s for the longest statutes (Companies Act 2006 is ~700 pages). Not blocking for the tested fixtures.",
+    "server.py:1614-1655 — _strip_html() is a hand-rolled tag stripper; fine for legislation.gov.uk's curated XHTML but will silently lose structured content (tables, italics) that a real HTML parser would preserve. Acceptable trade-off given the no-extra-dependency goal, but note in a TODO."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_corpus_law_uk.py (rewritten to target the iteration_69 fix — 5 focused tests replacing the older WAF-bypass test)"
+  ],
+  "success_rate": {
+    "backend": "5/5 (100%)",
+    "frontend": "not tested (backend-only request)"
+  },
+  "test_credentials": "not required for this test",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration_69 re-verifies ONLY the PDF-fetch fix from iteration_68. The fix (data.pdf → data.htm rewrite + server-side PDF synth for legislation.gov.uk) is working: Equality Act 2010 returns 110 KB PDF in ~1-2s, Human Rights Act returns 80 KB PDF. Caselaw passthrough still works. Test file /app/backend/tests/test_corpus_law_uk.py is now focused on /fetch scenarios plus one search regression; if you need to re-run the broader search/judgment-ordering coverage, use iteration_68's older version in git history. The arxiv 429 issue flagged in iteration_68 is still present at the egress IP level but is environmental, not caused by this PR.",
+  "rca_of_the_issue": {
+    "bug_from_iteration_68": "Fetching legislation.gov.uk PDFs returned 502 'Upstream returned 202' because CloudFront's WAF served a JS challenge to non-browser clients on /data.pdf.",
+    "fix_verified_in_iteration_69": "Backend now rewrites /data.pdf → /data.htm (which is NOT behind the WAF challenge), fetches it via urllib, strips XHTML via the new _strip_html() helper, and synthesises a fresh PDF via the existing _text_to_pdf_bytes() path. Result: students get a readable PDF every time, and there is no fragile WAF bypass to maintain.",
+    "evidence": "curl to /api/corpus/fetch → HTTP 200, Content-Type application/pdf, body starts with %PDF, Equality Act = 110088 bytes, Human Rights Act = 80675 bytes. All 5 pytest cases pass."
+  }
+}

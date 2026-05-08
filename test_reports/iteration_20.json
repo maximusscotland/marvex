@@ -1,0 +1,34 @@
+{
+  "summary": "Tested new streaming research feature. Backend SSE endpoint verified end-to-end: 401 unauth, 400 missing focus_title, Content-Type text/event-stream + X-Accel-Buffering header correctly set (via dependency_override + LlmChat.send_message monkeypatch so no real LLM cost). Regression endpoints (/api/health, /api/billing/plans, /api/research non-streaming) still healthy. Frontend Studio mounts without the overlay visible on load, ResearchProgressOverlay is imported and mounted in Studio.jsx, and /share/:slug, /read, /tools, /library, /intake all mount without fatal console errors. Non-streaming runResearchAssistant is still imported & used by Studio (handleDeepen ~line 360) and lib/deepResearch.js, so Deepen / Deep Research / Auto-deepen flows are unaffected.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_research_stream.py",
+    "/app/test_reports/pytest/iteration_20.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py: /api/research/stream has quota (402) check BEFORE the generator — correct, so the user's counter is not decremented on early auth/validation failures. Note: the streaming endpoint never increments `free_conversions_used` on success (the non-streaming /api/research probably does; confirm parity if business expects streaming calls to count toward the free tier).",
+    "server.py event_stream(): on a mid-stream LLM failure the generator yields an SSE `error` event and returns — StreamingResponse already flushed 200 headers, so the frontend api.js correctly throws on `event: error`. Good.",
+    "api.js SSE parser is minimal but correct (handles event:/data:/multi-line data/blank-line boundary). Does not handle lines starting with ':' (SSE comments) — harmless since server never emits them.",
+    "Studio.jsx: handleResearch uses AbortController via researchAbortRef. On cancel, fetch is aborted cleanly but no toast is shown to the user. Consider a small 'Research cancelled' toast for clarity.",
+    "ResearchProgressOverlay: role='status' aria-live='polite' + non-focus-trapping is correct a11y. Good."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_research_stream.py"
+  ],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "Access gate password mind-mapper67 (studio was already unlocked in this test run — gate did not appear). No auth login performed.",
+  "seed_data_creation": "None. Dependency override + monkeypatch used, no DB writes.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "New test file /app/backend/tests/test_research_stream.py covers POST /api/research/stream shape (SSE headers via TestClient + LlmChat.send_message monkeypatch) and public-URL 401/regression checks. Real end-to-end LLM call was intentionally skipped to avoid cost — if full streaming event sequence (phase→branch→done) needs verification, add an authenticated session cookie and let it run against the public URL (~$0.02 and ~30s). The 6/6 tests run in ~2.5s locally.",
+  "rca of the issue": "N/A — no issues found."
+}

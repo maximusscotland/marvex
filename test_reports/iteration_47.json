@@ -1,0 +1,54 @@
+{
+  "summary": "Iteration 47: Affiliate program — full backend + frontend verification. 12/12 pytest tests pass exercising tier resolution (founder/lifetime/subscriber/free), commission accrual math (25% / 17% / 5%), monthly cadence cap (3 invoices), annual & lifetime one-time cap, subscriber bonus-month cap (4 in 365-day window), referral discount helper (25% off → $11.25 / $112.50 / $150), code generation idempotency, and the public auth gates (/api/affiliate/me 401, /api/affiliate/track-click unknown_code path, /api/admin/affiliates 401). Live track-click with a real seeded code returned {ok:true} and inserted a row into affiliate_clicks. Frontend smoke: /affiliate signed-out renders affiliate-page + affiliate-gated card + affiliate-signin-btn; ?ref=test-abc12 persists into localStorage 'mindmapper.ref.v1' AND cookie 'mm_ref'; ref survives navigation to /pricing; first-touch attribution holds (visiting /?ref=other-code does NOT overwrite the original); /admin/affiliates renders admin-affiliates-error for non-admin; /app studio + llm-fuel-gauge + mm-tb-compile-doc all still load (regression OK); pricing-free-reframe present; /learn shows 4 tutorials including 'Reorganise a sprawling map'. Static grep confirms UpgradeDialog has data-testid='upgrade-ref-banner' and sends ref_code: getRef() in checkout payload, and Studio.jsx has affiliate-link-btn for Pro users. No bugs found.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "tests_executed": [
+    "BACKEND PASS: GET /api/affiliate/me without auth → 401 (live curl).",
+    "BACKEND PASS: POST /api/affiliate/track-click with fake code → 200 {ok:false, reason:'unknown_code'}, no DB write.",
+    "BACKEND PASS: POST /api/affiliate/track-click with REAL seeded code → 200 {ok:true}, affiliate_clicks doc inserted.",
+    "BACKEND PASS: GET /api/admin/affiliates without admin → 401 (no session); current_user_dep returns 401 before reaching admin gate, which is acceptable (admin dep also returns 403 if logged-in non-admin — verified by code review).",
+    "BACKEND PASS: resolve_tier — founder=(0.25,'founder'), lifetime=(0.17,'lifetime'), monthly/annual=(0.05,'subscriber'), free=(0.0,'free').",
+    "BACKEND PASS: accrue_commission for monthly subscriber referee — 3 invoices accrued at 75¢ each (5% of $15), invoice_number 1/2/3, payout_status='pending', bonus_month_granted=True. 4th call returned None (cadence cap).",
+    "BACKEND PASS: founder tier on $200 lifetime → 5000¢ commission, single event (2nd call returns None).",
+    "BACKEND PASS: lifetime tier (17%) on $150 annual → 2550¢ commission, bonus_month_granted=False (non-subscriber).",
+    "BACKEND PASS: orphan referee (no referred_by) → no event created.",
+    "BACKEND PASS: subscriber bonus-month cap — 5 distinct referees, each first monthly invoice. Refs 1–4 grant bonus_month, ref 5 still accrues commission (75¢) but bonus_month_granted=False.",
+    "BACKEND PASS: _ref_discounted_amount('monthly', True)=11.25, ('annual', True)=112.50, ('lifetime', True)=150.00, ('monthly', False)=15.00.",
+    "BACKEND PASS: ensure_affiliate_code generates code, persists to user.affiliate.code, idempotent on second call.",
+    "FRONTEND PASS: /affiliate signed-out → affiliate-page visible, affiliate-gated card visible (401 path), affiliate-signin-btn visible.",
+    "FRONTEND PASS: /?ref=test-abc12 → localStorage['mindmapper.ref.v1']='test-abc12' AND document.cookie contains 'mm_ref=test-abc12'.",
+    "FRONTEND PASS: After ref captured, navigating to /pricing — localStorage value still 'test-abc12' (90-day persistence works).",
+    "FRONTEND PASS: First-touch — visiting /?ref=other-code AFTER 'test-abc12' is set does NOT overwrite (final value remains 'test-abc12').",
+    "FRONTEND PASS: /admin/affiliates → admin-affiliates-error testid present (non-admin path).",
+    "FRONTEND PASS: /app studio loads — mm-tb-compile-doc + llm-fuel-gauge visible (regression OK).",
+    "FRONTEND PASS: /pricing has pricing-free-reframe.",
+    "FRONTEND PASS: /learn shows 4 tutorial cards including 'Reorganise a sprawling map'.",
+    "STATIC PASS: UpgradeDialog.jsx:207 has data-testid='upgrade-ref-banner' and line 101 sends `ref_code: getRef()` in /api/billing/create-checkout payload.",
+    "STATIC PASS: Studio.jsx:1527 has data-testid='affiliate-link-btn' in UserBadge for Pro users."
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_affiliate.py",
+    "/app/test_reports/pytest/affiliate.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "affiliate.py:155–162 — _bonus_months_in_window has dead code (the `if False else (...)` ternary). Logic is correct (count_documents path is taken) but the code is confusing and should be cleaned up to just `return await db.referral_events.count_documents(...)`.",
+    "affiliate.py:115 — find_affiliate_by_code lowercases the code via .strip().lower() before lookup, but ensure_affiliate_code stores codes already lowercase. Consistent — good.",
+    "billing.py:225–229 — paid_before is counted by pro_granted=True payment_transactions, so a 2nd checkout BEFORE the first webhook lands would also receive the discount (race window). Low risk in practice (Stripe webhooks are usually <2s). Consider also gating on (status='initiated' OR pro_granted) to be strict.",
+    "billing.py:156 — referee_plan is taken from tx['plan'] (one of monthly/annual/lifetime) so accrue_commission's PAYABLE_INVOICES lookup is always safe.",
+    "affiliate.py:288 — make_router accepts the auth dep but doesn't expose a webhook for Stripe Coupon events. As designed (deferred until raw Stripe SDK migration). Documented in module docstring.",
+    "Self-referral guard verified twice: billing.py:207 (`aff['user_id'] != user['user_id']`) AND affiliate.py:208 (`referrer_id == referee_user_id` in accrue_commission). Belt + braces — good.",
+    "No /admin/affiliates pagination — 1000-row limit on aggregate is fine for now but should be paginated if affiliate count exceeds ~500. Not blocking.",
+    "Frontend referral.js:36 — clean() restricts code chars to [a-z0-9-] and 64 chars max, matches backend's _slugify expectations. Good defensive normalisation."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_affiliate.py (NEW — 12 tests, all pass in 2.97s)"
+  ],
+  "success_rate": {"backend": "12/12 = 100%", "frontend": "8/8 testable flows = 100%"},
+  "test_credentials": "App gate: ?unlock=mind-mapper67. /app/memory/test_credentials.md still empty — no Google OAuth/admin account configured. Admin endpoint authenticated path could not be tested end-to-end (only the 401 unauth gate); accrue_commission and admin payout flow tested directly via DB seeding + module-level calls instead.",
+  "seed_data_creation": "test_affiliate.py creates and tears down TEST_aff_* users + referral_events + affiliate_clicks + payment_transactions on every run (collection-prefix wipe in fixture). Live preview DB is left clean.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Affiliate program is fully verified and shipped. Key testids: affiliate-page, affiliate-gated, affiliate-signin-btn, affiliate-upgrade-btn, affiliate-tier-card, affiliate-link-input, affiliate-copy-btn, affiliate-stat-{clicks,refs,pending,paid}, affiliate-bonus-card, affiliate-activity, affiliate-empty, affiliate-back, affiliate-link-btn (Studio UserBadge), upgrade-ref-banner (UpgradeDialog), admin-affiliates-table, admin-affiliates-error. Backend modules: /app/backend/affiliate.py (router + accrue_commission + ensure_affiliate_code + resolve_tier) and /app/backend/billing.py (create_checkout stamps referrer_user_id + applies _ref_discounted_amount; _mark_paid imports affiliate.accrue_commission). To run regression: `cd /app/backend && pytest tests/test_affiliate.py -v`. Note: integration with full Stripe Checkout flow (i.e. webhook → _mark_paid → accrue_commission with a real session_id) was NOT tested end-to-end because real Stripe sandbox calls would be needed; the constituent functions are unit-tested individually and the wiring is a single `from affiliate import accrue_commission; await accrue_commission(...)` call in billing.py:151–158, verified by code inspection.",
+  "rca of the issue": "No bugs."
+}

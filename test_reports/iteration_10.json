@@ -1,0 +1,24 @@
+{
+  "summary": "Frontend-only smoke test of Google Drive Picker integration on /intake (not-configured path). All 6 review criteria verified: Drive button + hint card render, click with empty env surfaces exact error toast 'Google Drive isn't wired up yet — add CLIENT_ID / API_KEY / APP_ID to .env' without crashing, intake-studio root remains mounted, no error-boundary, zero network calls to apis.google.com or accounts.google.com/gsi/client, and Zotero/Dropbox/dropzone/library regression selectors intact.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "googleDrive.js: requestAccessToken uses prompt:'' which returns silently if user previously consented. That's fine, but error_callback signature in GIS is called with a PromiseLike error object that may not have .message — consider JSON.stringify fallback for better UX when non-standard errors surface.",
+    "IntakeStudio.jsx now at 793 lines — approaches the 700-line guideline. Consider extracting FixerPanel / IntakeCard / Hint / ModeBtn into separate files in a follow-up for maintainability.",
+    "Hint card for 'Direct upload' and 'The Fixer' lack data-testid — only zotero/dropbox/drive hints have them. Minor test-coverage gap."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only test)", "frontend": "100%"},
+  "test_credentials": "Access gate bypassed via ?unlock=mind-mapper67 URL param (STORAGE_KEY: mindmapper.unlocked.v1).",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 10 verified the Google Drive NOT-configured error path on /intake. All env keys (REACT_APP_GOOGLE_DRIVE_CLIENT_ID/_API_KEY/_APP_ID) are intentionally empty. isConfigured() returns false so pickFromDrive/loadGapiPicker/loadGsi are never invoked — confirmed by zero network requests to apis.google.com. When keys are populated in future iterations, the real Google flow (GIS popup → Picker → files.get?alt=media) will need end-to-end testing with real OAuth — that requires a test Google account and cannot be exercised in this headless preview.",
+  "rca_of_the_issue": "N/A — no bugs found. All 6 assertions in the review request pass: (1) 5 top-bar buttons render, (2) 6 hint cards render (Direct upload/Zotero/Dropbox/Google Drive/The Fixer/OCR fallback), (3) intake-drive-btn click → exact toast, intake-studio still mounted, no error boundary, (4) intake-hint-drive click → same behaviour, (5) zero requests to apis.google.com or accounts.google.com/gsi/client, (6) regression: Zotero/Dropbox/dropzone/library-btn selectors intact."
+}

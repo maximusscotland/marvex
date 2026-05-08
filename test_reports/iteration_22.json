@@ -1,0 +1,43 @@
+{
+  "summary": "Full backend + frontend testing of the OG/Twitter unfurl preview feature. 13/13 pytest green (4 OG-image cases added to test_share.py). Frontend meta-tag injection on /share/:slug verified via page.evaluate — all required og:/twitter: meta tags present, point at absolute REACT_APP_BACKEND_URL/api/share/:slug/og.png, dimensions 1200x630, card=summary_large_image, document.title has ' · mind-mapper' suffix. Fake-slug error hero + CTA regression intact. /app /tools /intake /read /library all mount (0 pageerrors). Non-existent slug returns 200 PNG (1200x630, image/png) as designed.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {
+        "endpoint": "GET /api/share/:slug/og.png",
+        "issue": "Backend correctly sets Cache-Control: public, max-age=60 (fallback) and max-age=300 (valid) when hit via FastAPI TestClient, BUT the Cloudflare+ingress layer OVERWRITES the header with 'no-store, no-cache, must-revalidate' on every /api/* public response. This defeats the entire point of unfurl-bot caching — Slack/Twitter/LinkedIn/Facebook bots will re-fetch the ~47KB PNG on every unfurl, hammering the renderer. Not a backend bug per se, but an infra policy that negates this feature's cache story. Owner should configure the ingress to pass-through Cache-Control for /api/share/*/og.png (or at least not overwrite public GET responses)."
+      }
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_share.py",
+    "/app/test_reports/pytest/iteration_22.xml"
+  ],
+  "action_items": [
+    "INFRA (non-blocking): Fix Cloudflare/ingress layer so it does NOT overwrite Cache-Control on /api/share/*/og.png — otherwise the 5-min cache the backend carefully sets is stripped and unfurl bots will re-render on every fetch.",
+    "Optional: add a cheap ETag on og.png responses as a second line of defence (crawlers honour 304s even when Cache-Control says no-store)."
+  ],
+  "critical_code_review_comments": [
+    "og_image.py: `import random` inside _starfield is fine but hoisting it to module-level is slightly cleaner and saves a microsecond per render.",
+    "og_image.py line 141: `lines = lines[:3]` caps to 3 lines AFTER wrapping — titles >120 chars are already truncated so this is belt-and-braces, fine.",
+    "share.py: og_image endpoint does find_one with a separate projection; no view_count increment on unfurl bot fetches — correct behaviour, matches spec.",
+    "share.py: og_image falls through to fallback on ANY missing doc including revoked ones — deliberate per spec ('social crawlers cache images, 404 would lock in broken image'). Verified in test_og_valid_slug_returns_png_with_300_cache.",
+    "SharedMap.jsx line 69-74: cleanup function leaves meta tags on the document after unmount (`void metas`) — intentional, as the next route will overwrite them; but if a user navigates to a non-SharedMap route after, the stale og:image still points at the old share slug. Low-priority — only matters for tab-return-to-previous-page scenarios.",
+    "SharedMap.jsx upsertMeta defaults `isProperty=true` so callers for `name=` attrs must pass `false` — already done correctly for twitter:*, description. Good."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_share.py"
+  ],
+  "success_rate": {"backend": "100% (13/13)", "frontend": "100% on items tested"},
+  "test_credentials": "Access gate password: mind-mapper67 (used on frontend /share/:slug). /app/memory/test_credentials.md still empty — dependency_overrides pattern from iteration_19 continues to work for authenticated backend tests.",
+  "seed_data_creation": "TestClient creates TEST_og_card_map (title='TEST_og_card_map', 3 top-level children), verifies og.png rendering, then revokes. Doc ends up revoked=true in db.shared_maps.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "OG-image feature fully functional at the app layer. Verified via: (1) pytest tests/test_share.py::TestOGImage — 3 cases covering fake-slug fallback, valid-slug 300s cache, and post-revoke fallback (all in-process via FastAPI TestClient + public HTTP parity checks). (2) Pillow.open(BytesIO(...)).size == (1200,630) asserted on every path. (3) Frontend page.evaluate reads document.head meta tags after useEffect fires — every required og:/twitter: tag present with correct content. The ONLY caveat: Cloudflare/ingress strips the Cache-Control header on the public URL, so unfurl-bot caching won't work until that's fixed at the infra layer — I flagged this as a minor backend/infra issue, not a code bug. All iteration_19 + iteration_21 regression items still green.",
+  "rca of the issue": "N/A — no bugs. Only finding: Cache-Control override by Cloudflare (DYNAMIC cf-cache-status + server: cloudflare) rewrites backend's 'public, max-age=60|300' to 'no-store, no-cache, must-revalidate'. Repro: `curl -s -D - https://mindmap-studio-5.preview.emergentagent.com/api/share/anything/og.png -o /dev/null`. Mitigation: add a cache rule in CF / ingress for /api/share/*/og.png that passes-through origin Cache-Control, or serve via a path outside /api."
+}
