@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
+import { ICO, icoLabel, ICO_REGISTERED } from "@/lib/legal";
 
 const SECTIONS = [
   {
@@ -103,7 +104,60 @@ const SECTIONS = [
     ),
   },
   {
-    h: "8. Changes",
+    h: "8. UK ICO registration & how to complain",
+    body: (
+      <>
+        <p>
+          Marvex Studio is the trading name for our UK-based business and we are registered
+          with the UK <strong>Information Commissioner&apos;s Office (ICO)</strong> as a data
+          controller under the Data Protection (Charges and Information) Regulations 2018.
+        </p>
+        <ul>
+          <li>
+            <strong>ICO registration:</strong>{" "}
+            {ICO_REGISTERED ? (
+              <>
+                <code>{ICO.registrationNumber}</code> —{" "}
+                <a
+                  href={ICO.verifyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="privacy-ico-verify"
+                >
+                  verify on the public register
+                </a>.
+              </>
+            ) : (
+              <>
+                <em>{icoLabel()}</em>. Our registration is currently being
+                processed by the ICO and the number will appear here once issued
+                (typically 3–10 working days from application). Until then,
+                you retain every right described below — registration is a
+                regulatory formality, not a precondition for your rights.
+              </>
+            )}
+          </li>
+          <li>
+            <strong>Right to complain:</strong> if you believe we&apos;ve mishandled your
+            personal data you can complain directly to the ICO at{" "}
+            <a
+              href={ICO.complaintsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-testid="privacy-ico-complaint"
+            >
+              ico.org.uk/concerns
+            </a>{" "}
+            (or call them on 0303 123 1113). We&apos;d obviously rather you mailed
+            us at <a href="mailto:ceo@marvex.app">ceo@marvex.app</a> first so we can
+            try to put it right — but the ICO route exists either way.
+          </li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    h: "9. Changes",
     body: (
       <p>
         We&apos;ll update this page with a new effective date if anything material changes,
@@ -150,7 +204,12 @@ export default function Privacy() {
       </article>
 
       <footer className="max-w-3xl mx-auto px-6 lg:px-12 py-8 border-t border-white/5 flex items-center justify-between text-[#566187] mono text-[10px] uppercase tracking-[0.22em]">
-        <div>© 2026 marvex.app</div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <span>© 2026 marvex.app</span>
+          {ICO_REGISTERED && (
+            <span className="text-[#7a87ad]">· ICO {ICO.registrationNumber}</span>
+          )}
+        </div>
         <div className="flex gap-4">
           <Link to="/terms" className="hover:text-cyan-300">Terms</Link>
           <Link to="/pricing" className="hover:text-cyan-300">Pricing</Link>

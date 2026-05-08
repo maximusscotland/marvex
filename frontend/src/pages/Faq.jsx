@@ -106,7 +106,7 @@ const FAQ_GROUPS = [
       },
       {
         q: "Is Marvex GDPR compliant?",
-        a: "Yes — we're UK-based and GDPR/UK-GDPR compliant. You can request a data export or full deletion at any time via [ceo@marvex.app](mailto:ceo@marvex.app). Most users have zero personal data on our servers because the app is local-first.",
+        a: "Yes — we're UK-based and GDPR/UK-GDPR compliant. Marvex is registered with the UK Information Commissioner's Office (ICO) as a data controller under the Data Protection (Charges and Information) Regulations 2018. You can request a data export or full deletion at any time via [ceo@marvex.app](mailto:ceo@marvex.app), and you have the right to complain to the ICO at [ico.org.uk/concerns](https://ico.org.uk/concerns). Most users have zero personal data on our servers because the app is local-first.",
       },
     ],
   },

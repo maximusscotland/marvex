@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { ICO, ICO_REGISTERED } from "@/lib/legal";
 
 /**
  * <SiteLinksFooter />
@@ -97,6 +98,34 @@ export default function SiteLinksFooter() {
           </div>
         ))}
       </div>
+
+      {/* Trust strip — ICO registration shown only once it's issued so we
+          never display a placeholder/pending value to visitors. While the
+          application is in flight (typically 3–10 days post-submission)
+          the strip silently hides — the dedicated section in /privacy
+          handles the "pending" UX with proper context. */}
+      {ICO_REGISTERED && (
+        <div
+          data-testid="footer-ico-strip"
+          className="max-w-6xl mx-auto mt-10 pt-6 border-t border-white/5 flex flex-wrap items-center justify-between gap-3 mono text-[10px] uppercase tracking-[0.22em] text-[#566187]"
+        >
+          <div>
+            UK ICO registered ·{" "}
+            <a
+              href={ICO.verifyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#7a87ad] hover:text-cyan-300"
+              data-testid="footer-ico-verify"
+            >
+              {ICO.registrationNumber}
+            </a>
+          </div>
+          <Link to="/privacy" className="text-[#7a87ad] hover:text-cyan-300">
+            Privacy & data rights →
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }
