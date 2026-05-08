@@ -112,7 +112,7 @@ export default function LandingFaq() {
             Didn&apos;t see your question?
           </p>
           <a
-            href="mailto:hello@marvex.app?subject=Pre-purchase%20question"
+            href="mailto:ceo@marvex.app?subject=Pre-purchase%20question"
             data-testid="landing-faq-email"
             className="cta-ghost text-[13px]"
           >

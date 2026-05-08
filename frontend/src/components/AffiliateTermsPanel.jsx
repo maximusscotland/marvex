@@ -78,8 +78,8 @@ export default function AffiliateTermsPanel() {
             On the <strong className="text-cyan-200">28th of each month</strong> we sweep
             all <em>Available</em> balances ≥ <strong className="text-cyan-200">$50</strong> and
             send them via Wise (preferred) or PayPal. Email{" "}
-            <a className="text-cyan-300 hover:underline" href="mailto:hello@marvex.app">
-              hello@marvex.app
+            <a className="text-cyan-300 hover:underline" href="mailto:press@marvex.app">
+              press@marvex.app
             </a>{" "}
             with your preferred method before your first sweep — we&apos;ll ask before
             we pay anyway. Balances below $50 roll into the next month.
@@ -135,8 +135,8 @@ export default function AffiliateTermsPanel() {
 
           <div className="mt-2 pt-3 border-t border-white/5 mono text-[10px] uppercase tracking-[0.22em] text-[#566187]">
             Questions →{" "}
-            <a className="text-cyan-300 hover:underline" href="mailto:hello@marvex.app">
-              hello@marvex.app
+            <a className="text-cyan-300 hover:underline" href="mailto:press@marvex.app">
+              press@marvex.app
             </a>
           </div>
         </div>

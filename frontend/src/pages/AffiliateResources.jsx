@@ -627,7 +627,7 @@ export default function AffiliateResources() {
               </li>
               <li className="flex gap-3">
                 <span className="text-cyan-300 shrink-0">→</span>
-                <span><strong className="text-white">Need something custom?</strong> A bigger banner, a co-branded landing page, a video review embed kit — email <a href="mailto:hello@marvex.app" className="text-cyan-300 hover:underline">hello@marvex.app</a> and we&apos;ll make it.</span>
+                <span><strong className="text-white">Need something custom?</strong> A bigger banner, a co-branded landing page, a video review embed kit — email <a href="mailto:press@marvex.app" className="text-cyan-300 hover:underline">press@marvex.app</a> and we&apos;ll make it.</span>
               </li>
             </ul>
           </div>

@@ -50,7 +50,7 @@ export const FAQ_GROUPS = [
       {
         id: "team-license",
         q: "Can I get a team / classroom / firm license?",
-        a: "Yes — every plan listed is a single-user license. For teams, classrooms, law firms, research groups, or any organisation that needs multiple seats, custom contracts, or volume pricing, email hello@marvex.app and we'll set something up that fits.",
+        a: "Yes — every plan listed is a single-user license. For teams, classrooms, law firms, research groups, or any organisation that needs multiple seats, custom contracts, or volume pricing, email press@marvex.app and we'll set something up that fits.",
       },
       {
         id: "refund-policy",
@@ -81,7 +81,7 @@ export const FAQ_GROUPS = [
       {
         id: "gdpr",
         q: "Are you GDPR / UK-DPA compliant?",
-        a: "Yes. We collect the minimum personal data required to run the service: email and Stripe customer ID. Email me at hello@marvex.app to request export, correction, or deletion at any time — that's the legal right and we honour it within 30 days. Full details in our Privacy Policy.",
+        a: "Yes. We collect the minimum personal data required to run the service: email and Stripe customer ID. Email me at press@marvex.app to request export, correction, or deletion at any time — that's the legal right and we honour it within 30 days. Full details in our Privacy Policy.",
       },
     ],
   },
@@ -154,7 +154,7 @@ export const FAQ_GROUPS = [
       {
         id: "founder-resale",
         q: "If I'm a Founder (first 50 lifetime buyers), can I sell or transfer my badge later?",
-        a: "No. Founder status is tied to the original purchasing email and isn't transferable. The badge is recognition for trusting the project early — not a tradeable asset. If you ever lose access to the original email, contact hello@marvex.app and we'll restore the Founder number to your new email.",
+        a: "No. Founder status is tied to the original purchasing email and isn't transferable. The badge is recognition for trusting the project early — not a tradeable asset. If you ever lose access to the original email, contact press@marvex.app and we'll restore the Founder number to your new email.",
       },
       {
         id: "law-pack",
@@ -175,7 +175,7 @@ export const FAQ_GROUPS = [
       {
         id: "delete-account",
         q: "How do I delete my account and data?",
-        a: "Email hello@marvex.app from the address you signed up with. We'll close the account, cancel any active subscription (without charging the upcoming period), and remove our records of you within 30 days. Your local maps stay on your device — you can keep, export, or delete them yourself.",
+        a: "Email press@marvex.app from the address you signed up with. We'll close the account, cancel any active subscription (without charging the upcoming period), and remove our records of you within 30 days. Your local maps stay on your device — you can keep, export, or delete them yourself.",
       },
     ],
   },

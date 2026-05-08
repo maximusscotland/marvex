@@ -302,8 +302,8 @@ export default function Affiliate() {
             <p className="mt-6 text-[12px] text-[#7a87ad] leading-relaxed">
               Quick summary: payouts on the 28th, $50 minimum, 30-day hold for refund safety,
               45-day cookie window. Wise (preferred) or PayPal — email{" "}
-              <a href="mailto:hello@marvex.app" className="text-cyan-300 hover:underline">
-                hello@marvex.app
+              <a href="mailto:press@marvex.app" className="text-cyan-300 hover:underline">
+                press@marvex.app
               </a>{" "}
               before your first sweep with your preferred method. Self-referrals don&apos;t
               count. Full terms below.

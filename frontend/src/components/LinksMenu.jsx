@@ -39,7 +39,7 @@ const SECTIONS = [
     label: "Help & answers",
     items: [
       { to: "/pricing#faq", icon: HelpCircle, label: "FAQ", desc: "Pricing, AI keys, privacy" },
-      { href: "mailto:hello@marvex.app", icon: Sparkles, label: "Contact", desc: "We read every email" },
+      { href: "mailto:press@marvex.app", icon: Sparkles, label: "Contact", desc: "We read every email" },
     ],
   },
   {

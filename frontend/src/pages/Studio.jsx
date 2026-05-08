@@ -340,7 +340,7 @@ export default function Studio({ mode = "mindmap" }) {
       }
       setStuckSession(null);
     } catch {
-      toast.error("Couldn't reach our servers — please email hello@marvex.app with your receipt.");
+      toast.error("Couldn't reach our servers — please email press@marvex.app with your receipt.");
     } finally {
       setRescuing(false);
     }

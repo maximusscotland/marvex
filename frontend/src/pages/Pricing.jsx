@@ -69,18 +69,17 @@ export default function Pricing() {
     type: "website",
     url: "https://marvex.app/pricing",
   });
-  const [founders, setFounders] = useState({ limit: 50, taken: 0, remaining: 50 });
+  const [founders] = useState({ limit: 50, taken: 0, remaining: 50 });
   // A/B experiment: should the Lite tier be visible? PostHog flag
   // `lite_tier_visible` controls bucketing; default TRUE so Lite ships
   // for the test variant without a flag set. Control group sees just
   // the existing Pro/Annual/Lifetime tiers — same UX as before Lite.
   const liteVisible = useExperiment("lite_tier_visible", true);
 
-  useEffect(() => {
-    axios.get(`${API}/billing/plans`).then((r) => {
-      if (r.data?.founders) setFounders(r.data.founders);
-    }).catch(() => { /* not fatal */ });
-  }, []);
+  // Founders state retained for future use; the visible countdown is
+  // currently suppressed (see showFounder below) until real social
+  // proof exists.
+  void founders;
 
   return (
     <div data-testid="pricing-page" className="min-h-screen text-white cosmic-bg">
@@ -169,7 +168,10 @@ export default function Pricing() {
             .filter(([id]) => liteVisible || id !== "lite")
             .map(([id, plan]) => {
             const isLifetime = id === "lifetime";
-            const showFounder = isLifetime && founders.remaining > 0;
+            // Founders countdown intentionally hidden — bring it back when
+            // we have real social proof to anchor the urgency. Until then
+            // showing "50/50 LEFT" reads like fake scarcity.
+            const showFounder = false;
             const perks = PERKS_BY_PLAN[id] || PERKS_PRO;
             return (
               <div
@@ -255,11 +257,11 @@ export default function Pricing() {
             classroom, law firm, research group — or want a custom contract or volume pricing?
           </p>
           <a
-            href="mailto:hello@marvex.app?subject=Multi-user%20license%20enquiry"
+            href="mailto:press@marvex.app?subject=Multi-user%20license%20enquiry"
             data-testid="pricing-team-contact-email"
             className="inline-block mt-3 mono text-[11px] uppercase tracking-[0.18em] text-cyan-300 hover:text-cyan-200 underline-offset-4 hover:underline"
           >
-            hello@marvex.app →
+            press@marvex.app →
           </a>
         </div>
       </section>
@@ -436,7 +438,7 @@ export default function Pricing() {
         <p className="text-center text-[#9aa7c7] text-[14px] mb-8 max-w-xl mx-auto">
           The honest answers to what most people ask before paying. Still on the fence?{" "}
           <a
-            href="mailto:hello@marvex.app?subject=Pre-purchase%20question"
+            href="mailto:ceo@marvex.app?subject=Pre-purchase%20question"
             className="text-cyan-300 hover:underline"
             data-testid="pricing-faq-contact"
           >

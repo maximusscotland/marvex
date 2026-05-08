@@ -1,40 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Users } from "lucide-react";
 
 /**
  * Compact social-proof strip — sits below the hero CTA buttons.
  *
- * Pulls the real waitlist count from /api/waitlist/count (no fake numbers)
- * and surfaces it as "Joined by N researchers in private preview". When the
- * count is zero or the endpoint fails (e.g. backend cold start) we hide the
- * count gracefully and fall back to the static "Private preview" badge — never
- * a faked number, never an empty space.
- *
- * Stays small (single line on desktop) so it doesn't compete with the hero CTA.
+ * Currently renders a static "Private preview · be among the first" badge
+ * (no fake numbers). The waitlist-count branch is intentionally disabled
+ * until we have organic traffic worth surfacing — bringing it back is a
+ * one-liner. Decorative cosmic avatar dots stay so the layout still
+ * signals "people use this" without claiming a specific count.
  */
-const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
-
-const formatCount = (n) => {
-  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k`;
-  return String(n);
-};
 
 export default function SocialProofStrip() {
-  const [count, setCount] = useState(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`${API}/waitlist/count`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!cancelled && data && typeof data.count === "number") {
-          setCount(data.count);
-        }
-      })
-      .catch(() => { /* offline / cold start — fall through to badge */ });
-    return () => { cancelled = true; };
-  }, []);
-
   return (
     <div
       data-testid="landing-social-proof"
@@ -57,19 +34,9 @@ export default function SocialProofStrip() {
       </div>
       <div className="flex items-center gap-1.5">
         <Users size={13} className="text-cyan-300/80" />
-        {count !== null && count > 0 ? (
-          <span data-testid="landing-social-count">
-            Joined by{" "}
-            <span className="text-cyan-200 font-semibold tabular-nums">
-              {formatCount(count)}
-            </span>{" "}
-            researchers in private preview
-          </span>
-        ) : (
-          <span className="mono text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">
-            Private preview · be among the first
-          </span>
-        )}
+        <span className="mono text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">
+          Private preview · be among the first
+        </span>
       </div>
     </div>
   );

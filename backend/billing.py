@@ -627,7 +627,7 @@ def make_router(db: AsyncIOMotorDatabase, current_user_dep) -> APIRouter:
         if not customer_id:
             raise HTTPException(
                 status_code=404,
-                detail="No active subscription found. Email hello@marvex.app if you believe this is wrong.",
+                detail="No active subscription found. Email press@marvex.app if you believe this is wrong.",
             )
 
         stripe_sdk.api_key = STRIPE_API_KEY
@@ -644,7 +644,7 @@ def make_router(db: AsyncIOMotorDatabase, current_user_dep) -> APIRouter:
                 status_code=502,
                 detail=(
                     "Customer portal isn't available right now. "
-                    "Email hello@marvex.app to manage your subscription and we'll handle it within 24h."
+                    "Email press@marvex.app to manage your subscription and we'll handle it within 24h."
                 ),
             )
 

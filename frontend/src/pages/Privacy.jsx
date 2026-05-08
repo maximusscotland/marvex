@@ -96,7 +96,7 @@ const SECTIONS = [
     h: "7. Your rights",
     body: (
       <p>
-        Email <a href="mailto:hello@marvex.app" className="text-cyan-300 hover:underline">hello@marvex.app</a>
+        Email <a href="mailto:press@marvex.app" className="text-cyan-300 hover:underline">press@marvex.app</a>
         {" "} to access, export, or delete your data. We&apos;ll respond within 30 days. EU/UK users
         have GDPR rights; California users have CCPA rights — both are honoured.
       </p>

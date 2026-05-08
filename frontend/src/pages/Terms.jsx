@@ -53,7 +53,7 @@ const SECTIONS = [
         <li>Monthly &amp; Annual: 7-day free trial — only charged if you continue. Cancel anytime; access continues until the end of your paid period.</li>
         <li>Lifetime: full refund within 14 days of purchase, no questions asked. After 14 days, lifetime is non-refundable.</li>
         <li><strong>Law Pack add-on ($10 one-off):</strong> refundable within 7 days <em>provided you haven&apos;t used the BAILII full-text search</em>. Once you&apos;ve run a search the add-on is non-refundable (we pay third-party costs the moment a search runs).</li>
-        <li>Refund requests: email <a href="mailto:hello@marvex.app" className="text-cyan-300 hover:underline">hello@marvex.app</a> with your Stripe receipt.</li>
+        <li>Refund requests: email <a href="mailto:press@marvex.app" className="text-cyan-300 hover:underline">press@marvex.app</a> with your Stripe receipt.</li>
       </ul>
     ),
   },
@@ -123,7 +123,7 @@ const SECTIONS = [
     body: (
       <p>
         We may update these terms; material changes get an email if you&apos;re registered.
-        Questions? <a href="mailto:hello@marvex.app" className="text-cyan-300 hover:underline">hello@marvex.app</a>.
+        Questions? <a href="mailto:press@marvex.app" className="text-cyan-300 hover:underline">press@marvex.app</a>.
         Governing law: England &amp; Wales (subject to your local consumer rights).
       </p>
     ),
