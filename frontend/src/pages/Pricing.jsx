@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, Sparkles, ArrowRight, ArrowLeft, Shield } from "lucide-react";
+import { Check, Sparkles, ArrowRight, ArrowLeft, Shield, Loader2 } from "lucide-react";
 import axios from "axios";
+import { toast } from "sonner";
 import Logo from "@/components/Logo";
 import FaqJsonLd from "@/components/FaqJsonLd";
 import { FAQ_FLAT } from "@/lib/faqs";
@@ -9,6 +10,8 @@ import { useExperiment } from "@/lib/featureFlags";
 import { track } from "@/lib/posthog";
 import usePageMeta from "@/lib/usePageMeta";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
+import { useAuth } from "@/lib/auth";
+import { getRef } from "@/lib/referral";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -80,6 +83,62 @@ export default function Pricing() {
   // currently suppressed (see showFounder below) until real social
   // proof exists.
   void founders;
+
+  // Stripe checkout — mirrors UpgradeDialog.startCheckout. Public
+  // /pricing CTAs route paid plans (lite/monthly/annual/lifetime)
+  // through this; the explicit "Free" tier still goes to /library
+  // because there's no charge to authorise.
+  const { user, signIn } = useAuth();
+  const [busyPlan, setBusyPlan] = useState(null);
+
+  const startCheckout = async (planId) => {
+    track("pricing_cta_clicked", { plan: planId, lite_visible: liteVisible });
+    if (!user) {
+      // Stash the intended plan so we can resume after Google OAuth round-trip.
+      try { sessionStorage.setItem("marvex_pending_plan", planId); } catch { /* ignore */ }
+      signIn();
+      return;
+    }
+    setBusyPlan(planId);
+    track("checkout_started", { plan: planId, source: "pricing_page", lite_visible: liteVisible });
+    try {
+      const r = await axios.post(
+        `${API}/billing/create-checkout`,
+        {
+          plan: planId,
+          origin_url: window.location.origin,
+          ref_code: getRef() || "",
+        },
+        { withCredentials: true },
+      );
+      if (r.data?.url) {
+        // Hard redirect to Stripe Checkout. The success_url returns to
+        // /app?upgraded=true&session_id=... where Studio's effect mirrors
+        // the subscription state and pops the celebratory toast.
+        window.location.href = r.data.url;
+      } else {
+        toast.error("Could not start checkout — please try again.");
+        setBusyPlan(null);
+      }
+    } catch (e) {
+      const detail = e?.response?.data?.detail;
+      toast.error(typeof detail === "string" ? detail : "Checkout failed — please try again.");
+      setBusyPlan(null);
+    }
+  };
+
+  // After OAuth round-trip, resume the pending checkout once the user is back.
+  useEffect(() => {
+    if (!user) return;
+    let pending;
+    try { pending = sessionStorage.getItem("marvex_pending_plan"); } catch { pending = null; }
+    if (pending && PLAN_DETAIL[pending]) {
+      try { sessionStorage.removeItem("marvex_pending_plan"); } catch { /* ignore */ }
+      startCheckout(pending);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
 
   return (
     <div data-testid="pricing-page" className="min-h-screen text-white cosmic-bg">
@@ -219,14 +278,21 @@ export default function Pricing() {
                   </div>
                 )}
 
-                <Link
-                  to="/library"
+                <button
+                  type="button"
+                  onClick={() => startCheckout(id)}
+                  disabled={busyPlan === id}
                   data-testid={`pricing-cta-${id}`}
-                  onClick={() => track("pricing_cta_clicked", { plan: id, lite_visible: liteVisible })}
-                  className={id === "annual" ? "cta-pill w-full justify-center mb-5" : "cta-ghost w-full justify-center mb-5"}
+                  className={`${id === "annual" ? "cta-pill" : "cta-ghost"} w-full justify-center mb-5 disabled:opacity-60 disabled:cursor-wait`}
                 >
-                  {PLAN_CTA[id]}
-                </Link>
+                  {busyPlan === id ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" /> Redirecting…
+                    </>
+                  ) : (
+                    PLAN_CTA[id]
+                  )}
+                </button>
 
                 <ul className="space-y-2 mt-auto">
                   {perks.map((p) => (
