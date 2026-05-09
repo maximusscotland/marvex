@@ -31,6 +31,19 @@
         <meta name="twitter:description" content="AI mind map generator — turn any PDF into an interactive mind map in 60 seconds. Local-first, BYO-key, free tier. No login required." />
         <meta name="twitter:image" content="https://marvex.app/og/marvex-default.png" />
         <meta name="twitter:image:alt" content="Marvex Studio — convert any PDF into an interactive AI mind map in 60 seconds" />
+        <!-- LCP preload — the first cinematic-teaser frame is the largest
+             contentful element on the landing page. Preloading it during
+             HTML parse (before React mounts) shaves ~200-400ms off LCP on
+             slower connections. WebP is served to ~98% of modern browsers;
+             the type hint lets the browser skip the preload on the rare
+             non-WebP UA without wasting bandwidth. -->
+        <link
+          rel="preload"
+          as="image"
+          href="/teaser/book-to-map.webp"
+          type="image/webp"
+          fetchpriority="high"
+        />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
         <!-- Core marketing pack — small + fast.  Sora (heading + body) +
