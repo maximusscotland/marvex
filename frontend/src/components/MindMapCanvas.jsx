@@ -38,6 +38,7 @@ import TopToolbar from "@/components/mindmap/render/TopToolbar";
 import MapEdges from "@/components/mindmap/render/MapEdges";
 import CanvasContextMenu from "@/components/mindmap/render/CanvasContextMenu";
 import MapNode from "@/components/mindmap/render/MapNode";
+import FreeCapNudge from "@/components/mindmap/render/FreeCapNudge";
 import { FREE_NODE_CAP } from "@/components/mindmap/constants";
 import { usePrivacyMode } from "@/lib/privacyMode";
 import { downloadMmap } from "@/lib/mapFile";
@@ -1241,6 +1242,18 @@ export default function MindMapCanvas({
       <div className="absolute bottom-7 left-1/2 -translate-x-1/2 z-20 mono text-[10px] uppercase tracking-[0.22em] text-[#566187] pointer-events-none">
         Drag · Scroll zoom · Double-click rename · <span className="text-cyan-300">Right-click = options</span> · Press <span className="text-cyan-300">?</span> for shortcuts
       </div>
+
+      {/* Inline freemium upgrade nudge — appears for free-tier users
+          starting at 24 nodes (soft pill) and at 30 nodes (hard card),
+          dismissable per-map per-session. Pro/Lite/Founder users
+          never see it. */}
+      <FreeCapNudge
+        nodeCap={nodeCap}
+        nodeCount={countNodes(map)}
+        mapId={map?.id}
+        isPro={isPro}
+        onUpgrade={onUpgrade}
+      />
 
       {/* Shortcuts overlay */}
       {shortcutsOpen && <ShortcutsOverlay onClose={() => setShortcutsOpen(false)} />}

@@ -268,7 +268,7 @@ export default function Library() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           {/* Privacy + library backup controls */}
           <div className="hidden md:flex items-center gap-1" data-testid="library-privacy-controls">
             <button
