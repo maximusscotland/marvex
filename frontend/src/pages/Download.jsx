@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Download as DownloadIcon, Monitor, Apple, Server, Github, ExternalLink, ShieldAlert, Cpu, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Download as DownloadIcon, Monitor, Apple, Server, Github, ExternalLink, ShieldAlert, Cpu, CheckCircle2, Lock, Sparkles } from "lucide-react";
 import usePageMeta from "@/lib/usePageMeta";
+import { useAuth } from "@/lib/auth";
+import { useLicense } from "@/lib/license";
 
 /**
  * Friendly download landing page. Detects the user's OS via `navigator.platform`
@@ -197,9 +199,16 @@ const TITLES = {
 export default function Download() {
   const [os, setOs] = useState("unknown");
   const [arch, setArch] = useState("x64");
+  const { user, signIn, loading: authLoading } = useAuth();
+  const license = useLicense();
+  // Any paid tier (Lite / Pro / Founder / Lifetime) gets desktop access.
+  // Lite users paying $9/mo are entitled to the desktop app — gating to
+  // Pro-only would cheat them. License `active` is true for any paid plan;
+  // `founder` covers manually granted lifetime accounts.
+  const canDownload = license.active || license.founder;
   usePageMeta({
-    title: "Download Marvex Studio · Windows, macOS & Linux",
-    description: "Native desktop app for turning PDFs into beautiful mind-maps. Windows, macOS (Apple Silicon + Intel), and Linux (AppImage, .deb, .rpm). Free, local-first, no account required.",
+    title: "Download Marvex Studio · Pro feature · Windows, macOS & Linux",
+    description: "Native desktop app for turning PDFs into beautiful mind-maps. Included with every paid Marvex plan (Lite · Pro · Founder · Lifetime). Windows, macOS (Apple Silicon + Intel), and Linux.",
     type: "website",
   });
 
@@ -261,12 +270,72 @@ export default function Download() {
             single-instance focus, and a manual "Check for updates" link in the app menu.
           </p>
           <p className="mono text-[10px] uppercase tracking-[0.22em] text-[#5e6a91]">
-            Free · No account required · Windows · macOS · Linux
+            Included with every paid plan · Windows · macOS · Linux
           </p>
 
+          {/* PAYWALL — non-paying visitors see an upgrade panel instead of
+              installer links. The web app stays free at marvex.app/app; the
+              native desktop binary is reserved for paying subscribers
+              (Lite $9/mo, Pro $15/mo, Founder $200, Lifetime).  */}
+          {!authLoading && !canDownload && (
+            <div
+              data-testid="download-paywall"
+              className="mt-8 mx-auto max-w-2xl rounded-2xl border border-fuchsia-400/40 bg-gradient-to-br from-fuchsia-500/[0.10] via-violet-500/[0.05] to-cyan-500/[0.05] p-6 text-left shadow-[0_0_60px_rgba(255,106,213,0.12)]"
+            >
+              <div className="flex items-center gap-2 mono text-[10px] uppercase tracking-[0.22em] text-fuchsia-300/90 mb-3">
+                <Lock size={11} />
+                <span>Paid plan required</span>
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2">
+                The desktop app is reserved for subscribers
+              </h2>
+              <p className="text-[14px] text-[#cfdaf3] leading-relaxed mb-5">
+                The native installers (Windows · macOS · Linux) ship with every Marvex paid plan
+                — including Lite at <strong className="text-cyan-200">$9/month</strong>.
+                The web app at <Link to="/app" className="text-cyan-300 underline">marvex.app/app</Link> stays
+                free forever.
+              </p>
+              <ul className="space-y-1.5 text-[13px] text-[#cfdaf3] mb-5 pl-1">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-cyan-300 shrink-0" /> Local-first — your maps live in your filesystem
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-cyan-300 shrink-0" /> Works offline (AI features need internet)
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 size={14} className="text-cyan-300 shrink-0" /> Auto-updates · OS keyboard shortcuts · double-click .mmap
+                </li>
+              </ul>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Link
+                  to="/pricing"
+                  data-testid="download-paywall-cta"
+                  className="cta-pill flex-1 justify-center text-[13px] py-3"
+                >
+                  <Sparkles size={13} /> See plans &amp; unlock desktop
+                </Link>
+                {!user && (
+                  <button
+                    onClick={signIn}
+                    data-testid="download-paywall-signin"
+                    className="mono text-[10px] uppercase tracking-[0.22em] flex-1 justify-center px-3 py-3 rounded-full border border-cyan-400/30 bg-cyan-500/[0.06] text-cyan-200 hover:text-white hover:border-cyan-300/60 transition flex items-center"
+                  >
+                    Already paid? Sign in
+                  </button>
+                )}
+              </div>
+              <div className="mt-4 mono text-[9px] uppercase tracking-[0.22em] text-[#566187] text-center">
+                {user
+                  ? `Signed in as ${user.email || "you"} — your plan: ${license.tier || "free"}`
+                  : "Free to try the web app · sign in to redeem an existing plan"}
+              </div>
+            </div>
+          )}
+
           {/* Live detection banner + one-click recommended download.
-              Removes all decision-making for the 95%-case user. */}
-          {REPO_CONFIGURED && os !== "unknown" && recommendedHref && (
+              Removes all decision-making for the 95%-case user.
+              Only rendered for entitled (paid) users. */}
+          {canDownload && REPO_CONFIGURED && os !== "unknown" && recommendedHref && (
             <div
               data-testid="download-detection-panel"
               className="mt-8 mx-auto max-w-2xl rounded-2xl border border-cyan-400/40 bg-gradient-to-br from-cyan-500/[0.08] via-violet-500/[0.04] to-fuchsia-500/[0.05] p-6 text-left shadow-[0_0_60px_rgba(0,240,255,0.10)]"
@@ -296,7 +365,7 @@ export default function Download() {
             </div>
           )}
 
-          {!REPO_CONFIGURED && (
+          {canDownload && !REPO_CONFIGURED && (
             <div
               data-testid="download-coming-soon"
               className="mt-8 mx-auto max-w-xl rounded-xl border border-amber-400/30 bg-amber-400/[0.04] px-5 py-4 text-left"
@@ -315,7 +384,9 @@ export default function Download() {
         </div>
       </section>
 
-      {/* Downloads */}
+      {/* Downloads — only rendered for paid (entitled) users.
+          Non-paying visitors see only the paywall hero above. */}
+      {canDownload && (
       <section className="px-6 md:px-10 pb-20">
         <div className="max-w-4xl mx-auto space-y-5">
           {ordered.map((key) => {
@@ -489,6 +560,7 @@ export default function Download() {
           </div>
         </div>
       </section>
+      )}
     </div>
   );
 }
