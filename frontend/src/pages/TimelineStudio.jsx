@@ -323,17 +323,26 @@ export default function TimelineStudio() {
             onChange={handleChange}
             defaultCategoryId={(timeline.categories || [])[0]?.id}
             onAddEvent={(seed) => {
-              // Save directly — bypass the modal so quick-add stays fast.
-              const e = {
-                ...seed,
-                id: newEventId(),
-                lane: 0,
-              };
-              handleChange({
-                ...timeline,
-                events: [...(timeline.events || []), e],
-              });
+              // Re-read fresh state from storage so a rapid-fire batch of
+              // slash commands accumulates correctly (each callback is
+              // closed over the same timeline snapshot otherwise — stale
+              // closure → silent overwrites).
+              const fresh = getTimeline(timeline.id) || timeline;
+              const e = { ...seed, id: newEventId(), lane: 0 };
+              handleChange({ ...fresh, events: [...(fresh.events || []), e] });
               toast.success(`Added "${e.label}" on ${new Date(e.dateISO).toLocaleDateString()}`);
+            }}
+            onAddPeriod={(seed) => {
+              const fresh = getTimeline(timeline.id) || timeline;
+              const p = { ...seed, id: newPeriodId() };
+              handleChange({ ...fresh, periods: [...(fresh.periods || []), p] });
+              toast.success(`Period "${p.label}" added`);
+            }}
+            onAddMilestone={(seed) => {
+              const fresh = getTimeline(timeline.id) || timeline;
+              const m = { ...seed, id: newMilestoneId() };
+              handleChange({ ...fresh, milestones: [...(fresh.milestones || []), m] });
+              toast.success(`Milestone "${m.label}" added`);
             }}
           />
         </div>
