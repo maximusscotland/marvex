@@ -35,7 +35,7 @@ export default function SocialProofStrip() {
       <div className="flex items-center gap-1.5">
         <Users size={13} className="text-cyan-300/80" />
         <span className="mono text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">
-          Private preview · be among the first
+          Be among the first
         </span>
       </div>
     </div>

@@ -31,6 +31,7 @@ import AssetsSidebar from "@/components/AssetsSidebar";
 import MindMapCanvas from "@/components/MindMapCanvas";
 import UpgradeDialog from "@/components/UpgradeDialog";
 import SyncBadge from "@/components/SyncBadge";
+import { loadCanvasFonts } from "@/lib/loadCanvasFonts";
 import ShareDialog from "@/components/ShareDialog";
 import ResearchProgressOverlay from "@/components/ResearchProgressOverlay";
 import ShareCardDialog from "@/components/ShareCardDialog";
@@ -86,6 +87,12 @@ const formatStudioStamp = (ts) => {
 };
 
 export default function Studio({ mode = "mindmap" }) {
+  // Lazy-load the 30-family mind-map font pack the FIRST time anyone
+  // opens Studio. This is keyed on module load so we only fire it once
+  // per session — marketing pages (landing/pricing/FAQ) never trigger
+  // it, saving them ~600KB of font CSS + woff2 fetches per visit.
+  loadCanvasFonts();
+
   const isFlowchart = mode === "flowchart";
   const navigate = useNavigate();
   const privacyOn = usePrivacyMode();

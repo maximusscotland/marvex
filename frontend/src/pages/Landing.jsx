@@ -223,10 +223,14 @@ export default function Landing() {
             </div>
           </ScrollReveal>
 
-          {/* BUTTONS — slot 6 */}
+          {/* BUTTONS — slot 6.  Desktop download CTA removed from the
+              public landing in favour of routing visitors at the web app
+              first; the desktop installer is gated behind a paid plan
+              from /download itself. Anyone wanting it from here can
+              still reach it via the footer / pricing pages. */}
           <ScrollReveal delay={600} className="mt-12 flex flex-wrap items-center justify-center gap-4">
-            <Link to="/download" data-testid="hero-launch-btn" className="cta-pill text-[15px]">
-              {t("common.download")} <ArrowRight size={16} />
+            <Link to="/library" data-testid="hero-launch-btn" className="cta-pill text-[15px]">
+              {t("common.tryFree")} <ArrowRight size={16} />
             </Link>
             <Link
               to="/app?example=guide"
@@ -332,7 +336,7 @@ export default function Landing() {
           </div>
 
           <p className="text-[11px] text-[#566187] leading-relaxed text-center mt-10 max-w-2xl mx-auto">
-            Real testimonials will replace these use cases as the private preview opens up.
+            Real testimonials will replace these use cases as Marvex Studio gathers reviews from real users.
             Want a free month of Pro for honest feedback?&nbsp;
             <Link
               to="/feedback"

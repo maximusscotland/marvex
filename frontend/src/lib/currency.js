@@ -54,28 +54,26 @@ const FORMAT = {
 export const SUPPORTED_CURRENCIES = Object.keys(FX);
 
 /**
- * Best-guess of the visitor's currency, derived from their browser
- * locale. Falls back to USD when we can't tell. Stored once in
- * sessionStorage so a page refresh doesn't flicker between codes.
+ * Default currency for the pricing page.
+ *
+ * Policy: USD by default. We don't infer the visitor's currency from
+ * `navigator.language` because browser language ≠ shopper location (UK
+ * users routinely run en-US browsers, US users run en-GB, etc.) and
+ * showing the wrong currency at the top of /pricing creates confusion
+ * + extra Stripe FX fees. The `<CurrencySwitcher />` lets visitors flip
+ * to GBP / EUR / AUD / etc. on demand and that choice is cached in
+ * sessionStorage so a refresh keeps it.
+ *
+ * If we later add proper IP-geolocation (server-side, e.g. via the
+ * Cloudflare CF-IPCountry header) we can override this with a real
+ * geo-derived guess. Until then USD is the safe default.
  */
 export function detectDefaultCurrency() {
   try {
     const cached = sessionStorage.getItem("marvex_currency");
     if (cached && SUPPORTED_CURRENCIES.includes(cached)) return cached;
   } catch { /* ignore */ }
-
-  // Cheap region heuristic — not perfect but better than US dollars
-  // for everyone.
-  const lang = ((typeof navigator !== "undefined" && navigator.language) || "en-US").toLowerCase();
-  let guess = "USD";
-  if (lang.includes("gb") || lang === "en-gb") guess = "GBP";
-  else if (lang.startsWith("en-au")) guess = "AUD";
-  else if (lang.startsWith("en-ca") || lang.startsWith("fr-ca")) guess = "CAD";
-  else if (lang.startsWith("ja")) guess = "JPY";
-  else if (/^(de|fr|es|it|nl|pt|fi|sv|da|el|pl)/.test(lang)) guess = "EUR";
-  else if (lang.startsWith("hi") || lang.startsWith("en-in")) guess = "INR";
-  else if (lang.startsWith("pt-br")) guess = "BRL";
-  return guess;
+  return "USD";
 }
 
 export function setCurrency(code) {

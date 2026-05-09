@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+/* Sora + JetBrains Mono are now loaded via <link rel="stylesheet"> in
+   public/index.html with `preconnect` for faster handshake.  Importing
+   them via @import here would block the CSS parser (no parallel fetch)
+   so we let index.html drive font loading. */
 
 @tailwind base;
 @tailwind components;
