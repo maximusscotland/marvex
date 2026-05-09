@@ -144,25 +144,32 @@ export default function App() {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
 
-          {/* GATED app surface — Studio, Library, Reader, etc. require either
-              the access key (?unlock=…) or being on the waitlist allow-list.
-              Until launch day, only access-key holders get through. */}
-          <Route path="/app" element={<AccessGate><Studio /></AccessGate>} />
-          <Route path="/flowchart" element={<AccessGate><FlowchartStudio /></AccessGate>} />
-          <Route path="/timeline" element={<AccessGate><TimelineStudio /></AccessGate>} />
-          <Route path="/timeline/new" element={<AccessGate><TimelineStudio /></AccessGate>} />
-          <Route path="/timeline/:id" element={<AccessGate><TimelineStudio /></AccessGate>} />
-          <Route path="/intake" element={<AccessGate><IntakeStudio /></AccessGate>} />
-          <Route path="/library" element={<AccessGate><Library /></AccessGate>} />
-          <Route path="/output" element={<AccessGate><Output /></AccessGate>} />
-          <Route path="/calendar" element={<AccessGate><Calendar /></AccessGate>} />
-          <Route path="/read" element={<AccessGate><PdfReader /></AccessGate>} />
-          <Route path="/highlights" element={<AccessGate><Highlights /></AccessGate>} />
-          <Route path="/memory" element={<AccessGate><Memory /></AccessGate>} />
-          <Route path="/feedback" element={<AccessGate><FeedbackForm /></AccessGate>} />
+          {/* PUBLIC app surface — anyone can try the studio. Free-tier
+              limits (30-node cap, 3 free AI conversions, no Timeline /
+              Flowchart / Desktop / Save-to-cloud) are enforced inside
+              each page via useLicense().blocksAction() and per-feature
+              paywalls — that funnel is the freemium conversion path,
+              not a hard front-door gate. Admin routes (below) remain
+              key-locked. */}
+          <Route path="/app" element={<Studio />} />
+          <Route path="/flowchart" element={<FlowchartStudio />} />
+          <Route path="/timeline" element={<TimelineStudio />} />
+          <Route path="/timeline/new" element={<TimelineStudio />} />
+          <Route path="/timeline/:id" element={<TimelineStudio />} />
+          <Route path="/intake" element={<IntakeStudio />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/output" element={<Output />} />
+          <Route path="/calendar" element={<Calendar />} />
+          <Route path="/read" element={<PdfReader />} />
+          <Route path="/highlights" element={<Highlights />} />
+          <Route path="/memory" element={<Memory />} />
+          <Route path="/feedback" element={<FeedbackForm />} />
 
-          {/* Admin — keyholder-only. (Same gate for now; can add a separate
-              admin password later if the team grows.) */}
+          {/* Admin — keyholder-only. AccessGate STAYS on these routes
+              because they expose Ops dashboards / affiliate payouts /
+              testimonial moderation that should NOT be public. The
+              founders'-round access key (mind-mapper67) is the
+              gatekeeper here. */}
           <Route path="/admin/testimonials" element={<AccessGate><AdminTestimonials /></AccessGate>} />
           <Route path="/admin/affiliates" element={<AccessGate><AdminAffiliates /></AccessGate>} />
           <Route path="/admin/family" element={<AccessGate><AdminFamily /></AccessGate>} />
