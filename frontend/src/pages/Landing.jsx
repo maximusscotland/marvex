@@ -26,7 +26,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import SEOContent from "@/components/SEOContent";
 import AccessCodeBox from "@/components/AccessCodeBox";
 import LandingFaq from "@/components/LandingFaq";
-import ThemePreview from "@/components/ThemePreview";
+import ThemeToggle from "@/components/ThemeToggle";
 import usePageMeta from "@/lib/usePageMeta";
 import { PRESET_BACKGROUNDS } from "@/lib/backgrounds";
 
@@ -105,7 +105,6 @@ export default function Landing() {
 
   return (
     <div data-testid="landing-page" className="cosmic-bg min-h-screen text-white">
-      <ThemePreview />
       {/* SEO H1 — visually hidden but read by Google + screen readers.
           Placing the keyword-rich H1 here (instead of replacing the
           cinematic hero copy) keeps the brand voice intact while giving
@@ -127,6 +126,7 @@ export default function Landing() {
           <Link to="/library" data-testid="nav-launch-btn" className="cta-ghost text-sm">
             {t("common.tryFree")} <ArrowRight size={14} />
           </Link>
+          <ThemeToggle />
           <LinksMenu align="right" />
         </div>
       </nav>

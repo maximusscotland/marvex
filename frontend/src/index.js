@@ -8,6 +8,12 @@ initSentry();
 import { initTesterAccess } from "@/lib/testerAccess";
 initTesterAccess();
 
+// Light/dark theme — apply the class on <html> before React mounts so
+// the first frame paints in the user's preferred mode (no flash of
+// dark for users who prefer light).
+import { initTheme } from "@/lib/theme";
+initTheme();
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "@/index.css";

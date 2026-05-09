@@ -37,6 +37,79 @@ code, .mono {
   font-family: 'JetBrains Mono', monospace;
 }
 
+/* ============ LIGHT THEME ============
+   Activated by `<html class="theme-light">` (set by lib/theme.js).
+   Strategy: flip the page-surface variables so backgrounds go light
+   and text becomes dark. Glass panels (`bg-[#0a1428]` etc.) and
+   accent neons stay as-is — they read fine against the light surface
+   and rebuilding every Tailwind utility class would be a multi-day
+   refit. The result is a "dark cards on light paper" aesthetic that
+   stays on-brand while giving daylight users a comfortable read.
+   `prefers-color-scheme` and a localStorage pref both feed into this. */
+html.theme-light {
+  /* Page surfaces — invert the cosmic ladder. */
+  --bg-deepest:  #f6f4ee;
+  --bg-deep:     #ece8de;
+  --bg-panel:    #f9f7f1;
+  --bg-panel-2:  #f1ede1;
+
+  /* Ink / text — flip from cool whites to warm near-blacks. */
+  --ink-50:   #1a1f2e;
+  --ink-200:  #3a4156;
+  --ink-400:  #6c7287;
+  --ink-600:  #9aa1b3;
+
+  /* Soften the cosmic-bg glow so it reads as a subtle warm wash on
+     light paper rather than the deep nebula on dark. */
+  --bg-glow-1:   rgba(255, 200, 120, 0.18);
+  --bg-glow-2:   rgba(180, 140, 255, 0.10);
+  --bg-glow-3:   rgba(120, 200, 255, 0.06);
+  --bg-nebula-1: rgba(255, 180, 100, 0.10);
+  --bg-nebula-2: rgba(180, 140, 255, 0.08);
+}
+/* Body text needs an explicit override because Tailwind's
+   `text-white` utility would otherwise leave light-mode body copy
+   invisible on a light surface. */
+html.theme-light body { color: var(--ink-50); }
+
+/* Reduce starfield brightness on light paper so it reads as
+   subtle texture rather than visual noise. */
+html.theme-light .cosmic-bg::before { opacity: 0.18; }
+
+/* ============ LIGHT-MODE LEGIBILITY FIXES ============
+   Tailwind's `text-white`, `text-[#cfdaf3]`, `text-[#a4b4d8]` etc. are
+   baked at build time and don't respond to a CSS-variable flip. Without
+   these targeted overrides headings would be invisible on the light
+   paper. We override only the highest-traffic colour utilities used in
+   the marketing surface — narrow enough to avoid breaking the dark-on-
+   light glass-panel look, broad enough that body copy and headings
+   read cleanly. */
+html.theme-light .text-white,
+html.theme-light .\[\&_\*\]\:text-white *,
+html.theme-light .text-\[\#eaf6ff\],
+html.theme-light .text-\[\#cfdaf3\],
+html.theme-light .text-\[\#b8c6e0\],
+html.theme-light .text-\[\#a4b4d8\],
+html.theme-light .text-\[\#9aa7c7\],
+html.theme-light .text-\[\#9aaad0\] {
+  color: var(--ink-50);
+}
+html.theme-light .text-\[\#7a87ad\],
+html.theme-light .text-\[\#566187\],
+html.theme-light .text-\[\#6c7aa3\],
+html.theme-light .text-\[\#3a4570\] {
+  color: var(--ink-400);
+}
+/* Soften over-bright neon accent text against light paper — full
+   neon cyan can vibrate uncomfortably at body-copy weight. */
+html.theme-light .text-cyan-300 { color: #0891b2; }
+html.theme-light .text-cyan-200 { color: #0e7490; }
+html.theme-light .text-fuchsia-300 { color: #c026d3; }
+html.theme-light .text-fuchsia-200 { color: #a21caf; }
+/* Glass panels stay dark — they'll read as "dark cards on light
+   paper", an aesthetic that's deliberate in this minimal flip. */
+
+
 @layer base {
   :root {
     --background: 230 60% 4%;
