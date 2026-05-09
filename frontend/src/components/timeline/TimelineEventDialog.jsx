@@ -1,6 +1,27 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from "react";
-import { X, Trash2, Link2, Calendar } from "lucide-react";
+import { X, Trash2, Link2, Calendar, Tag } from "lucide-react";
+
+/**
+ * Available shapes for an event block. Mirror naming with mind-map
+ * shapes so users get a familiar mental model. Each is rendered via
+ * CSS clip-path on the cube's wrapper button.
+ */
+export const EVENT_SHAPES = [
+  { id: "rect",    label: "Square" },
+  { id: "pill",    label: "Pill" },
+  { id: "circle",  label: "Circle" },
+  { id: "diamond", label: "Diamond" },
+  { id: "hex",     label: "Hex" },
+  { id: "pin",     label: "Pin" },
+];
+
+const FONT_SIZES = [10, 11, 12, 13, 14, 16, 18];
+
+const SWATCHES = [
+  null, "#00f0ff", "#ff6ad5", "#a08cff", "#ffd66b",
+  "#76ff9d", "#ff8a65", "#42a5f5", "#e2e8f0",
+];
 
 /**
  * TimelineEventDialog — modal for editing a single event on a timeline.
@@ -165,6 +186,120 @@ export default function TimelineEventDialog({
               className="w-full bg-[#03040a] border border-white/15 rounded-lg px-3 py-2 text-[13px] text-white font-mono outline-none focus:border-cyan-400/60"
               placeholder="https://… or mailto:… or local path"
             />
+          </div>
+
+          {/* Shape — visual parity with mind-map nodes. */}
+          <div>
+            <label className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-1.5 block">
+              Shape
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {EVENT_SHAPES.map((s) => {
+                const active = (draft.shape || "rect") === s.id;
+                return (
+                  <button
+                    key={s.id}
+                    onClick={() => setDraft({ ...draft, shape: s.id })}
+                    data-testid={`tl-evt-shape-${s.id}`}
+                    className="px-2.5 py-1.5 rounded-lg border text-[11px] transition"
+                    style={{
+                      background: active ? "rgba(0,240,255,0.12)" : "transparent",
+                      borderColor: active ? "rgba(0,240,255,0.5)" : "rgba(255,255,255,0.15)",
+                      color: active ? "#00f0ff" : "#cfdaf3",
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Colour override — null falls back to category colour. */}
+          <div>
+            <label className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-1.5 block">
+              Block colour <span className="text-[#566187] normal-case tracking-normal">(overrides category)</span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {SWATCHES.map((c) => {
+                const active = (draft.colorOverride || null) === c;
+                return (
+                  <button
+                    key={c || "auto"}
+                    onClick={() => setDraft({ ...draft, colorOverride: c })}
+                    data-testid={`tl-evt-color-${c || "auto"}`}
+                    className="w-7 h-7 rounded-md border-2 transition"
+                    style={{
+                      borderColor: active ? "#fff" : "rgba(255,255,255,0.15)",
+                      background: c || "transparent",
+                      backgroundImage: c ? "none" : "linear-gradient(135deg, transparent 45%, rgba(255,255,255,0.4) 45% 55%, transparent 55%)",
+                      boxShadow: active && c ? `0 0 12px ${c}` : "none",
+                    }}
+                    title={c || "Use category colour"}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Font size */}
+          <div>
+            <label className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-1.5 block">
+              Label font size
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {FONT_SIZES.map((s) => {
+                const active = (draft.fontSize || 11) === s;
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setDraft({ ...draft, fontSize: s })}
+                    data-testid={`tl-evt-fs-${s}`}
+                    className="px-2.5 py-1 rounded-md border text-white transition"
+                    style={{
+                      fontSize: s,
+                      background: active ? "rgba(0,240,255,0.12)" : "transparent",
+                      borderColor: active ? "rgba(0,240,255,0.5)" : "rgba(255,255,255,0.15)",
+                    }}
+                  >
+                    {s}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Tags — comma-separated chips. */}
+          <div>
+            <label className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-1.5 block flex items-center gap-1.5">
+              <Tag size={10} /> Labels / tags <span className="text-[#566187] normal-case tracking-normal">(comma-separated)</span>
+            </label>
+            <input
+              value={(draft.tags || []).join(", ")}
+              onChange={(e) => {
+                const tags = e.target.value
+                  .split(",")
+                  .map((t) => t.trim())
+                  .filter(Boolean)
+                  .slice(0, 8);
+                setDraft({ ...draft, tags });
+              }}
+              data-testid="tl-evt-tags"
+              className="w-full bg-[#03040a] border border-white/15 rounded-lg px-3 py-2 text-[13px] text-white outline-none focus:border-cyan-400/60"
+              placeholder="urgent, milestone, q3-priority"
+            />
+            {(draft.tags || []).length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {(draft.tags || []).map((t) => (
+                  <span
+                    key={t}
+                    className="px-2 py-0.5 rounded-full text-[10px] mono uppercase tracking-[0.18em] bg-white/[0.06] border border-white/15 text-[#cfdaf3]"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

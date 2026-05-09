@@ -22,6 +22,7 @@ import BookmarkPickerModal from "@/components/BookmarkPickerModal";
 import { openLink as openLinkExternally } from "@/lib/openLink";
 import { useNavigate } from "react-router-dom";
 import { blankTimeline, saveTimeline } from "@/lib/timelineStorage";
+import TimelineCreateDialog from "@/components/timeline/TimelineCreateDialog";
 import { useLicense } from "@/lib/license";
 
 import {
@@ -602,15 +603,14 @@ export default function MindMapCanvas({
   /**
    * Insert a timeline annotation onto the current map.
    *
-   * Creates a fresh stub timeline document in localStorage (so it
-   * shows up in /library next to mind maps + flowcharts) and drops a
-   * 16:9 timeline-card annotation at the centre of the viewport.
-   * Card matches the landing video's aspect ratio (16:9 at 720×405)
-   * so embedded timelines feel native to the map.
-   *
-   * Click the card → opens the linked /timeline/:id in a new tab so
-   * the user keeps their map context.
+   * Step 1 — open the setup wizard so the user picks designation,
+   * palette, scope, and category count (mirroring /timeline/new).
+   * Step 2 — wizard's onCreate handler stubs the timeline doc in
+   * localStorage and drops a 16:9 timeline-card annotation at the
+   * centre of the viewport. Click the card → opens the linked
+   * /timeline/:id in a new tab so the user keeps their map context.
    */
+  const [tlCreateOpen, setTlCreateOpen] = useState(false);
   const handleInsertTimeline = () => {
     // Pro-only feature — bounce non-Pro users to /pricing with a toast
     // explaining the gate. Lite users explicitly NOT included since
@@ -620,15 +620,11 @@ export default function MindMapCanvas({
       navigate("/pricing");
       return;
     }
-    const start = new Date();
-    const end = new Date();
-    end.setFullYear(end.getFullYear() + 1);
-    const stub = blankTimeline({
-      title: "Embedded timeline",
-      startISO: start.toISOString(),
-      endISO: end.toISOString(),
-      unit: "months",
-    });
+    setTlCreateOpen(true);
+  };
+
+  const handleCreateTimelineFromWizard = (params) => {
+    const stub = blankTimeline(params);
     try {
       saveTimeline(stub);
     } catch (e) {
@@ -644,7 +640,8 @@ export default function MindMapCanvas({
       w: 720,
       h: 405,
     });
-    toast.success("Timeline embedded — click it to edit");
+    setTlCreateOpen(false);
+    toast.success(`Timeline "${stub.title}" embedded — click it to open`);
   };
 
   // Notify Studio when selection changes so it can render the right-side
@@ -1403,6 +1400,14 @@ export default function MindMapCanvas({
         onChange={onFileLinkPicked}
         data-testid="mm-file-link-input"
         style={{ display: "none" }}
+      />
+      {/* Setup wizard for "Insert Timeline" — same dialog the standalone
+          /timeline/new page uses, so embedded and standalone timelines
+          have identical setup parity. */}
+      <TimelineCreateDialog
+        open={tlCreateOpen}
+        onCreate={handleCreateTimelineFromWizard}
+        onClose={() => setTlCreateOpen(false)}
       />
     </div>
   );
