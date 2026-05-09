@@ -26,13 +26,13 @@ const safeWrite = (v) => {
   try { localStorage.setItem(STORAGE_KEY, v); } catch { /* ignore */ }
 };
 
-/** Returns "light" | "dark", consulting (in order): saved pref → OS pref → "dark". */
+/** Returns "light" | "dark". Dark is the brand default — first-time
+ *  visitors always see the cosmic theme regardless of OS preference,
+ *  so the marketing aesthetic lands as designed. After the user
+ *  toggles, their explicit pref wins. */
 export const getTheme = () => {
   const saved = safeRead();
   if (saved === "light" || saved === "dark") return saved;
-  if (typeof window !== "undefined" && window.matchMedia) {
-    if (window.matchMedia("(prefers-color-scheme: light)").matches) return "light";
-  }
   return "dark";
 };
 
