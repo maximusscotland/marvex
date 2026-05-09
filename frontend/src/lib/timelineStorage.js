@@ -111,6 +111,20 @@ export const blankTimeline = ({ title, startISO, endISO, unit }) => {
       { id: newCategoryId(), name: "Category D", color: "#ffd66b" }, // amber
     ],
     events: [],
+    // Edge-decoration bars from the user's reference sketch — coloured
+    // vertical strips with a vertical label, used for "Term", "Holiday",
+    // "Sprint 3", etc. spans defined by start/end ISO dates.
+    periods: [],
+    // Vertical milestone lines spanning the canvas height with a small
+    // label tag at the top — used for "Term boundary", "Release v2",
+    // "Project deadline", etc.
+    milestones: [],
+    // When true (default), this timeline's events appear on /calendar
+    // as small coloured pills.
+    showOnCalendar: true,
     view: { x: 0, k: 1 },
   };
 };
+
+export const newPeriodId = () => newId("pd");
+export const newMilestoneId = () => newId("ms");

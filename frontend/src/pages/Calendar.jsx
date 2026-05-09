@@ -12,7 +12,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CalendarDays, ChevronLeft, ChevronRight, Plus, ArrowLeft,
-  Trash2, Check,
+  Trash2, Check, Clock, ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -23,6 +23,7 @@ import {
   updateReminder,
   toggleReminderDone,
   deleteReminder,
+  timelineEventsByDate,
 } from "@/lib/reminders";
 import AssetsSidebar from "@/components/AssetsSidebar";
 
@@ -37,12 +38,14 @@ export default function Calendar() {
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const [selectedDate, setSelectedDate] = useState(() => fmtIso(new Date()));
   const [grouped, setGrouped] = useState({});
+  const [timelineGrouped, setTimelineGrouped] = useState({});
   const [tick, setTick] = useState(0); // bump to force re-pull
   const [draft, setDraft] = useState({ text: "", notes: "", time: "" });
 
-  // Pull reminders whenever the month changes or after any mutation.
+  // Pull reminders + timeline events whenever the month changes or after any mutation.
   useEffect(() => {
     setGrouped(remindersByDate());
+    setTimelineGrouped(timelineEventsByDate());
   }, [tick]);
 
   // Build the month grid: pad to start on Sunday and fill 6 rows × 7 columns
@@ -61,6 +64,7 @@ export default function Calendar() {
 
   const todayIso = fmtIso(new Date());
   const selectedReminders = grouped[selectedDate] || [];
+  const selectedTimelineEvents = timelineGrouped[selectedDate] || [];
   const undated = grouped[""] || [];
 
   const refresh = () => setTick((n) => n + 1);
@@ -156,6 +160,8 @@ export default function Calendar() {
                 const isToday = iso === todayIso;
                 const isSelected = iso === selectedDate;
                 const dayReminders = grouped[iso] || [];
+                const dayTimeline = timelineGrouped[iso] || [];
+                const totalCount = dayReminders.length + dayTimeline.length;
                 return (
                   <button
                     key={iso}
@@ -175,13 +181,28 @@ export default function Calendar() {
                       }`}>
                         {d.getDate()}
                       </span>
-                      {dayReminders.length > 0 && (
+                      {totalCount > 0 && (
                         <span className="mono text-[8px] tabular-nums text-cyan-300 bg-cyan-400/15 border border-cyan-400/40 rounded px-1 leading-none py-0.5">
-                          {dayReminders.length}
+                          {totalCount}
                         </span>
                       )}
                     </div>
-                    {dayReminders.slice(0, 2).map((r) => (
+                    {/* Timeline-event pills — coloured by category */}
+                    {dayTimeline.slice(0, 2).map((te) => (
+                      <div
+                        key={te.eventId}
+                        className="truncate text-[10px] leading-tight flex items-center gap-1"
+                        style={{ color: te.color }}
+                        title={`${te.label} · ${te.timelineTitle}${te.category ? ` · ${te.category}` : ""}`}
+                      >
+                        <span
+                          className="inline-block w-1.5 h-1.5 rounded-sm shrink-0"
+                          style={{ background: te.color, boxShadow: `0 0 4px ${te.color}` }}
+                        />
+                        <span className="truncate">{te.label}</span>
+                      </div>
+                    ))}
+                    {dayReminders.slice(0, Math.max(0, 2 - dayTimeline.length)).map((r) => (
                       <div
                         key={r.stickyId}
                         className={`truncate text-[10px] leading-tight ${
@@ -192,9 +213,9 @@ export default function Calendar() {
                         · {r.text}
                       </div>
                     ))}
-                    {dayReminders.length > 2 && (
+                    {totalCount > 2 && (
                       <div className="text-[9px] text-[#566187]">
-                        +{dayReminders.length - 2} more
+                        +{totalCount - 2} more
                       </div>
                     )}
                   </button>
@@ -211,9 +232,41 @@ export default function Calendar() {
                   weekday: "long", month: "long", day: "numeric", year: "numeric",
                 })}
               </div>
-              {selectedReminders.length === 0 && (
+              {selectedReminders.length === 0 && (selectedTimelineEvents.length === 0) && (
                 <div className="text-[#7a87ad] text-[12.5px] italic mb-3">
                   No reminders for this day. Add one below.
+                </div>
+              )}
+              {/* Timeline events for the selected day — coloured pills
+                  with a "Open timeline" link straight to the source. */}
+              {selectedTimelineEvents.length > 0 && (
+                <div className="mb-4 space-y-1.5" data-testid="cal-timeline-events">
+                  <div className="mono text-[9px] uppercase tracking-[0.22em] text-violet-300/80 mb-1.5 flex items-center gap-1">
+                    <Clock size={9} /> Timeline events
+                  </div>
+                  {selectedTimelineEvents.map((te) => (
+                    <button
+                      key={te.eventId}
+                      data-testid={`cal-tl-${te.eventId}`}
+                      onClick={() => navigate(`/timeline/${te.timelineId}`)}
+                      className="w-full text-left flex items-start gap-2 p-2 rounded-md border transition hover:bg-white/[0.04]"
+                      style={{ borderColor: `${te.color}55`, background: `${te.color}0d` }}
+                      title={`Open ${te.timelineTitle}`}
+                    >
+                      <span
+                        className="w-3 h-3 rounded-sm mt-0.5 shrink-0"
+                        style={{ background: te.color, boxShadow: `0 0 4px ${te.color}aa` }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[13px] text-white truncate">{te.label}</div>
+                        <div className="mono text-[9px] uppercase tracking-[0.18em] text-[#7a87ad] mt-0.5 flex items-center gap-1.5">
+                          <span>{te.timelineTitle}</span>
+                          {te.category && <><span>·</span><span style={{ color: te.color }}>{te.category}</span></>}
+                          <ExternalLink size={9} className="opacity-60" />
+                        </div>
+                      </div>
+                    </button>
+                  ))}
                 </div>
               )}
               <div className="space-y-2 mb-4">

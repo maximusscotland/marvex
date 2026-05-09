@@ -118,6 +118,43 @@ export const remindersByDate = () => {
 };
 
 /**
+ * Group ALL timeline events from every timeline (where showOnCalendar
+ * !== false) by yyyy-mm-dd. Returns a sibling shape to remindersByDate
+ * so the calendar page can merge the two streams cheaply. Each item is
+ * a "pseudo-reminder" carrying { source: 'timeline', timelineId, eventId,
+ * label, color, dueDate }.
+ */
+export const timelineEventsByDate = () => {
+  let timelines = [];
+  try {
+    const raw = localStorage.getItem("marvex.timelines.v1");
+    timelines = raw ? JSON.parse(raw) : [];
+  } catch { timelines = []; }
+  const out = {};
+  for (const t of timelines) {
+    if (t.showOnCalendar === false) continue;
+    const catById = {};
+    for (const c of (t.categories || [])) catById[c.id] = c;
+    for (const e of (t.events || [])) {
+      const dueDate = (e.dateISO || "").slice(0, 10);
+      if (!dueDate) continue;
+      if (!out[dueDate]) out[dueDate] = [];
+      out[dueDate].push({
+        source: "timeline",
+        timelineId: t.id,
+        timelineTitle: t.title,
+        eventId: e.id,
+        label: e.label,
+        color: catById[e.categoryId]?.color || "#00f0ff",
+        category: catById[e.categoryId]?.name || null,
+        dueDate,
+      });
+    }
+  }
+  return out;
+};
+
+/**
  * Create a brand-new reminder directly from the calendar UI without having
  * to first create a sticky on a map. Reminders need a host map (single
  * source of truth — every sticky lives on one), so we ensure a dedicated

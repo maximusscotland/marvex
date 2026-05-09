@@ -1,18 +1,21 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Library as LibraryIcon, Plus } from "lucide-react";
+import { ArrowLeft, Library as LibraryIcon, Plus, CalendarDays, Keyboard } from "lucide-react";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
 import TimelineCanvas from "@/components/timeline/TimelineCanvas";
 import TimelineCategoriesSidebar from "@/components/timeline/TimelineCategoriesSidebar";
 import TimelineEventDialog from "@/components/timeline/TimelineEventDialog";
 import TimelineCreateDialog from "@/components/timeline/TimelineCreateDialog";
+import TimelineDecorationDialog from "@/components/timeline/TimelineDecorationDialog";
 import {
   getTimeline,
   saveTimeline,
   blankTimeline,
   newEventId,
+  newPeriodId,
+  newMilestoneId,
   listTimelines,
 } from "@/lib/timelineStorage";
 import usePageMeta from "@/lib/usePageMeta";
@@ -30,6 +33,7 @@ export default function TimelineStudio() {
   const [timeline, setTimeline] = useState(() => (id && id !== "new" ? getTimeline(id) : null));
   const [createOpen, setCreateOpen] = useState(!timeline);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [editingDecoration, setEditingDecoration] = useState(null);
   const [hiddenCategories, setHiddenCategories] = useState(new Set());
 
   usePageMeta({
@@ -100,6 +104,80 @@ export default function TimelineStudio() {
     });
     setEditingEvent(null);
     toast.success("Event deleted");
+  };
+
+  // ---- Decoration (period/milestone) handlers ----
+  const handleAddPeriod = () => {
+    if (!timeline) return;
+    const start = new Date(timeline.scope.startISO);
+    const end = timeline.scope.endISO ? new Date(timeline.scope.endISO) : new Date(start.getTime() + 30 * 86_400_000);
+    const span = end.getTime() - start.getTime();
+    setEditingDecoration({
+      id: `pd_new_${Date.now()}`,
+      kind: "period",
+      label: "Period",
+      startISO: new Date(start.getTime() + span * 0.1).toISOString(),
+      endISO: new Date(start.getTime() + span * 0.25).toISOString(),
+      color: "#ff6ad5",
+    });
+  };
+
+  const handleAddMilestone = () => {
+    if (!timeline) return;
+    const start = new Date(timeline.scope.startISO);
+    const end = timeline.scope.endISO ? new Date(timeline.scope.endISO) : new Date(start.getTime() + 30 * 86_400_000);
+    const mid = (start.getTime() + end.getTime()) / 2;
+    setEditingDecoration({
+      id: `ms_new_${Date.now()}`,
+      kind: "milestone",
+      label: "Milestone",
+      dateISO: new Date(mid).toISOString(),
+      color: "#a08cff",
+    });
+  };
+
+  const handleSaveDecoration = (deco) => {
+    if (!timeline) return;
+    const isNew = String(deco.id).includes("_new");
+    if (deco.kind === "period") {
+      const newId = isNew ? newPeriodId() : deco.id;
+      const period = {
+        id: newId,
+        label: deco.label,
+        startISO: deco.startISO,
+        endISO: deco.endISO,
+        color: deco.color,
+      };
+      const periods = isNew
+        ? [...(timeline.periods || []), period]
+        : (timeline.periods || []).map((p) => (p.id === period.id ? period : p));
+      handleChange({ ...timeline, periods });
+    } else {
+      const newId = isNew ? newMilestoneId() : deco.id;
+      const milestone = {
+        id: newId,
+        label: deco.label,
+        dateISO: deco.dateISO,
+        color: deco.color,
+      };
+      const milestones = isNew
+        ? [...(timeline.milestones || []), milestone]
+        : (timeline.milestones || []).map((m) => (m.id === milestone.id ? milestone : m));
+      handleChange({ ...timeline, milestones });
+    }
+    setEditingDecoration(null);
+    toast.success(isNew ? `${deco.kind === "period" ? "Period" : "Milestone"} added` : "Saved");
+  };
+
+  const handleDeleteDecoration = (id) => {
+    if (!timeline) return;
+    if (id.startsWith("pd_")) {
+      handleChange({ ...timeline, periods: (timeline.periods || []).filter((p) => p.id !== id) });
+    } else {
+      handleChange({ ...timeline, milestones: (timeline.milestones || []).filter((m) => m.id !== id) });
+    }
+    setEditingDecoration(null);
+    toast.success("Removed");
   };
 
   const handleCategoriesChange = (categories) => {
@@ -178,6 +256,22 @@ export default function TimelineStudio() {
         </div>
         <div className="flex items-center gap-3">
           <button
+            onClick={() => handleChange({ ...timeline, showOnCalendar: !timeline.showOnCalendar })}
+            data-testid="tl-calendar-toggle"
+            title={timeline.showOnCalendar
+              ? "Events appear on the /calendar page — click to hide"
+              : "Events are hidden from /calendar — click to show"}
+            className="mono text-[10px] uppercase tracking-[0.22em] px-3 py-1.5 rounded-full border transition flex items-center gap-1.5"
+            style={{
+              borderColor: timeline.showOnCalendar ? "rgba(0,240,255,0.6)" : "rgba(255,255,255,0.18)",
+              background: timeline.showOnCalendar ? "rgba(0,240,255,0.08)" : "transparent",
+              color: timeline.showOnCalendar ? "#67f0ff" : "#cfdaf3",
+            }}
+          >
+            <CalendarDays size={11} />
+            {timeline.showOnCalendar ? "On calendar" : "Off calendar"}
+          </button>
+          <button
             onClick={() => setCreateOpen(true)}
             data-testid="tl-new"
             className="mono text-[10px] uppercase tracking-[0.22em] px-3 py-1.5 rounded-full border border-cyan-400/30 hover:border-cyan-300/60 hover:bg-cyan-500/[0.06] text-cyan-200 transition flex items-center gap-1.5"
@@ -202,6 +296,10 @@ export default function TimelineStudio() {
             onChange={handleChange}
             onEditEvent={setEditingEvent}
             onAddEventAtDate={handleAddEventAtDate}
+            onAddPeriod={handleAddPeriod}
+            onAddMilestone={handleAddMilestone}
+            onEditPeriod={(p) => setEditingDecoration({ ...p, kind: "period" })}
+            onEditMilestone={(m) => setEditingDecoration({ ...m, kind: "milestone" })}
           />
         </div>
         <TimelineCategoriesSidebar
@@ -224,6 +322,13 @@ export default function TimelineStudio() {
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}
         onClose={() => setEditingEvent(null)}
+      />
+      <TimelineDecorationDialog
+        open={!!editingDecoration}
+        decoration={editingDecoration}
+        onSave={handleSaveDecoration}
+        onDelete={handleDeleteDecoration}
+        onClose={() => setEditingDecoration(null)}
       />
     </div>
   );
