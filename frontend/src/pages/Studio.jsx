@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -416,7 +416,18 @@ export default function Studio({ mode = "mindmap" }) {
     }
   }, []);
 
-  const active = activeId ? getMap(activeId) : null;
+  // Memoise the active map so that re-renders that don't actually change
+  // the underlying map data don't hand a fresh object reference to
+  // MindMapCanvas (which would cascade into its `useEffect([..., map])`
+  // notifier and bounce SelectionPropertiesPanel updates back through a
+  // ping-pong loop). Re-reads localStorage only when activeId or saveTick
+  // changes (saveTick is bumped after every save). Includes `historyTick`
+  // so undo/redo actions also surface the new map snapshot.
+  const active = useMemo(
+    () => (activeId ? getMap(activeId) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeId, saveTick, historyTick],
+  );
   const isPro = !!user && (user.subscription_status === "active" || user.subscription_status === "trialing");
 
   const refresh = useCallback(() => setMaps(listMaps()), []);
@@ -516,7 +527,7 @@ export default function Studio({ mode = "mindmap" }) {
     toast.success("Map duplicated");
   };
 
-  const handleMapChange = (next) => {
+  const handleMapChange = useCallback((next) => {
     // Push the PREVIOUS map state onto undo stack (cap 50)
     if (activeId) {
       const prev = getMap(activeId);
@@ -543,7 +554,7 @@ export default function Studio({ mode = "mindmap" }) {
     setSaveTick((t) => t + 1);
     setHistoryTick((t) => t + 1);
     refresh();
-  };
+  }, [activeId, refresh]);
 
   const handleUndo = () => {
     if (!activeId) return;
