@@ -100,10 +100,10 @@ code, .mono {
 
 .cosmic-bg {
   background:
-    radial-gradient(ellipse at 80% 15%, rgba(80, 120, 255, 0.18), transparent 55%),
-    radial-gradient(ellipse at 20% 80%, rgba(160, 70, 255, 0.12), transparent 55%),
-    radial-gradient(ellipse at 50% 50%, rgba(0, 200, 255, 0.06), transparent 65%),
-    #03040a;
+    radial-gradient(ellipse at 80% 15%, var(--bg-glow-1, rgba(80, 120, 255, 0.18)), transparent 55%),
+    radial-gradient(ellipse at 20% 80%, var(--bg-glow-2, rgba(160, 70, 255, 0.12)), transparent 55%),
+    radial-gradient(ellipse at 50% 50%, var(--bg-glow-3, rgba(0, 200, 255, 0.06)), transparent 65%),
+    var(--bg-deepest, #03040a);
   position: relative;
   overflow: hidden;
 }
@@ -137,8 +137,8 @@ code, .mono {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 70% 30%, rgba(50, 100, 240, 0.18), transparent 35%),
-    radial-gradient(circle at 25% 75%, rgba(180, 60, 255, 0.12), transparent 40%);
+    radial-gradient(circle at 70% 30%, var(--bg-nebula-1, rgba(50, 100, 240, 0.18)), transparent 35%),
+    radial-gradient(circle at 25% 75%, var(--bg-nebula-2, rgba(180, 60, 255, 0.12)), transparent 40%);
   filter: blur(40px);
   pointer-events: none;
 }
@@ -148,16 +148,23 @@ code, .mono {
   to   { background-position: 700px 700px; }
 }
 
-/* gradient text */
+/* gradient text — uses CSS vars so the theme picker can swap palettes
+   on the fly. `--gt-from/via/to` are settable on `:root` overrides;
+   default values match the original cyan→violet gradient. */
 .gradient-text {
-  background: linear-gradient(90deg, #00f0ff 0%, #6ad8ff 40%, #b88dff 100%);
+  background: linear-gradient(
+    90deg,
+    var(--gt-from, var(--neon-cyan)) 0%,
+    var(--gt-via, var(--neon-cyan-soft)) 40%,
+    var(--gt-to, var(--neon-violet)) 100%
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .gradient-magenta-text {
-  background: linear-gradient(90deg, #ff2e6c, #ff7d4a);
+  background: linear-gradient(90deg, var(--neon-magenta), var(--neon-amber));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -175,14 +182,17 @@ code, .mono {
 /* Disable text-select on canvas-y elements */
 .no-select { user-select: none; -webkit-user-select: none; }
 
-/* CTA pill */
+/* CTA pill — uses CSS vars so the theme picker can swap accent colours.
+   Defaults preserve the original violet→magenta gradient. */
 .cta-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.85rem 1.6rem;
   border-radius: 9999px;
-  background: linear-gradient(135deg, #7a3bff 0%, #b85bff 100%);
+  background: linear-gradient(135deg,
+    var(--cta-from, #7a3bff) 0%,
+    var(--cta-to,   #b85bff) 100%);
   color: #fff;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -190,12 +200,12 @@ code, .mono {
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.04),
-    0 8px 30px rgba(122, 59, 255, 0.4);
+    0 8px 30px var(--cta-glow, rgba(122, 59, 255, 0.4));
 }
 .cta-pill:hover {
   transform: translateY(-1px);
   filter: brightness(1.07);
-  box-shadow: 0 12px 40px rgba(122, 59, 255, 0.55);
+  box-shadow: 0 12px 40px var(--cta-glow-hover, rgba(122, 59, 255, 0.55));
 }
 
 .cta-ghost {
