@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { Trash2, Check, X, StickyNote, MessageCircle } from "lucide-react";
+import { Trash2, Check, X, StickyNote, MessageCircle, Clock, ExternalLink, Layers as LayersIcon } from "lucide-react";
 import { CLIPART_REGISTRY, getClipart } from "@/components/ClipartLibrary";
 import { WORDART_PRESETS, getWordArtStyle } from "@/lib/wordartPresets";
 import { openLink as openLinkExternally } from "@/lib/openLink";
+import { getTimeline } from "@/lib/timelineStorage";
 
 /**
  * AnnotationsLayer — renders sticky notes, text boxes, images, clipart icons,
@@ -520,6 +521,17 @@ export default function AnnotationsLayer({
               </div>
             )}
 
+            {it.type === "timeline" && (
+              <TimelineEmbedCard
+                annotation={it}
+                isSelected={isSel}
+                onDelete={onDelete}
+                onChangeAnnotation={(patch) => {
+                  onChange(items.map((x) => (x.id === it.id ? { ...x, ...patch } : x)));
+                }}
+              />
+            )}
+
             {it.type === "clipart" && (() => {
               const cfg = getClipart(it.icon);
               if (!cfg) return null;
@@ -989,3 +1001,168 @@ const ItemControls = ({ id, onDelete, dark }) => (
 
 // Re-export
 export { Trash2 };
+
+/**
+ * TimelineEmbedCard — visual representation of a timeline embedded as
+ * an annotation on a mind map. Reads the linked timeline from
+ * localStorage and renders a 16:9 card showing the title, scope, and a
+ * miniature axis with event ticks coloured by category. Click → opens
+ * /timeline/:id in a new tab so the user keeps map context.
+ */
+function TimelineEmbedCard({ annotation, isSelected, onDelete, onChangeAnnotation }) {
+  const [tl, setTl] = useState(() => (annotation.timelineId ? getTimeline(annotation.timelineId) : null));
+  // Re-read on every render (cheap — single localStorage hit) so edits
+  // made in the standalone Studio reflect here without manual refresh.
+  // Doing it in an effect would lag a paint behind.
+  useEffect(() => {
+    if (!annotation.timelineId) return;
+    setTl(getTimeline(annotation.timelineId));
+  }, [annotation.timelineId, annotation._tick]);
+
+  const navigate = useNavigate();
+  const open = (e) => {
+    e.stopPropagation();
+    if (!annotation.timelineId) return;
+    navigate(`/timeline/${annotation.timelineId}`);
+  };
+
+  if (!tl) {
+    return (
+      <div
+        data-testid={`mm-tl-embed-${annotation.id}`}
+        className="w-full h-full relative rounded-lg border border-violet-400/30 bg-[#0a0f24] flex items-center justify-center"
+      >
+        <div className="text-center px-4">
+          <Clock size={24} className="text-violet-300 mx-auto mb-2" />
+          <div className="text-[12px] text-[#9aa7c7] mb-2">Timeline missing — was it deleted from /library?</div>
+          <button
+            onClick={(e) => { e.stopPropagation(); onDelete(annotation.id); }}
+            className="mono text-[10px] uppercase tracking-[0.18em] text-red-300 hover:text-red-200"
+          >
+            Remove this card
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const startMs = new Date(tl.scope.startISO).getTime();
+  const endMs = tl.scope.endISO ? new Date(tl.scope.endISO).getTime() : startMs + 365 * 86_400_000;
+  const span = endMs - startMs;
+  const catById = {};
+  for (const c of tl.categories || []) catById[c.id] = c;
+  const fracOf = (ms) => Math.max(0, Math.min(1, (ms - startMs) / span));
+
+  return (
+    <div
+      data-testid={`mm-tl-embed-${annotation.id}`}
+      className="w-full h-full relative rounded-lg overflow-hidden group"
+      style={{
+        background: "radial-gradient(ellipse at center, rgba(20,28,60,0.7) 0%, rgba(3,4,10,0.95) 70%)",
+        border: isSelected ? "1.5px solid rgba(160,140,255,0.9)" : "1.5px solid rgba(160,140,255,0.4)",
+        boxShadow: isSelected
+          ? "0 0 24px rgba(160,140,255,0.5)"
+          : "0 0 12px rgba(160,140,255,0.2)",
+      }}
+    >
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 px-3 py-2 flex items-center justify-between bg-gradient-to-b from-[#03040a]/80 to-transparent z-10">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <Clock size={11} className="text-violet-300 shrink-0" />
+          <div className="text-[12px] text-white font-semibold truncate">{tl.title}</div>
+        </div>
+        <button
+          onClick={open}
+          onPointerDown={(e) => e.stopPropagation()}
+          data-testid={`mm-tl-open-${annotation.id}`}
+          className="mono text-[9px] uppercase tracking-[0.18em] text-violet-200 hover:text-white px-2 py-1 rounded border border-violet-400/40 hover:border-violet-300/80 bg-violet-500/10 transition flex items-center gap-1 shrink-0"
+          title="Open this timeline in Studio"
+        >
+          Open <ExternalLink size={9} />
+        </button>
+      </div>
+
+      {/* Miniature axis preview */}
+      <div className="absolute inset-0 flex items-center justify-center px-6">
+        {/* Period bars */}
+        {(tl.periods || []).map((p) => {
+          const f1 = fracOf(new Date(p.startISO).getTime());
+          const f2 = fracOf(new Date(p.endISO).getTime());
+          return (
+            <div
+              key={p.id}
+              className="absolute top-9 bottom-9 pointer-events-none"
+              style={{
+                left: `calc(${f1 * 100}% + ${24 - f1 * 48}px)`,
+                width: `calc(${(f2 - f1) * 100}% + ${(f2 - f1) * -48}px)`,
+                background: `${p.color || "#ff6ad5"}1f`,
+                borderLeft: `1.5px solid ${p.color || "#ff6ad5"}`,
+                borderRight: `1.5px solid ${p.color || "#ff6ad5"}`,
+              }}
+            />
+          );
+        })}
+
+        {/* Axis line */}
+        <div
+          className="w-full h-px"
+          style={{
+            background: "linear-gradient(to right, transparent, rgba(0,240,255,0.9), rgba(160,140,255,1), rgba(255,106,213,0.9), transparent)",
+            boxShadow: "0 0 8px rgba(0,240,255,0.4)",
+          }}
+        />
+
+        {/* Today marker */}
+        {Date.now() >= startMs && Date.now() <= endMs && (
+          <div
+            className="absolute top-9 bottom-9 pointer-events-none"
+            style={{
+              left: `calc(${fracOf(Date.now()) * 100}% - 1px)`,
+              width: 2,
+              background: "rgba(255,255,255,0.7)",
+              boxShadow: "0 0 4px rgba(255,255,255,0.6)",
+            }}
+          />
+        )}
+
+        {/* Event ticks */}
+        {(tl.events || []).map((e) => {
+          const f = fracOf(new Date(e.dateISO).getTime());
+          const color = catById[e.categoryId]?.color || "#00f0ff";
+          return (
+            <div
+              key={e.id}
+              className="absolute pointer-events-none"
+              style={{
+                left: `calc(${f * 100}% - 5px)`,
+                top: e.position === "above" ? "calc(50% - 16px)" : "calc(50% + 6px)",
+                width: 10,
+                height: 10,
+                borderRadius: 2,
+                background: color,
+                border: "1px solid rgba(255,255,255,0.35)",
+                boxShadow: `0 0 4px ${color}cc`,
+              }}
+              title={`${e.label} · ${new Date(e.dateISO).toLocaleDateString()}`}
+            />
+          );
+        })}
+      </div>
+
+      {/* Footer — counts */}
+      <div className="absolute bottom-0 left-0 right-0 px-3 py-1.5 flex items-center justify-between bg-gradient-to-t from-[#03040a]/80 to-transparent">
+        <div className="mono text-[9px] uppercase tracking-[0.22em] text-[#9aa7c7]">
+          {(tl.events || []).length} events · {(tl.periods || []).length} periods
+        </div>
+        <div className="mono text-[9px] uppercase tracking-[0.22em] text-[#7a87ad]">
+          {new Date(tl.scope.startISO).toLocaleDateString(undefined, { year: "numeric", month: "short" })}
+          {tl.scope.endISO ? ` → ${new Date(tl.scope.endISO).toLocaleDateString(undefined, { year: "numeric", month: "short" })}` : " → ∞"}
+        </div>
+      </div>
+
+      <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition">
+        <ItemControls id={annotation.id} onDelete={onDelete} dark />
+      </div>
+    </div>
+  );
+}

@@ -9,6 +9,7 @@ import TimelineCategoriesSidebar from "@/components/timeline/TimelineCategoriesS
 import TimelineEventDialog from "@/components/timeline/TimelineEventDialog";
 import TimelineCreateDialog from "@/components/timeline/TimelineCreateDialog";
 import TimelineDecorationDialog from "@/components/timeline/TimelineDecorationDialog";
+import TimelineNotesPane from "@/components/timeline/TimelineNotesPane";
 import {
   getTimeline,
   saveTimeline,
@@ -288,26 +289,54 @@ export default function TimelineStudio() {
         </div>
       </header>
 
-      {/* Body — canvas + sidebar */}
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1 relative">
-          <TimelineCanvas
-            timeline={visibleTimeline}
-            onChange={handleChange}
-            onEditEvent={setEditingEvent}
-            onAddEventAtDate={handleAddEventAtDate}
-            onAddPeriod={handleAddPeriod}
-            onAddMilestone={handleAddMilestone}
-            onEditPeriod={(p) => setEditingDecoration({ ...p, kind: "period" })}
-            onEditMilestone={(m) => setEditingDecoration({ ...m, kind: "milestone" })}
+      {/* Body — canvas + sidebar on top, notes pane below.
+          Top section is ~62% of the available height so the canvas
+          stays the dominant surface; notes pane gets a sensible
+          ~38% for typing without crowding. */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div
+          className="flex overflow-hidden"
+          style={{ flex: "1 1 62%", minHeight: 320 }}
+        >
+          <div className="flex-1 relative">
+            <TimelineCanvas
+              timeline={visibleTimeline}
+              onChange={handleChange}
+              onEditEvent={setEditingEvent}
+              onAddEventAtDate={handleAddEventAtDate}
+              onAddPeriod={handleAddPeriod}
+              onAddMilestone={handleAddMilestone}
+              onEditPeriod={(p) => setEditingDecoration({ ...p, kind: "period" })}
+              onEditMilestone={(m) => setEditingDecoration({ ...m, kind: "milestone" })}
+            />
+          </div>
+          <TimelineCategoriesSidebar
+            categories={timeline.categories}
+            hidden={hiddenCategories}
+            onChange={handleCategoriesChange}
+            onToggleHidden={toggleCategoryVisibility}
           />
         </div>
-        <TimelineCategoriesSidebar
-          categories={timeline.categories}
-          hidden={hiddenCategories}
-          onChange={handleCategoriesChange}
-          onToggleHidden={toggleCategoryVisibility}
-        />
+        <div style={{ flex: "1 1 38%", minHeight: 180, display: "flex", flexDirection: "column" }}>
+          <TimelineNotesPane
+            timeline={timeline}
+            onChange={handleChange}
+            defaultCategoryId={(timeline.categories || [])[0]?.id}
+            onAddEvent={(seed) => {
+              // Save directly — bypass the modal so quick-add stays fast.
+              const e = {
+                ...seed,
+                id: newEventId(),
+                lane: 0,
+              };
+              handleChange({
+                ...timeline,
+                events: [...(timeline.events || []), e],
+              });
+              toast.success(`Added "${e.label}" on ${new Date(e.dateISO).toLocaleDateString()}`);
+            }}
+          />
+        </div>
       </div>
 
       <TimelineCreateDialog

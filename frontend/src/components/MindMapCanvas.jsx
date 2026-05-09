@@ -21,6 +21,7 @@ import IconPicker from "@/components/IconPicker";
 import BookmarkPickerModal from "@/components/BookmarkPickerModal";
 import { openLink as openLinkExternally } from "@/lib/openLink";
 import { useNavigate } from "react-router-dom";
+import { blankTimeline, saveTimeline } from "@/lib/timelineStorage";
 
 import {
   computeLayout,
@@ -594,6 +595,46 @@ export default function MindMapCanvas({
 
   const updateAnnotations = (next) => setAnnotations(next);
   const deleteAnnotation = (id) => setAnnotations(annotations.filter((a) => a.id !== id));
+
+  /**
+   * Insert a timeline annotation onto the current map.
+   *
+   * Creates a fresh stub timeline document in localStorage (so it
+   * shows up in /library next to mind maps + flowcharts) and drops a
+   * 16:9 timeline-card annotation at the centre of the viewport.
+   * Card matches the landing video's aspect ratio (16:9 at 720×405)
+   * so embedded timelines feel native to the map.
+   *
+   * Click the card → opens the linked /timeline/:id in a new tab so
+   * the user keeps their map context.
+   */
+  const handleInsertTimeline = () => {
+    const start = new Date();
+    const end = new Date();
+    end.setFullYear(end.getFullYear() + 1);
+    const stub = blankTimeline({
+      title: "Embedded timeline",
+      startISO: start.toISOString(),
+      endISO: end.toISOString(),
+      unit: "months",
+    });
+    try {
+      saveTimeline(stub);
+    } catch (e) {
+      toast.error(e.message || "Could not create timeline");
+      return;
+    }
+    addAnnotation({
+      type: "timeline",
+      timelineId: stub.id,
+      title: stub.title,
+      // 16:9 — same aspect ratio as the landing cinematic-teaser video,
+      // sized to be readable but not dominant on most maps.
+      w: 720,
+      h: 405,
+    });
+    toast.success("Timeline embedded — click it to edit");
+  };
 
   // Notify Studio when selection changes so it can render the right-side
   // properties panel.  We include a `applyPatch(mutator)` function bound to
@@ -1172,6 +1213,7 @@ export default function MindMapCanvas({
         }}
         connectMode={connectMode}
         onAddComment={() => addAnnotation({ type: "comment" })}
+        onAddTimeline={handleInsertTimeline}
         onCompile={() => openCompileDialog("auto")}
         map={map}
         onUpgrade={onUpgrade}

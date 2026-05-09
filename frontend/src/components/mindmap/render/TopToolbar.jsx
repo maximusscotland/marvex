@@ -27,6 +27,7 @@ import {
   Cloud,
   Palette,
   RotateCw,
+  Clock,
 } from "lucide-react";
 
 import DraggablePanel from "@/components/DraggablePanel";
@@ -86,6 +87,7 @@ export default function TopToolbar({
   onToggleConnect,
   connectMode,
   onAddComment,
+  onAddTimeline,
   onCompile,
   map,
   onUpgrade,
@@ -265,6 +267,11 @@ export default function TopToolbar({
       {onAddComment && (
         <ToolbarBtn testid="mm-tb-insert-comment" label="Insert comment (speech bubble) — collapses to icon, hover to preview" onClick={onAddComment}>
           <MessageCircle size={14} style={{ color: "#00f0ff" }} />
+        </ToolbarBtn>
+      )}
+      {onAddTimeline && (
+        <ToolbarBtn testid="mm-tb-insert-timeline" label="Insert timeline (16:9 card · click to open in Timeline Studio)" onClick={onAddTimeline}>
+          <Clock size={14} style={{ color: "#a08cff" }} />
         </ToolbarBtn>
       )}
       {onCompile && (
