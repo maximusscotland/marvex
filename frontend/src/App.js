@@ -163,6 +163,16 @@ export default function App() {
           <Route path="/admin/affiliates" element={<AccessGate><AdminAffiliates /></AccessGate>} />
           <Route path="/admin/family" element={<AccessGate><AdminFamily /></AccessGate>} />
           <Route path="/admin/reviewers" element={<AccessGate><AdminReviewers /></AccessGate>} />
+
+          {/* Aliases for shareable / inbound-link slugs that pre-date the
+              /learn/ prefix. Cheap redirects so an inbound /ai-mind-map…
+              link from a blog or social post doesn't render a blank screen. */}
+          <Route path="/ai-mind-map-generator-explained" element={<Navigate to="/learn/ai-mind-map-generator-explained" replace />} />
+
+          {/* Catch-all — unknown URLs fall back to the landing page rather
+              than rendering nothing. Better for inbound traffic from typo'd
+              backlinks, social shares, etc. */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Suspense>
         <Toaster theme="dark" position="bottom-center" />
