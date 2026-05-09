@@ -30,6 +30,7 @@ import { useLocation } from "react-router-dom";
 import { Sparkles, Mail, ArrowRight } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
+import { isTesterUnlocked } from "@/lib/testerAccess";
 
 const STORAGE_KEY = "mindmapper.unlocked.v1";
 const EXPECTED = process.env.REACT_APP_UNLOCK_KEY || "";
@@ -66,6 +67,9 @@ const isAllowlistedPath = (pathname) =>
   MAINTENANCE_ALLOWLIST.some((p) => pathname === p || pathname.startsWith(`${p}/`) || pathname.startsWith(`${p}?`));
 
 const isUnlocked = () => {
+  // `?fam67` tester bypass takes precedence — testers / family members
+  // skip the maintenance splash even if the legacy gate key was wiped.
+  if (isTesterUnlocked()) return true;
   try { return localStorage.getItem(STORAGE_KEY) === "1"; } catch { return false; }
 };
 

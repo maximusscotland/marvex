@@ -1,0 +1,29 @@
+{
+  "summary": "E2E Playwright verification of the invisible 'fam67' tester bypass. All 10 acceptance scenarios PASS: (1) ?fam67 on landing strips the param via history.replaceState (final URL = '/'), skips MaintenanceMode splash, and writes localStorage['marvex.tester.unlocked.v1'] = {ts:<num>} plus co-unlocks legacy 'mindmapper.unlocked.v1'='1'. (2) After reload without ?fam67, access still granted, ls persists. (3) Case-insensitive trigger confirmed for both /pricing?Fam67 and /pricing?FAM67 — each individually activates and cleans the URL after a fresh localStorage clear. (4) /timeline renders Timeline Studio directly with NO 'Upgrade'/Pro paywall buttons (upgrade_btn_count=0). (5) /download shows the gated download UI (BACK / MARVEX STUDIO DESKTOP / 'Marvex Studio on your machine' / Native Desktop App v0.1) and NOT 'Upgrade to download' — confirms canDownload=true via TESTER_LICENSE active=true. (6) /app shows Studio onboarding (MARVEX STUDIO / CREATE / NEW / OPEN / IMPORT BOOK) with no password input — AccessGate fully bypassed. (7) Revocation via ?fam67=off removes 'marvex.tester.unlocked.v1' (=null). After also clearing legacy gate key, /timeline reverts to MaintenanceMode splash, confirming the bypass is fully released. (8) No visible 'tester'/'fam67'/'beta access' text anywhere on the landing page — fully invisible by design. (9) Regression: fresh-visitor (cleared localStorage) on / shows the 'BECOMING MARVEX' maintenance splash (data-testid=maintenance-mode), so we did NOT weaken the gate for regular visitors. (10) /pricing?ref=tester&fam67=1&utm_source=email → URL cleaned to /pricing?ref=tester&utm_source=email — only fam67 stripped, other params preserved. Implementation in /app/frontend/src/lib/testerAccess.js correctly handles all edge cases: case-insensitive key lookup, optional value, off/false/0 revocation, legacy gate co-unlock, history.replaceState URL hygiene.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "testerAccess.js correctly imports a TRIGGER constant ('fam67') and uses lowercase comparison so any param-name casing matches — verified live with Fam67 and FAM67.",
+    "initTesterAccess() is invoked in /app/frontend/src/index.js BEFORE ReactDOM.render, so the localStorage flag is in place by the time MaintenanceMode and useLicense first read it — no flash of paywall observed.",
+    "license.js TESTER_LICENSE returns active=true, isProOnly=true, nodeCap=Infinity, blocksAction=()=>false — verified: /timeline renders Timeline Studio directly, /download shows gated download UI not 'Upgrade to download'.",
+    "MaintenanceMode.isUnlocked() short-circuits on isTesterUnlocked() — verified live: tester bypass renders normal site, regular visitor still sees 'BECOMING MARVEX' splash (data-testid=maintenance-mode).",
+    "Revocation correctly removes only the tester key and intentionally leaves the legacy gate key alone (so a user who unlocked via the normal access-key flow isn't logged out). Test 7 confirms: after ?fam67=off, ls['marvex.tester.unlocked.v1']=null but ls['mindmapper.unlocked.v1']='1' persists. To fully revert to splash we had to clear the legacy key too — this is by design and documented in the source comments.",
+    "URL param hygiene: history.replaceState() is used (not pushState), so the back button is not polluted with the activation URL — good UX. Other params (ref, utm_source) are preserved after fam67 is removed.",
+    "Bypass is fully invisible — no DOM badge, banner, or text containing 'tester'/'fam67'/'beta access' was found on the landing page after activation. Spec requirement met.",
+    "SECURITY note already documented inline in testerAccess.js — bypass is client-side only, so anyone reading the JS bundle can find the trigger string. Acceptable for the stated low-stakes use case (family/testers); paid Stripe customers are still authenticated server-side."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only request)", "frontend": "100% (10/10 scenarios passed)"},
+  "test_credentials": "None — bypass is purely client-side.",
+  "seed_data_creation": "None.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Tester-bypass feature is fully verified end-to-end in the preview env (REACT_APP_MAINTENANCE_MODE=1). Helper snippets used: page.goto(BASE+'/?fam67') to activate, page.evaluate(\"() => localStorage.getItem('marvex.tester.unlocked.v1')\") to inspect, page.evaluate(\"() => localStorage.clear()\") to simulate fresh visitor, page.goto(BASE+'/?fam67=off') + clear legacy key to fully revert. Maintenance splash test selector: [data-testid=maintenance-mode]. Studio onboarding markers: 'MARVEX STUDIO', 'CREATE', 'NEW', 'OPEN', 'IMPORT BOOK'. Download paywall keyword to negate: 'Upgrade to download'.",
+  "rca of the issue": "N/A — no bug found. Feature works exactly as specified."
+}

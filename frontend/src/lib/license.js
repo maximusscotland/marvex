@@ -18,13 +18,45 @@
  */
 import { useMemo } from "react";
 import { useAuth } from "@/lib/auth";
+import { isTesterUnlocked } from "@/lib/testerAccess";
 
 const ACTIVE_STATUSES = new Set(["active", "trialing"]);
+
+// Synthetic license object returned for the `?fam67` tester bypass.
+// Mirrors what a fully-paid Pro / lifetime user would see so every
+// downstream `license.active` / `license.isProOnly` check passes,
+// without touching the real subscription state on the user record.
+const TESTER_LICENSE = {
+  loading: false,
+  tier: "tester",
+  active: true,
+  expired: false,
+  signedOut: false,
+  isLite: false,
+  isProOnly: true,
+  nodeCap: Infinity,
+  founder: false,
+  founderNumber: null,
+  readOnly: false,
+  pastDue: false,
+  daysUntilRenewal: null,
+  renewsSoon: false,
+  cancelAtPeriodEnd: false,
+  periodEnd: "",
+  addons: {},
+  hasAddon: () => false,
+  blocksAction: () => false,
+};
 
 export const useLicense = () => {
   const { user, loading } = useAuth();
 
   return useMemo(() => {
+    // `?fam67` tester bypass — invisible full-access for family / testers.
+    // Checked first so it overrides whatever subscription state the
+    // (possibly logged-out) user actually has.
+    if (isTesterUnlocked()) return TESTER_LICENSE;
+
     if (loading) {
       return {
         loading: true,
@@ -164,6 +196,7 @@ export const useLicense = () => {
  */
 export const isLicenseActive = () => {
   try {
+    if (isTesterUnlocked()) return true;
     return localStorage.getItem("mm.proStatus") === "1";
   } catch {
     return false;
