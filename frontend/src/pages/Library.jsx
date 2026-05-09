@@ -17,7 +17,8 @@ import { downloadLibraryArchive, importLibraryArchive } from "@/lib/mapLibraryAr
 import { listCategories, filterMapsByCategory, toggleMapCategory } from "@/lib/categories";
 import { isFlowchartMap } from "@/lib/flowchart";
 import { saveMap } from "@/lib/storage";
-import { Workflow } from "lucide-react";
+import { listTimelines, deleteTimeline } from "@/lib/timelineStorage";
+import { Workflow, Clock as ClockIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { getRef } from "@/lib/referral";
 
@@ -434,7 +435,19 @@ export default function Library() {
               >
                 <Workflow size={11} /> Flowchart
               </button>
+              <button
+                data-testid="library-new-timeline"
+                onClick={() => navigate("/timeline/new")}
+                title="Build a pannable timeline — could be 100 years of history or a month of expenses"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full mono text-[10px] uppercase tracking-[0.18em] bg-violet-400/10 hover:bg-violet-400/20 border border-violet-400/40 text-violet-200 transition"
+              >
+                <ClockIcon size={11} /> Timeline
+              </button>
             </section>
+            {/* Timelines section — separate row above the maps grid since
+                timelines are a different document class (no thumbnail
+                preview yet, no shape geometry, no AI key state). */}
+            <TimelinesRow navigate={navigate} tick={tick} bumpTick={() => setTick((t) => t + 1)} />
             {filtered.length === 0 ? (
               <div className="text-center py-16 text-[#7a87ad]">
                 <div className="mono text-[10px] uppercase tracking-[0.22em]">No matches</div>
@@ -673,5 +686,68 @@ function LibraryCard({ map, onOpen, onDelete, onTagsChanged }) {
         <ExternalLink size={12} className="text-cyan-300" />
       </div>
     </div>
+  );
+}
+
+/**
+ * TimelinesRow — horizontal strip of timeline cards above the maps
+ * grid. Stays hidden when the user has zero timelines so it doesn't
+ * waste vertical space. Click a card to open `/timeline/:id`.
+ */
+function TimelinesRow({ navigate, tick, bumpTick }) {
+  const [items, setItems] = useState(() => listTimelines());
+  useEffect(() => { setItems(listTimelines()); }, [tick]);
+  if (!items.length) return null;
+  const remove = (id, title) => {
+    if (!window.confirm(`Delete timeline "${title}"?`)) return;
+    deleteTimeline(id);
+    bumpTick();
+    toast.success("Timeline deleted");
+  };
+  return (
+    <section className="mb-7" data-testid="library-timelines-row">
+      <div className="flex items-center justify-between mb-2.5">
+        <h2 className="mono text-[11px] uppercase tracking-[0.22em] text-violet-300/90 flex items-center gap-1.5">
+          <ClockIcon size={11} /> Timelines · {items.length}
+        </h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        {items.map((t) => (
+          <div
+            key={t.id}
+            data-testid={`library-timeline-card-${t.id}`}
+            onClick={() => navigate(`/timeline/${t.id}`)}
+            className="group cursor-pointer rounded-xl border border-violet-400/25 bg-gradient-to-br from-violet-500/[0.08] via-fuchsia-500/[0.04] to-cyan-500/[0.05] hover:border-violet-300/60 transition p-4 relative"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="mono text-[9px] uppercase tracking-[0.22em] text-violet-300/90 mb-1 flex items-center gap-1">
+                  <ClockIcon size={9} /> Timeline
+                </div>
+                <h3 className="font-semibold text-white truncate">{t.title}</h3>
+                <div className="mono text-[10px] text-[#7a87ad] mt-1">
+                  {new Date(t.scope.startISO).toLocaleDateString(undefined, { year: "numeric", month: "short" })}
+                  {t.scope.endISO ? ` → ${new Date(t.scope.endISO).toLocaleDateString(undefined, { year: "numeric", month: "short" })}` : " → ∞"}
+                </div>
+                <div className="text-[11px] text-[#9aa7c7] mt-2">
+                  {(t.events || []).length} event{(t.events || []).length === 1 ? "" : "s"} · {(t.categories || []).length} categor{(t.categories || []).length === 1 ? "y" : "ies"}
+                </div>
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); remove(t.id, t.title); }}
+                data-testid={`library-timeline-del-${t.id}`}
+                className="opacity-0 group-hover:opacity-100 transition text-[#7a87ad] hover:text-red-400"
+                title="Delete timeline"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+            <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition pointer-events-none">
+              <ExternalLink size={12} className="text-violet-300" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

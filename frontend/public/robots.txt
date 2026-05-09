@@ -7,6 +7,7 @@ Allow: /
 # Gated app surface (waitlist required) — no benefit to crawling.
 Disallow: /app
 Disallow: /library
+Disallow: /timeline
 Disallow: /intake
 Disallow: /output
 Disallow: /calendar

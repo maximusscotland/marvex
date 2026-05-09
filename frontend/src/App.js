@@ -48,6 +48,7 @@ const Faq                 = lazy(() => import("@/pages/Faq"));
 const Contact             = lazy(() => import("@/pages/Contact"));
 const AuthMagic           = lazy(() => import("@/pages/AuthMagic"));
 const SignIn              = lazy(() => import("@/pages/SignIn"));
+const TimelineStudio      = lazy(() => import("@/pages/TimelineStudio"));
 
 /**
  * /learn/:slug router — try tutorial first, fall back to long-form
@@ -148,6 +149,9 @@ export default function App() {
               Until launch day, only access-key holders get through. */}
           <Route path="/app" element={<AccessGate><Studio /></AccessGate>} />
           <Route path="/flowchart" element={<AccessGate><FlowchartStudio /></AccessGate>} />
+          <Route path="/timeline" element={<AccessGate><TimelineStudio /></AccessGate>} />
+          <Route path="/timeline/new" element={<AccessGate><TimelineStudio /></AccessGate>} />
+          <Route path="/timeline/:id" element={<AccessGate><TimelineStudio /></AccessGate>} />
           <Route path="/intake" element={<AccessGate><IntakeStudio /></AccessGate>} />
           <Route path="/library" element={<AccessGate><Library /></AccessGate>} />
           <Route path="/output" element={<AccessGate><Output /></AccessGate>} />
