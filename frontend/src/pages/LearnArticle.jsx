@@ -3,6 +3,7 @@ import { Link, useParams, Navigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Clock, Calendar, ExternalLink } from "lucide-react";
 import Logo from "@/components/Logo";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
+import References, { MIND_MAPPING_REFERENCES } from "@/components/References";
 import { getArticle, ARTICLES } from "@/lib/articles";
 import usePageMeta from "@/lib/usePageMeta";
 
@@ -249,6 +250,10 @@ export default function LearnArticle() {
         </div>
       </main>
 
+      {/* Academic references — only render when the article is an
+          academic-flavoured one (most are). The references appear above
+          the standard SiteLinksFooter. */}
+      <References items={MIND_MAPPING_REFERENCES} />
       <SiteLinksFooter />
     </div>
   );

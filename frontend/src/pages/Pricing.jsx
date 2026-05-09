@@ -10,16 +10,23 @@ import { useExperiment } from "@/lib/featureFlags";
 import { track } from "@/lib/posthog";
 import usePageMeta from "@/lib/usePageMeta";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
+import CurrencySwitcher from "@/components/CurrencySwitcher";
+import { priceLabel, detectDefaultCurrency } from "@/lib/currency";
 import { useAuth } from "@/lib/auth";
 import { getRef } from "@/lib/referral";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
+// Plans expressed as amount-in-USD + suffix so the CurrencySwitcher
+// can re-format them on the fly. The displayed price is approximate
+// (FX baked in at /app/frontend/src/lib/currency.js); Stripe always
+// charges the USD figure regardless of which currency the user is
+// browsing in — clarified by the "Charged in USD" footnote.
 const PLAN_DETAIL = {
-  lite:     { price: "$9",   suffix: "/mo",  sub: "Cancel anytime · 7-day free trial",  badge: "ENTRY" },
-  monthly:  { price: "$15",  suffix: "/mo",  sub: "Cancel anytime · 7-day free trial",  badge: null },
-  annual:   { price: "$150", suffix: "/yr",  sub: "Save 17% · 7-day free trial",        badge: "POPULAR" },
-  lifetime: { price: "$200", suffix: " once", sub: "Pay once, yours forever",           badge: "BEST VALUE" },
+  lite:     { usd: 9,   suffix: "/mo",  sub: "Cancel anytime · 7-day free trial",  badge: "ENTRY" },
+  monthly:  { usd: 15,  suffix: "/mo",  sub: "Cancel anytime · 7-day free trial",  badge: null },
+  annual:   { usd: 150, suffix: "/yr",  sub: "Save 17% · 7-day free trial",        badge: "POPULAR" },
+  lifetime: { usd: 200, suffix: " once", sub: "Pay once, yours forever",           badge: "BEST VALUE" },
 };
 
 // Pro-only perks. Lite excludes Deep Research / Auto-deepen / Save-to-all /
@@ -78,6 +85,11 @@ export default function Pricing() {
   // for the test variant without a flag set. Control group sees just
   // the existing Pro/Annual/Lifetime tiers — same UX as before Lite.
   const liteVisible = useExperiment("lite_tier_visible", true);
+
+  // Currency code for display only — Stripe always charges in USD.
+  // Initialised to the visitor's locale-guessed default so the page
+  // renders sensible numbers on first paint without flicker.
+  const [currency, setCurrencyCode] = useState(() => detectDefaultCurrency());
 
   // Founders state retained for future use; the visible countdown is
   // currently suppressed (see showFounder below) until real social
@@ -181,7 +193,7 @@ export default function Pricing() {
 
       {/* Free-tier honest reframe — high-conversion strip placed BEFORE the plan
           cards so visitors immediately understand what's actually free. The
-          30-node cap only counts structured tree-nodes; everything else
+          30-element cap only counts structured tree-elements; everything else
           (stickies, clipart, lines, arrows, exports, cloud save, etc.) is
           unlimited even on free. */}
       <section
@@ -198,7 +210,7 @@ export default function Pricing() {
                 What&apos;s actually free
               </div>
               <p className="text-[14px] text-[#cfdaf3] leading-relaxed mb-3">
-                Free includes <strong className="text-white">unlimited stickies, clipart, lines, arrows, images, exports, and cloud save</strong> — only the 30-structured-node cap applies.
+                Free includes <strong className="text-white">unlimited stickies, clipart, lines, arrows, images, exports, and cloud save</strong> — only the 30-structured-element cap applies.
                 Sketch, brainstorm, and ship full research maps without ever hitting a wall on the free tier.
               </p>
               <div className="flex flex-wrap gap-1.5">
@@ -228,6 +240,12 @@ export default function Pricing() {
           md:grid-cols-3 when Lite is hidden so the cards expand to fill
           the row instead of leaving an empty slot. */}
       <section className="max-w-6xl mx-auto px-6 lg:px-12 pb-20">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div className="mono text-[10px] uppercase tracking-[0.22em] text-[#7a87ad]">
+            All plans · billed in USD
+          </div>
+          <CurrencySwitcher onChange={setCurrencyCode} />
+        </div>
         <div
           className={`grid md:grid-cols-2 gap-4 ${liteVisible ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}
           data-testid="pricing-cards"
@@ -271,8 +289,8 @@ export default function Pricing() {
                 <div className="mono text-[11px] uppercase tracking-[0.22em] text-cyan-300/80 mb-2">
                   {PLAN_LABEL[id]}
                 </div>
-                <div className="text-5xl font-extrabold mb-1">
-                  {plan.price}<span className="text-lg text-[#9aaad0] font-normal">{plan.suffix}</span>
+                <div className="text-5xl font-extrabold mb-1" data-testid={`pricing-amount-${id}`}>
+                  {priceLabel(plan.usd, currency)}<span className="text-lg text-[#9aaad0] font-normal">{plan.suffix}</span>
                 </div>
                 <div className="mono text-[10px] uppercase tracking-[0.18em] text-[#7a87ad] mb-5">
                   {plan.sub}
@@ -450,7 +468,7 @@ export default function Pricing() {
                     <div className="text-[11px] text-[#7a87ad] truncate">{s.role}</div>
                   </div>
                   <div className="mono text-[13px] text-[#cfdaf3] tabular-nums shrink-0">
-                    ${s.price.toFixed(2)}
+                    {priceLabel(s.price, currency)}
                     <span className="text-[#566187] text-[10px]">/mo</span>
                   </div>
                 </div>
@@ -460,7 +478,7 @@ export default function Pricing() {
                   Combined total
                 </span>
                 <span className="mono text-[16px] text-white font-bold tabular-nums">
-                  $44.98<span className="text-[#566187] text-[11px]">/mo</span>
+                  {priceLabel(44.98, currency)}<span className="text-[#566187] text-[11px]">/mo</span>
                 </span>
               </div>
             </div>

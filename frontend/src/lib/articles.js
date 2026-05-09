@@ -56,16 +56,16 @@ export const ARTICLES = [
         paragraphs: [
           "**Step 1 — Open Marvex Studio.** Go to marvex.app/app and click Try Free. The Studio loads with an empty canvas in your browser. No account, no signup, no email verification.",
           "**Step 2 — Drop your PDF.** Drag the file directly onto the canvas, or click the upload button. Marvex detects the document type, parses it locally, and shows you a preview. If the PDF is scanned (image-based), Marvex automatically OCRs it first.",
-          "**Step 3 — Pick the engine.** Two options: Quick Outline (free, structural — great for textbooks with clear headings) or AI Analysis (uses your Claude / OpenAI / Gemini key — produces semantic maps with relationship labels and short summaries on each node).",
-          "**Step 4 — Watch the map build.** For a 20-page paper, expect a finished tree in 30–60 seconds. Each branch maps to a major section; each leaf carries a 1–2 sentence summary the AI extracted. Right-click any node to ask the AI for a deeper gloss, an example, or a counter-argument.",
-          "**Step 5 — Edit and export.** Drag nodes to re-organise, merge similar branches, link nodes to source pages in the original PDF, and export as PDF, PNG, SVG, Markdown, or Marvex's native .mmap format. Your map is saved automatically to your browser's local storage — never leaves your device unless you choose to sync. If you want the same workflow offline with bigger PDFs, the [desktop app](/download) handles up to 200 MB.",
+          "**Step 3 — Pick the engine.** Two options: Quick Outline (free, structural — great for textbooks with clear headings) or AI Analysis (uses your Claude / OpenAI / Gemini key — produces semantic maps with relationship labels and short summaries on each element).",
+          "**Step 4 — Watch the map build.** For a 20-page paper, expect a finished tree in 30–60 seconds. Each branch maps to a major section; each leaf carries a 1–2 sentence summary the AI extracted. Right-click any element to ask the AI for a deeper gloss, an example, or a counter-argument.",
+          "**Step 5 — Edit and export.** Drag elements to re-organise, merge similar branches, link elements to source pages in the original PDF, and export as PDF, PNG, SVG, Markdown, or Marvex's native .mmap format. Your map is saved automatically to your browser's local storage — never leaves your device unless you choose to sync. If you want the same workflow offline with bigger PDFs, the [desktop app](/download) handles up to 200 MB.",
         ],
       },
       {
         heading: "Common pitfalls (and fixes)",
         paragraphs: [
           "**The map looks too flat.** Quick Outline relies on PDF heading structure. If your PDF lacks proper headings (common in older scans), switch to AI Analysis — it infers structure from prose.",
-          "**The summaries are wrong.** AI Analysis produces hallucination-resistant summaries by extracting verbatim phrasing where possible — but for highly technical PDFs, double-check claims against the source. Click any node to jump to the exact PDF page it was drawn from.",
+          "**The summaries are wrong.** AI Analysis produces hallucination-resistant summaries by extracting verbatim phrasing where possible — but for highly technical PDFs, double-check claims against the source. Click any element to jump to the exact PDF page it was drawn from.",
           "**The PDF won't upload.** Marvex Studio caps at 25 MB to keep parsing fast in the browser. For larger files, install the desktop app (Mac / Windows / Linux) which handles up to 200 MB.",
         ],
       },
@@ -76,8 +76,8 @@ export const ARTICLES = [
       { href: "/learn/best-pdf-mind-map-tools-2026", label: "Compare the best PDF mind map tools (2026)" },
     ],
     faq: [
-      { q: "How accurate is AI-generated mind mapping from PDFs?", a: "Marvex's AI Analysis pulls verbatim phrasing where possible and clearly marks paraphrased nodes. Accuracy is typically 90%+ on well-structured documents; double-check technical claims by clicking the node to jump back to the source." },
-      { q: "Can I edit the AI-generated mind map?", a: "Yes — every node, branch, connector, label, and colour is fully editable. Drag, merge, split, rename, link to files, and export to any format." },
+      { q: "How accurate is AI-generated mind mapping from PDFs?", a: "Marvex's AI Analysis pulls verbatim phrasing where possible and clearly marks paraphrased elements. Accuracy is typically 90%+ on well-structured documents; double-check technical claims by clicking the element to jump back to the source." },
+      { q: "Can I edit the AI-generated mind map?", a: "Yes — every element, branch, connector, label, and colour is fully editable. Drag, merge, split, rename, link to files, and export to any format." },
       { q: "Do I need an AI API key?", a: "Optional. Quick Outline (free) works without one. AI Analysis requires an API key from Anthropic, OpenAI, or Google — typically $0.05–0.15 per PDF." },
     ],
   },
@@ -120,7 +120,7 @@ export const ARTICLES = [
         ],
       },
       {
-        heading: "XMind, MindMeister, MindNode — legacy contenders",
+        heading: "XMind, MindMeister, MindElement — legacy contenders",
         paragraphs: [
           "All three are mature mind-mapping apps with decent PDF import. None offer AI mind map generation as their headline feature; you'll typically copy-paste PDF content and structure manually. Solid for traditional mind-mapping workflows but missing the modern AI-driven extraction that Marvex and Mapify lead on.",
         ],
@@ -162,7 +162,7 @@ export const ARTICLES = [
           "**Step 1 — Document ingest.** The PDF is parsed into structured text. Modern tools use libraries like PyMuPDF or pdf.js plus an OCR fallback (Tesseract) for scanned documents. Better tools also extract images, tables, and footnotes — not just body text.",
           "**Step 2 — Chunking and structure detection.** The text is split into logical chunks (typically 500–1500 tokens each) and the tool detects existing structure: headings, sub-headings, lists, tables. Lower-quality tools skip this and just hand the AI raw text — leading to flatter, less coherent maps.",
           "**Step 3 — AI extraction.** Each chunk is sent to a large language model (Claude, GPT, or Gemini) with a structured prompt asking it to identify concepts, sub-concepts, relationships, and brief summaries. The AI returns JSON.",
-          "**Step 4 — Tree assembly.** The JSON fragments are stitched into a single tree. Good tools deduplicate, merge near-duplicates, and create connector edges between related nodes across chunks. This is where most cheap tools fail — they output a tree of disconnected fragments instead of a coherent map.",
+          "**Step 4 — Tree assembly.** The JSON fragments are stitched into a single tree. Good tools deduplicate, merge near-duplicates, and create connector edges between related elements across chunks. This is where most cheap tools fail — they output a tree of disconnected fragments instead of a coherent map.",
           "**Step 5 — Render.** The final tree is rendered as an interactive SVG canvas with zoom, pan, drag, and keyboard navigation.",
         ],
       },
@@ -170,8 +170,8 @@ export const ARTICLES = [
         heading: "What separates good AI mind map generators from bad ones",
         paragraphs: [
           "**Speed.** A well-engineered tool produces a 20-page paper map in 30–60 seconds. If a tool takes 3+ minutes, it's likely making serial AI calls instead of parallelising chunks.",
-          "**Citation fidelity.** Every node should link back to the exact source page so you can verify claims. Tools that don't preserve citations are just AI-generated speculation.",
-          "**Editability.** Real research workflows require editing — merging branches, renaming nodes, adding hand-drawn connectors. Read-only AI maps are useless after the first reading.",
+          "**Citation fidelity.** Every element should link back to the exact source page so you can verify claims. Tools that don't preserve citations are just AI-generated speculation.",
+          "**Editability.** Real research workflows require editing — merging branches, renaming elements, adding hand-drawn connectors. Read-only AI maps are useless after the first reading.",
           "**Privacy posture.** Cloud-only tools upload your PDFs to their servers, often retaining them for 'training improvements'. If you're processing confidential research or legal documents, this matters enormously. Local-first tools (like [Marvex Studio](/pdf-to-mind-map)) keep everything on your machine.",
           "**Cost model.** Some tools charge per generation, some flat-rate, and some BYO-key. BYO-key wins on transparency: you pay your AI provider directly, no markup.",
         ],
@@ -223,7 +223,7 @@ export const ARTICLES = [
       {
         heading: "Use case 3: Exam prep — the spaced-repetition map",
         paragraphs: [
-          "Build one master mind map per exam topic. Each time you encounter a new concept (lecture, textbook, paper), add it as a node. Right before the exam, the map IS your revision sheet — and unlike linear notes, you can quiz yourself by node ('what's under X?') rather than re-reading sequential paragraphs.",
+          "Build one master mind map per exam topic. Each time you encounter a new concept (lecture, textbook, paper), add it as a element. Right before the exam, the map IS your revision sheet — and unlike linear notes, you can quiz yourself by element ('what's under X?') rather than re-reading sequential paragraphs.",
           "Students who switch from linear notes to mind-mapped revision report 40% less revision time for equivalent or better grades, on average across our user base of 200+ students.",
         ],
       },
@@ -282,7 +282,7 @@ export const ARTICLES = [
       {
         heading: "Concept map: relationships across multiple ideas",
         paragraphs: [
-          "A concept map is like a mind map but with named relationships between any two nodes — not just parent-child. 'Photosynthesis → produces → oxygen', 'oxygen → enables → respiration'. It's the most cognitively demanding of the three to build but the most powerful for showing how ideas interconnect.",
+          "A concept map is like a mind map but with named relationships between any two elements — not just parent-child. 'Photosynthesis → produces → oxygen', 'oxygen → enables → respiration'. It's the most cognitively demanding of the three to build but the most powerful for showing how ideas interconnect.",
           "Use a concept map when: you're synthesising knowledge across multiple sources, preparing for a viva or oral defence, or teaching a complex topic where the relationships matter as much as the concepts.",
         ],
       },
@@ -301,7 +301,7 @@ export const ARTICLES = [
       { href: "/learn/ai-mind-map-generator-explained", label: "How AI mind map generators work" },
     ],
     faq: [
-      { q: "Can a mind map have cross-links like a concept map?", a: "Yes. Marvex Studio supports labelled connectors between any two nodes, blurring the line between mind maps and concept maps. Use whichever metaphor fits your thinking." },
+      { q: "Can a mind map have cross-links like a concept map?", a: "Yes. Marvex Studio supports labelled connectors between any two elements, blurring the line between mind maps and concept maps. Use whichever metaphor fits your thinking." },
       { q: "Are flowcharts ever better than mind maps?", a: "Yes — for processes. Flowcharts make sequence and decisions explicit, which mind maps obscure. If your content has 'do this then that, unless X, in which case…' logic, use a flowchart." },
       { q: "Which is best for studying?", a: "Mind maps for textbook chapters and lectures (compression). Concept maps for cross-topic synthesis before exams. Flowcharts rarely apply to study unless you're learning a procedural domain (e.g. surgery, law)." },
     ],

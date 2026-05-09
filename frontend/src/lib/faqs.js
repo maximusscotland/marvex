@@ -35,7 +35,7 @@ export const FAQ_GROUPS = [
       {
         id: "ai-cost",
         q: "Do you charge for AI usage?",
-        a: "No. You bring your own API key from OpenAI, Anthropic, Google Gemini, or any compatible provider — you pay them directly, we never see it, and we never mark it up. Pro unlocks the features (unlimited nodes, AI Compile, Deep Research, cloud sync), not a quota.",
+        a: "No. You bring your own API key from OpenAI, Anthropic, Google Gemini, or any compatible provider — you pay them directly, we never see it, and we never mark it up. Pro unlocks the features (unlimited elements, AI Compile, Deep Research, cloud sync), not a quota.",
       },
       {
         id: "vs-competitors",
@@ -170,7 +170,7 @@ export const FAQ_GROUPS = [
       {
         id: "access-codes",
         q: "I got an access code from a friend / launch announcement. How do I use it?",
-        a: "On the home page, scroll to the 'Got an access code?' box (just below 'How it works'). Type the code, click Unlock — you're past the gate immediately and the code stays attached to your account. When you sign up, the matching tier (Pro / Lifetime / Founder) automatically applies. Codes are reusable, but only once per person.",
+        a: "Click the **'Have a code? →'** link at the very top of the home page (it sits just under the navigation bar, next to the language switcher). That opens the **/redeem** page where you paste your code and click Redeem invite. You're past the gate immediately and the code stays attached to your account. When you sign in (Google, Apple, or email magic-link), the matching tier (Pro / Lifetime / Founder) automatically applies. Codes are reusable, but only once per person.",
       },
       {
         id: "delete-account",

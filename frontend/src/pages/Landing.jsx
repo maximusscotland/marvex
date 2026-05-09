@@ -137,9 +137,9 @@ export default function Landing() {
         <Link
           to="/redeem"
           data-testid="nav-have-code-link"
-          className="mono text-[10px] uppercase tracking-[0.22em] text-[#6c7aa3] hover:text-cyan-300 transition"
+          className="mono text-[11px] uppercase tracking-[0.22em] px-3 py-1.5 rounded-full border border-fuchsia-400/30 bg-fuchsia-500/[0.06] text-fuchsia-200 hover:text-white hover:border-fuchsia-300/60 hover:bg-fuchsia-500/[0.1] transition"
         >
-          Have a code? →
+          Have an access code? Redeem →
         </Link>
         <LanguageSwitcher compact />
       </div>

@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
+import References, { MIND_MAPPING_REFERENCES } from "@/components/References";
 import usePageMeta from "@/lib/usePageMeta";
 
 const SITE = "https://marvex.app";
@@ -67,7 +68,7 @@ export default function PdfToMindMap() {
           { "@type": "HowToStep", position: 2, name: "Drop your PDF", text: "Drag any PDF onto the canvas, or click the upload button. The file stays on your device — never uploaded to our servers." },
           { "@type": "HowToStep", position: 3, name: "Pick the AI engine", text: "Choose Quick Outline (free, structural parse) or AI Analysis (uses your own Claude/GPT/Gemini API key for semantic mapping)." },
           { "@type": "HowToStep", position: 4, name: "Watch the map appear", text: "In 30–60 seconds the AI extracts every concept, theme, and relationship into an interactive mind map you can zoom, edit, and export." },
-          { "@type": "HowToStep", position: 5, name: "Edit and export", text: "Drag nodes, add notes, and export as PDF, PNG, SVG, Markdown, or .mmap to share." },
+          { "@type": "HowToStep", position: 5, name: "Edit and export", text: "Drag elements, add notes, and export as PDF, PNG, SVG, Markdown, or .mmap to share." },
         ],
       },
       {
@@ -161,7 +162,7 @@ export default function PdfToMindMap() {
             { n: 2, icon: FileText, title: "Drop your PDF", body: "Drag any PDF onto the canvas, or click the upload button. The file stays on your device — Marvex Studio never uploads it to our servers." },
             { n: 3, icon: Brain, title: "Pick the AI engine", body: <>Choose <strong>Quick Outline</strong> (free, structural parse) or <strong>AI Analysis</strong> (uses your own Claude / OpenAI / Gemini API key for semantic mapping).</> },
             { n: 4, icon: Sparkles, title: "Watch the mind map appear", body: "In 30–60 seconds the AI extracts every concept, theme, and relationship into an interactive mind map you can zoom, edit, and export." },
-            { n: 5, icon: ArrowRight, title: "Edit and export", body: "Drag nodes, add notes, link to source, and export as PDF, PNG, SVG, Markdown, or .mmap to share." },
+            { n: 5, icon: ArrowRight, title: "Edit and export", body: "Drag elements, add notes, link to source, and export as PDF, PNG, SVG, Markdown, or .mmap to share." },
           ].map((s) => {
             const Icon = s.icon;
             return (
@@ -195,7 +196,7 @@ export default function PdfToMindMap() {
             { title: "Mind map maker that respects privacy", body: "Local-first storage. No accounts. No tracking. Your maps stay in your browser and filesystem unless you explicitly sync them." },
             { title: "Cross-platform mind mapping software", body: "Use Marvex Studio on the web, or install the native desktop app for Mac (Apple Silicon + Intel), Windows (x64 + ARM64), and Linux (.AppImage / .deb / .rpm)." },
             { title: "Concept map software for researchers", body: "PDF reader, AI co-pilot, citation chips, side-by-side highlights, exportable summaries — built for people who actually read papers, not just file them." },
-            { title: "Mind mapping for students", body: "60-second study guides from any textbook PDF. Right-click any node to ask the AI for a deeper gloss, an example, or a counter-argument." },
+            { title: "Mind mapping for students", body: "60-second study guides from any textbook PDF. Right-click any element to ask the AI for a deeper gloss, an example, or a counter-argument." },
           ].map((c) => (
             <div key={c.title} className="rounded-2xl border border-white/10 bg-white/[0.02] p-6">
               <div className="flex items-center gap-2 mb-2">
@@ -243,7 +244,7 @@ export default function PdfToMindMap() {
             { q: "Do I need to sign up to convert a PDF to a mind map?", a: "No. Marvex Studio is local-first — you can convert PDFs directly in your browser without an account, and your maps stay on your device." },
             { q: "How long does PDF to mind map conversion take?", a: "Typically 30–60 seconds for a 20-page paper. Larger documents or AI Analysis mode can take up to 2 minutes." },
             { q: "What's the difference between Marvex and other AI mind map generators?", a: "Marvex Studio is local-first (data never leaves your device by default) and uses Bring-Your-Own-Key AI — you pay your AI provider directly with no markup. Most alternatives lock you into their cloud and charge per generation." },
-            { q: "Can I edit the mind map after the AI generates it?", a: "Absolutely. Every node, branch, and connector is fully editable. Drag, merge, split, rename, add notes, link to files, and export to PDF / PNG / SVG / Markdown / .mmap." },
+            { q: "Can I edit the mind map after the AI generates it?", a: "Absolutely. Every element, branch, and connector is fully editable. Drag, merge, split, rename, add notes, link to files, and export to PDF / PNG / SVG / Markdown / .mmap." },
             { q: "Does Marvex Studio work offline?", a: "Yes. Open a previously-loaded mind map without an internet connection. AI Analysis requires connectivity (because it calls your AI provider's API), but Quick Outline and editing are fully offline." },
           ].map((f, i) => (
             <details key={i} className="group rounded-xl border border-white/10 bg-white/[0.02] p-5" data-testid={`ptm-faq-${i}`}>
@@ -278,6 +279,7 @@ export default function PdfToMindMap() {
         </div>
       </section>
 
+      <References items={MIND_MAPPING_REFERENCES} />
       <SiteLinksFooter />
     </div>
   );
