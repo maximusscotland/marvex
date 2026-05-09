@@ -107,7 +107,7 @@ export const FAQ_GROUPS = [
       {
         id: "which-ai",
         q: "Which AI provider should I pick?",
-        a: "Anthropic Claude (Sonnet 4.5) gives the best mind-map output today — its structured-text generation and citation handling beat the others. OpenAI GPT-4o is a close second and slightly cheaper. Google Gemini 2.5 Pro is the cheapest and very fast for outline-style maps. Pick whichever you already have an account with; you can swap any time in settings.",
+        a: "Anthropic Claude (Sonnet 4.5) gives the best mind-map output today — its structured-text generation and citation handling beat the others. OpenAI GPT-4o is a close second and slightly cheaper. Google Gemini 2.5 Pro is the cheapest and very fast for outline-style maps. Pick whichever you already have an account with; you can swap any time in settings. If you'd rather not juggle separate API keys & dashboards, Galaxy.ai gives you a single flat-rate subscription that covers every major model (GPT, Claude, Gemini, Grok) — cheaper than ChatGPT Plus + Claude Pro combined and works seamlessly with Marvex Studio's BYOK setting.",
       },
     ],
   },
@@ -128,7 +128,7 @@ export const FAQ_GROUPS = [
       {
         id: "windows-warning",
         q: "Why does Windows show a 'Windows protected your PC' warning?",
-        a: "Because the v1 installer is unsigned. A code-signing certificate costs $200-400/year and we'll buy one once we have steady revenue — but right now it's not worth the cost. The installer is safe; click 'More info → Run anyway' to install. As more people download, Windows SmartScreen learns the publisher is legit and the warning fades automatically.",
+        a: "Because the v1 installer is unsigned. A code-signing certificate costs $200-400/year and we are currently in the process of doing so just to remove this discourager. The installer is safe; click 'More info → Run anyway' to install. As more people download, Windows SmartScreen learns the publisher is legit and the warning fades automatically.",
       },
       {
         id: "mac-warning",
@@ -144,7 +144,7 @@ export const FAQ_GROUPS = [
       {
         id: "compare-tools",
         q: "How does Marvex Studio compare to XMind / MindNode / MindMeister?",
-        a: "All three are solid mind-mapping apps focused on building maps from scratch. Marvex Studio adds two things they don't: (1) PDF → Mind Map in 60 seconds via AI Compile, so you can turn dense research material into a navigable map without manual transcription. (2) BYOK AI throughout — you control the cost and privacy. We're the right tool when you have a stack of papers/articles/PDFs to digest; they're the right tool when you want a polished blank-canvas mind-map editor.",
+        a: "All three are solid mind-mapping apps focused on building maps from scratch. Marvex Studio adds two things they don't: (1) PDF → Mind Map in 60 seconds via AI Compile, so you can turn dense research material into an editable and interactive visual representation of your target information without manual transcription. (2) BYOK AI throughout — you control the cost and privacy. We're the right tool when you have a stack of papers/articles/PDFs to digest; they're the right tool when you want a polished blank-canvas mind-map editor.",
       },
       {
         id: "what-is-flowchart",
