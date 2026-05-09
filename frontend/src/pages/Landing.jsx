@@ -129,19 +129,23 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* TINY UTILITY BAR — language switcher centred under the header,
-          plus a discreet "Have a code?" text link for VIPs / press / family
-          who got an access code by email. Anyone without a code never
-          notices it; anyone with one knows exactly where to click. */}
-      <div className="relative z-30 px-6 lg:px-12 pt-3 pb-1 flex items-center justify-center gap-4" data-testid="lang-bar">
+      {/* TINY UTILITY BAR — language switcher centred under the header. */}
+      <div className="relative z-30 px-6 lg:px-12 pt-3 pb-1 flex items-center justify-center" data-testid="lang-bar">
+        <LanguageSwitcher compact />
+      </div>
+
+      {/* Access-code affordance — bare text link centred between the
+          language switcher and the section nav. No surrounding pill so it
+          reads as a discreet whisper for VIPs / press / friends-of-founder;
+          anyone without a code keeps scrolling without noticing. */}
+      <div className="relative z-30 px-6 lg:px-12 pt-1 pb-1 flex items-center justify-center" data-testid="access-code-bar">
         <Link
           to="/redeem"
           data-testid="nav-have-code-link"
-          className="mono text-[11px] uppercase tracking-[0.22em] px-3 py-1.5 rounded-full border border-fuchsia-400/30 bg-fuchsia-500/[0.06] text-fuchsia-200 hover:text-white hover:border-fuchsia-300/60 hover:bg-fuchsia-500/[0.1] transition"
+          className="mono text-[11px] uppercase tracking-[0.22em] text-fuchsia-300/90 hover:text-fuchsia-200 transition"
         >
           Have an access code? Redeem →
         </Link>
-        <LanguageSwitcher compact />
       </div>
 
       {/* SECTION-LINK STRIP — sits directly above the cinematic teaser
