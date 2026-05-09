@@ -1,0 +1,27 @@
+{
+  "summary": "Re-tested the two iteration-78 defects after main agent's targeted fixes (clickTimerRef debounce + patchEvent closeAfter). Both bugs are RESOLVED. RETEST 1 (dblclick → inline rename), RETEST 2 (single-click → dialog after 220ms debounce), RETEST 3a/b/c (ctx-menu auto-closes after shape/color/font-size pick), RETEST 4a/b (Escape + outside-click still close menu) — all 7 retest assertions PASS in a single end-to-end Playwright run on the public preview URL. Inline rename persists across page reload (verified via localStorage round-trip). Pill shape correctly applied (computed border-radius 999px). The skipped P1.6 (insert-timeline-from-mindmap) remains verified manually by main agent per instructions and was not re-tested here.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/frontend/src/components/timeline/TimelineCanvas.jsx"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Fix is clean and minimal: clickTimerRef + setTimeout(220ms) on cube onClick, cleared by onDoubleClick. Standard, well-known pattern for click/dblclick disambiguation — no perf concerns.",
+    "patchEvent now takes a second arg `closeAfter=true` and dismisses the context menu via setCtxMenu(null). Idiomatic and matches Figma/Notion behaviour.",
+    "TimelineCanvas.jsx is now ~1185 lines — the previously raised concern (>700 lines threshold per code-review guideline) is still open. Recommend splitting (a) sticky-notes layer, (b) event cube + resize/rename, (c) right-click context menu into separate child components in a future refactor pass. Not blocking.",
+    "Suggest adding cleanup of clickTimerRef in a useEffect cleanup (clearTimeout on unmount) to avoid the dangling timer firing onEditEvent after the component has unmounted (rare race, but defensive)."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only)", "frontend": "100% (7/7 retest assertions + persistence + computed-style verification all pass)"},
+  "test_credentials": "?fam67 (case-insensitive) on any URL — full Pro access for 365 days, persisted in localStorage['marvex.tester.unlocked.v1'].",
+  "seed_data_creation": "One timeline created during testing: 'Retest79' (default Student/Cosmic/1-Year). To clean: page.evaluate(\"() => localStorage.removeItem('marvex.timelines.v1')\").",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Both iteration-78 defects are fixed and verified. Quick-add format remains 'YYYY-MM-DD | Label' in [data-testid='tl-quick-add-input']. To trigger the single-click dialog reliably, wait at least 1000-1500ms after page.mouse.click() (the 220ms debounce + React state propagation needs >500ms slack — at 500ms the dialog count was still 0; at 1500ms it was 1). The 'A small, honest ask' analytics banner appears on every fresh session — dismiss via 'text=DECLINE' if it overlays your test targets, otherwise it stays bottom-right and is harmless. localStorage is per-browser-session in fresh Playwright runs, so always re-create the timeline at the start of each test.",
+  "rca of the issue": "Iteration 78 RCA was correct — main agent's fix matched the recommended approach: (1) Cube onClick now calls clearTimeout(clickTimerRef.current) and schedules onEditEvent via setTimeout 220ms; (2) Cube onDoubleClick clears the same timer and sets editingId, so dblclick wins. (3) patchEvent(id, patch, closeAfter=true) calls setCtxMenu(null) by default, so any shape/color/fs pick auto-dismisses the menu. Verified empirically: dialog count=1 only on single-click after debounce; rename input count=1 only on dblclick; menu count=0 within 600ms of every patch action."
+}

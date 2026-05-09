@@ -76,6 +76,11 @@ export default function TimelineCanvas({
   const [view, setView] = useState(timeline.view || { x: 0, k: 1 });
   const [hover, setHover] = useState(null);
   const dragRef = useRef(null);
+  // Used to disambiguate single vs double-click on event cubes.
+  // A first click schedules `onEditEvent(...)` via setTimeout; a
+  // following dblclick clears the pending timer and switches the
+  // cube into inline-rename mode instead.
+  const clickTimerRef = useRef(null);
   const [cursorMs, setCursorMs] = useState(null);
   const [hoverPx, setHoverPx] = useState(null);
   // Phase 2/3 state: right-click context menu, inline rename, sticky notes.
@@ -374,11 +379,14 @@ export default function TimelineCanvas({
   }, [ctxMenu]);
 
   // Helpers used by the context menu to patch a single event.
-  const patchEvent = useCallback((id, patch) => {
+  // `closeAfter` defaults true so users get Figma-/Notion-style "click
+  // to apply, menu dismisses" UX rather than having to click outside.
+  const patchEvent = useCallback((id, patch, closeAfter = true) => {
     const events = (timeline.events || []).map((x) =>
       x.id === id ? { ...x, ...patch } : x,
     );
     onChange?.({ ...timeline, events });
+    if (closeAfter) setCtxMenu(null);
   }, [timeline, onChange]);
 
   const removeEvent = useCallback((id) => {
@@ -728,14 +736,23 @@ export default function TimelineCanvas({
             data-testid={`tl-event-${e.id}`}
             onClick={(ev) => {
               ev.stopPropagation();
+              // A 2nd click of a dblclick pair will be suppressed by
+              // the timer-cancel below, but ev.detail>=2 is also
+              // ignored as a defensive belt-and-braces guard.
+              if (ev.detail >= 2) return;
               if (dragRef.current?.moved) return;
               if (isEditing) return;
-              // If the user clicked the link badge, open the link directly
-              // (handler on the badge already stopped propagation, so this
-              // branch is the cube-body fall-through → opens dialog).
-              onEditEvent?.(e);
+              // Debounce: schedule the dialog-open. If a dblclick
+              // arrives within 220 ms the timer is cancelled by
+              // onDoubleClick → inline rename takes over instead.
+              clearTimeout(clickTimerRef.current);
+              clickTimerRef.current = setTimeout(() => onEditEvent?.(e), 220);
             }}
-            onDoubleClick={(ev) => { ev.stopPropagation(); setEditingId(e.id); }}
+            onDoubleClick={(ev) => {
+              ev.stopPropagation();
+              clearTimeout(clickTimerRef.current);
+              setEditingId(e.id);
+            }}
             onMouseEnter={() => setHover(e.id)}
             onMouseLeave={() => setHover((h) => (h === e.id ? null : h))}
             className="absolute group flex items-center justify-center transition-transform"
