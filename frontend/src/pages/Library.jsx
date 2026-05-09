@@ -21,6 +21,7 @@ import { listTimelines, deleteTimeline } from "@/lib/timelineStorage";
 import { Workflow, Clock as ClockIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { getRef } from "@/lib/referral";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 
@@ -269,6 +270,7 @@ export default function Library() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          <ThemeToggle />
           {/* Privacy + library backup controls */}
           <div className="hidden md:flex items-center gap-1" data-testid="library-privacy-controls">
             <button

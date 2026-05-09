@@ -54,6 +54,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import LlmFuelGauge from "@/components/LlmFuelGauge";
 import CheckForUpdatesLink from "@/components/CheckForUpdatesLink";
 import FilmModeToggle from "@/components/FilmModeToggle";
+import ThemeToggle from "@/components/ThemeToggle";
 import StudioLeftToolbar from "@/components/StudioLeftToolbar";
 import SelectionPropertiesPanel from "@/components/SelectionPropertiesPanel";
 import OnboardingTour, { hasSeenTour, resetTour } from "@/components/OnboardingTour";
@@ -1301,6 +1302,7 @@ export default function Studio({ mode = "mindmap" }) {
             <ApiKeyStatusChip onClick={() => setSettingsOpen(true)} />
             <LanguageSwitcher compact />
             <FilmModeToggle />
+            <ThemeToggle />
             <CheckForUpdatesLink />
             <UserBadge user={user} onSignIn={signIn} onSignOut={signOut} onUpgrade={() => setUpgradeOpen(true)} />
             {active && !privacyOn && (

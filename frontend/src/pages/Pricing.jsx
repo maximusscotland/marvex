@@ -4,6 +4,7 @@ import { Check, Sparkles, ArrowRight, ArrowLeft, Shield, Loader2 } from "lucide-
 import axios from "axios";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
+import ThemeToggle from "@/components/ThemeToggle";
 import FaqJsonLd from "@/components/FaqJsonLd";
 import { FAQ_FLAT } from "@/lib/faqs";
 import { useExperiment } from "@/lib/featureFlags";
@@ -171,9 +172,12 @@ export default function Pricing() {
           <Logo size={28} />
           <span className="mono text-[11px] uppercase tracking-[0.22em]">marvex</span>
         </Link>
-        <Link to="/library" data-testid="pricing-launch-app" className="cta-ghost text-[13px]">
-          Launch app <ArrowRight size={14} />
-        </Link>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link to="/library" data-testid="pricing-launch-app" className="cta-ghost text-[13px]">
+            Launch app <ArrowRight size={14} />
+          </Link>
+        </div>
       </header>
 
       {/* Hero */}

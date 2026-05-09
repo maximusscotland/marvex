@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Library as LibraryIcon, Plus, CalendarDays, Keyboard } from "lucide-react";
 import { toast } from "sonner";
 import Logo from "@/components/Logo";
+import ThemeToggle from "@/components/ThemeToggle";
 import TimelineCanvas from "@/components/timeline/TimelineCanvas";
 import TimelineCategoriesSidebar from "@/components/timeline/TimelineCategoriesSidebar";
 import TimelineEventDialog from "@/components/timeline/TimelineEventDialog";
@@ -275,6 +276,7 @@ export default function TimelineStudio() {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <button
             onClick={() => handleChange({ ...timeline, showOnCalendar: !timeline.showOnCalendar })}
             data-testid="tl-calendar-toggle"
