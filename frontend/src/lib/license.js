@@ -161,7 +161,13 @@ export const useLicense = () => {
 
     const blocksAction = (kind) => {
       if (active) return false;
-      return ["new-map", "ai", "cloud", "share", "compile"].includes(kind);
+      // Freemium model (Feb 2026): free users CAN create new maps —
+      // the 30-node cap (enforced via nodeCap + FreeCapNudge) is the
+      // soft conversion trigger. AI runs, cloud sync, share, and
+      // compile stay Pro-only — those are the actual revenue gates.
+      // Signed-out users get the same treatment: they can build maps
+      // locally; sign-in unlocks AI + cloud.
+      return ["ai", "cloud", "share", "compile"].includes(kind);
     };
 
     return {
