@@ -81,6 +81,9 @@ export default function TimelineCanvas({
   // following dblclick clears the pending timer and switches the
   // cube into inline-rename mode instead.
   const clickTimerRef = useRef(null);
+  // Defensive: clear any pending click timer on unmount so a stale
+  // setTimeout doesn't fire onEditEvent after the canvas has gone away.
+  useEffect(() => () => clearTimeout(clickTimerRef.current), []);
   const [cursorMs, setCursorMs] = useState(null);
   const [hoverPx, setHoverPx] = useState(null);
   // Phase 2/3 state: right-click context menu, inline rename, sticky notes.
