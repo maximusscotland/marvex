@@ -80,7 +80,11 @@ export default function LearnArticle() {
         "@context": "https://schema.org",
         "@type": "Article",
         headline: article.title,
-        description: article.description,
+        // TL;DR (when present) is the answer-first sentence AI search
+        // engines extract; falling back to description preserves SEO for
+        // articles that don't yet have one.
+        description: article.tldr || article.description,
+        abstract: article.tldr || article.description,
         datePublished: article.updatedAt,
         dateModified: article.updatedAt,
         author: { "@type": "Organization", name: "Marvex Studio", url: SITE },
@@ -92,6 +96,11 @@ export default function LearnArticle() {
         },
         mainEntityOfPage: { "@type": "WebPage", "@id": url },
         keywords: article.keywords,
+        wordCount: (article.sections || []).reduce(
+          (n, s) => n + (s.paragraphs || []).reduce((m, p) => m + p.split(/\s+/).length, 0),
+          0,
+        ),
+        inLanguage: "en",
       },
       {
         "@context": "https://schema.org",
@@ -160,6 +169,26 @@ export default function LearnArticle() {
         </div>
 
         <article className="prose-content space-y-10">
+          {/* TL;DR — answer-first card. Renders directly below the H1
+              so AI search engines (Perplexity, ChatGPT search, Google
+              AI Overviews) extract the direct answer from the FIRST
+              200 chars of body content. The same string is mirrored
+              into Article.description + Article.abstract JSON-LD. */}
+          {article.tldr && (
+            <aside
+              data-testid="article-tldr"
+              className="rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/[0.10] via-violet-500/[0.04] to-fuchsia-500/[0.06] p-5 sm:p-6 -mt-2 mb-2"
+            >
+              <div className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/90 mb-2.5 flex items-center gap-1.5">
+                <span aria-hidden>★</span>
+                <span>The short answer</span>
+              </div>
+              <p className="text-[15px] sm:text-[16px] leading-relaxed text-[#eaf6ff]">
+                {renderInline(article.tldr)}
+              </p>
+            </aside>
+          )}
+
           {article.intro && (
             <p className="text-[16px] leading-relaxed text-[#cfdaf3] italic border-l-2 border-cyan-400/40 pl-5">
               {article.intro}

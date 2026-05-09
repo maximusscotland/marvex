@@ -18,6 +18,140 @@ Disallow: /admin/
 Disallow: /auth/
 Disallow: /api/
 
+# ---------------------------------------------------------------------------
+# AI / LLM crawlers — explicit allow-list.
+#
+# We WELCOME inclusion in AI search (ChatGPT, Claude, Perplexity, Gemini,
+# Google AI Overviews, etc.) and want our long-form `/learn/*` content,
+# `/pdf-to-mind-map` landing, `/pricing`, and FAQ pages to be indexable
+# and citable. The rules below are explicit so the bots' "is this site
+# opted in?" check unambiguously returns true.
+#
+# Public docs:
+#   • OpenAI / ChatGPT crawlers .............. https://platform.openai.com/docs/bots
+#   • Anthropic / Claude crawlers ............ https://www.anthropic.com/docs/claude-bots
+#   • Google-Extended (Gemini training) ...... https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers
+#   • Perplexity-User ........................ https://docs.perplexity.ai/guides/bots
+#   • Apple Intelligence (Applebot-Extended) . https://support.apple.com/en-us/119829
+#   • Common Crawl (CCBot) ................... https://commoncrawl.org/ccbot
+# ---------------------------------------------------------------------------
+
+# OpenAI — model training (GPTBot) + ChatGPT search agent (ChatGPT-User)
+# + the search index (OAI-SearchBot).
+User-agent: GPTBot
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+# Anthropic / Claude — training crawler + retrieval crawler + the
+# real-time "click a link" agent.
+User-agent: ClaudeBot
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+# Google — Google-Extended controls inclusion in Gemini / Bard /
+# AI Overviews (separate from regular Googlebot which is allowed by *).
+User-agent: Google-Extended
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+# Perplexity — index crawler + the realtime user-triggered fetcher.
+User-agent: PerplexityBot
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Perplexity-User
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+# Apple Intelligence — separate from regular Applebot which only
+# powers Siri/Spotlight.
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+# Bing / Copilot — uses Bingbot which is already covered by * but
+# stating it explicitly raises confidence for Copilot citations.
+User-agent: Bingbot
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+# Common Crawl — feeds many open-source LLM training datasets.
+User-agent: CCBot
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+# Cohere, Meta-ExternalAgent, Bytespider (TikTok / Doubao), DuckAssist,
+# You.com — long-tail inclusion.
+User-agent: cohere-ai
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Meta-ExternalAgent
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Bytespider
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: DuckAssistBot
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: YouBot
+Allow: /
+Disallow: /app
+Disallow: /admin/
+Disallow: /api/
+
 # Sitemap — every canonical URL for efficient discovery.
 Sitemap: https://marvex.app/sitemap.xml
 

@@ -33,6 +33,8 @@ export const ARTICLES = [
     keywords: "PDF to mind map, AI mind map, convert PDF to mind map, free mind map, AI mind map generator",
     minutesRead: 6,
     updatedAt: "2026-02-07",
+    tldr:
+      "To turn a PDF into a mind map: open Marvex Studio at marvex.app/app, drag your PDF onto the canvas, pick Quick Outline (free) or AI Analysis (uses your own API key), and you'll have a fully editable mind map in under 60 seconds. No signup, local-first storage, exports to PDF / PNG / SVG / Markdown.",
     intro:
       "If you've ever finished a 40-page paper and forgotten the argument by the time you reached the bibliography, mind-mapping is the cure. This guide walks you through the fastest way to transform any PDF into an editable, exportable mind map — no signup, no upload to a stranger's servers, and no cost beyond the AI provider you choose.",
     sections: [
@@ -90,6 +92,8 @@ export const ARTICLES = [
     keywords: "best PDF to mind map, mind map software comparison, AI mind map tools 2026, PDF mind map review",
     minutesRead: 9,
     updatedAt: "2026-02-07",
+    tldr:
+      "After testing 7 PDF-to-mind-map tools across academic papers, business reports, and legal cases, the best three in 2026 are: Marvex Studio (best for privacy + price — local-first, BYO-key, $0–15/mo), Mapify (best polish — $12/mo, cloud-only), and MindMeister (best for teams — $13/mo). Avoid free web converters that re-upload your PDFs to unknown servers.",
     intro:
       "We tested 7 popular PDF-to-mind-map tools over four weeks, feeding each one the same set of academic papers, business reports, and legal cases. Here's the honest breakdown — including which tools we'd happily pay for and which we'd avoid.",
     sections: [
@@ -153,6 +157,8 @@ export const ARTICLES = [
     keywords: "AI mind map generator, how AI mind map works, what is AI mind mapping, automatic mind map",
     minutesRead: 7,
     updatedAt: "2026-02-07",
+    tldr:
+      "An AI mind map generator is a tool that takes unstructured text — typically a PDF, article, or transcript — and outputs an interactive, hierarchical mind map without any manual effort. It works in five stages: document ingest → chunking → AI extraction (Claude, GPT, or Gemini) → tree assembly → SVG render. The best ones finish a 20-page paper in 30–60 seconds and preserve citations back to the source.",
     intro:
       "An AI mind map generator is a tool that takes unstructured text — typically a PDF, article, or transcript — and outputs an interactive, hierarchical mind map without manual effort. Under the hood, the difference between a great one and a bad one comes down to three engineering choices: how it parses the source, which AI model it calls, and where the output gets stored.",
     sections: [
@@ -203,6 +209,8 @@ export const ARTICLES = [
     keywords: "mind mapping for students, study mind maps, AI study tool, exam prep mind map",
     minutesRead: 8,
     updatedAt: "2026-02-07",
+    tldr:
+      "Students use mind mapping in 2026 mainly for four jobs: compressing dense textbook chapters into a single visual page (saves ~3 hours per chapter), distilling lecture recordings into hierarchies, building exam-revision maps that surface gaps in understanding, and outlining essays before drafting. AI mind map tools automate the first 80% of each workflow; the remaining 20% — actually engaging with the material — is still on you.",
     intro:
       "If you're a student in 2026 and you're not using AI mind mapping, you're working harder than you need to. This playbook covers the four highest-leverage use cases — textbook compression, lecture distillation, exam prep, and essay outlining — plus the workflows that actually work in practice (not just in theory).",
     sections: [
@@ -262,6 +270,8 @@ export const ARTICLES = [
     keywords: "mind map vs flowchart, mind map vs concept map, when to use mind map, visual thinking diagrams",
     minutesRead: 5,
     updatedAt: "2026-02-07",
+    tldr:
+      "Use a **mind map** for radial brainstorming and summarising (one central idea branching outward). Use a **flowchart** for sequential processes with decisions (boxes + diamonds + arrows). Use a **concept map** for showing relationships between many ideas (labelled connections, multi-parent nodes). Mind maps win for note-taking and exam revision; flowcharts win for software logic and process docs; concept maps win for academic explanation.",
     intro:
       "Mind maps, flowcharts, and concept maps are often used interchangeably — but they each solve different problems. Picking the right tool for the job saves time and produces clearer thinking. Here's the practical breakdown.",
     sections: [
