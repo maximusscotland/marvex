@@ -1,21 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import {
-  Keyboard,
-  X,
-  Mail,
-  File as FileIcon,
-  Globe,
-  Cloud,
-} from "lucide-react";
+import { Keyboard } from "lucide-react";
 import { toast } from "sonner";
 import ContextMenu, { SHAPE_PALETTE } from "@/components/ContextMenu";
-import BackgroundPicker from "@/components/BackgroundPicker";
 import AnnotationsLayer from "@/components/AnnotationsLayer";
 import ClipartPicker from "@/components/ClipartLibrary";
 import CompileDocumentDialog from "@/components/CompileDocumentDialog";
-import CloudSaveMenu from "@/components/CloudSaveMenu";
-import DraggablePanel from "@/components/DraggablePanel";
-import { exportMapAsPng, exportMapAsHighResPng, exportMapAsSvg, exportMapAsMarkdown, exportMapAsPdf, captureScreenRegion } from "@/lib/exportPng";
 import { resolveBackground } from "@/lib/backgrounds";
 import { compressImage } from "@/lib/imageCompress";
 import { maybeTagAmazonUrl, buildBookLink } from "@/lib/affiliates";
@@ -25,40 +14,30 @@ import useCanvasHotkeys from "@/components/mindmap/hooks/useCanvasHotkeys";
 import useSelection from "@/components/mindmap/hooks/useSelection";
 import useEditing from "@/components/mindmap/hooks/useEditing";
 import useContextMenu from "@/components/mindmap/hooks/useContextMenu";
-import IconPicker, { getIconConfig } from "@/components/IconPicker";
+import useNodeCrud from "@/components/mindmap/hooks/useNodeCrud";
+import useClipboard from "@/components/mindmap/hooks/useClipboard";
+import useExportHandlers from "@/components/mindmap/hooks/useExportHandlers";
+import IconPicker from "@/components/IconPicker";
 import BookmarkPickerModal from "@/components/BookmarkPickerModal";
 import { openLink as openLinkExternally } from "@/lib/openLink";
 import { useNavigate } from "react-router-dom";
 
 import {
-  DEFAULT_FILL,
-  DEFAULT_STROKE,
-  DEFAULT_ROOT_FILL,
-  DEFAULT_ROOT_STROKE,
-  DEFAULT_EDGE_COLOR,
-  DEFAULT_EDGE_WIDTH,
-  MIN_W,
-  MIN_H,
-  FREE_NODE_CAP,
-} from "@/components/mindmap/constants";
-import {
-  sizeOf,
   computeLayout,
   walk,
   findAndUpdate,
-  findAndRemove,
   newNodeId,
 } from "@/components/mindmap/lib/tree";
-import ShapeSvg from "@/components/mindmap/render/ShapeSvg";
 import { CtrlBtn } from "@/components/mindmap/render/Buttons";
-import NodeChrome from "@/components/mindmap/render/NodeChrome";
 import ShortcutsOverlay from "@/components/mindmap/render/ShortcutsOverlay";
 import LinkDialog from "@/components/mindmap/render/LinkDialog";
 import TopToolbar from "@/components/mindmap/render/TopToolbar";
 import MapEdges from "@/components/mindmap/render/MapEdges";
 import CanvasContextMenu from "@/components/mindmap/render/CanvasContextMenu";
+import MapNode from "@/components/mindmap/render/MapNode";
+import { FREE_NODE_CAP } from "@/components/mindmap/constants";
 import { usePrivacyMode } from "@/lib/privacyMode";
-import { downloadMmap, readMmapFile } from "@/lib/mapFile";
+import { downloadMmap } from "@/lib/mapFile";
 
 /**
  * Normalise a user-entered link string.
@@ -238,10 +217,6 @@ export default function MindMapCanvas({
   }, [connectMode]);
   const fileLinkInputRef = useRef(null);
   const fileLinkTargetRef = useRef(null); // nodeId being targeted by hidden file input
-  // In-memory clipboard for cut / copy / paste of nodes + annotations.
-  // Lives on the component instance so cross-tab clipboards don't leak;
-  // we deep-clone on copy so subsequent paste-multiple yields fresh ids.
-  const clipboardRef = useRef(null);   // { kind: 'node'|'annotation', payload, takenAt }
 
   // Window-level event bridge so the parent (Studio) can trigger Compile
   // without holding a ref to this component. The left-toolbar dispatches a
@@ -395,145 +370,17 @@ export default function MindMapCanvas({
     setSelectedAnnotation,
   });
 
-  // --- CRUD ---
-  const countNodes = (root) => {
-    let n = 0;
-    walk(root, () => { n += 1; });
-    return n;
-  };
-
-  const addChild = (parentId, count = 1, shapeOverride = null) => {
-    // Effective node cap: Free=30, Lite=200, Pro/Lifetime=Infinity. The
-    // toast wording adapts to the tier so a Lite user sees a Lite-specific
-    // upgrade nudge ("upgrade to Pro for unlimited") instead of the
-    // generic free-tier copy.
-    if (Number.isFinite(nodeCap)) {
-      const total = countNodes(map);
-      if (total + count > nodeCap) {
-        const tierLabel = nodeCap === FREE_NODE_CAP ? "Free" : "Lite";
-        toast.error(`${tierLabel} limit reached (${nodeCap} map elements). Upgrade to Pro for unlimited.`);
-        onUpgrade && onUpgrade();
-        return;
-      }
-    }
-    // Inherit visual style from the parent so a chain of "add child" calls
-    // keeps the user's current shape/colour/font choices instead of resetting
-    // to the default ellipse on each insert.  When an explicit `shapeOverride`
-    // is supplied (Flowchart Studio's per-shape menu uses this), we pin the
-    // shape and matching fill/stroke and DON'T inherit the parent's colour —
-    // the whole point of that menu is to differentiate from the parent.
-    const parent = findNode(parentId);
-    const overrideShape = shapeOverride && shapeOverride.shape ? shapeOverride : null;
-    const inheritedShape = overrideShape ? overrideShape.shape : (parent?.shape || "ellipse");
-    const inheritedFill = overrideShape ? overrideShape.fill : parent?.fill;
-    const inheritedStroke = overrideShape ? overrideShape.stroke : parent?.stroke;
-    const inheritedFontSize = parent?.fontSize;
-    const inheritedFontFamily = parent?.fontFamily;
-    const flowchartShapeId = overrideShape ? overrideShape.id : parent?.flowchartShape;
-    const titleSeed = overrideShape ? overrideShape.label : "New idea";
-    const parentPos = positions[parentId] || { x: 0, y: 0 };
-    const existingCount = (parent?.children || []).length;
-    // All N children added in one state update so React commits them
-    // atomically — calling onChange in a loop would clobber due to stale
-    // closures over `map`.
-    const newIds = [];
-    const newPositions = {};
-    const next = findAndUpdate(map, parentId, (n) => {
-      n.children = n.children || [];
-      for (let i = 0; i < count; i++) {
-        const childId = newNodeId();
-        newIds.push(childId);
-        const fanAngle = -Math.PI / 2 + (existingCount + i) * (Math.PI / 4);
-        const offset = 150;
-        newPositions[childId] = {
-          x: parentPos.x + Math.cos(fanAngle) * offset,
-          y: parentPos.y + Math.sin(fanAngle) * offset,
-        };
-        n.children.push({
-          id: childId,
-          title: titleSeed,
-          shape: inheritedShape,
-          ...(inheritedFill ? { fill: inheritedFill } : {}),
-          ...(inheritedStroke ? { stroke: inheritedStroke } : {}),
-          ...(inheritedFontSize ? { fontSize: inheritedFontSize } : {}),
-          ...(inheritedFontFamily ? { fontFamily: inheritedFontFamily } : {}),
-          ...(flowchartShapeId ? { flowchartShape: flowchartShapeId } : {}),
-          children: [],
-        });
-      }
-    });
-    next.positions = { ...(next.positions || {}), ...newPositions };
-    onChange(next);
-    const lastId = newIds[newIds.length - 1];
-    setSelected(lastId);
-    if (count === 1) setTimeout(() => setEditing(lastId), 50);
-  };
-
-  // Add a sibling — find the target's parent and append a new child to it.
-  // The root node has no parent, so we add a child of the root in that case
-  // (semantically equivalent — the user expects "another node next to this one").
-  const addSibling = (nodeId, count = 1) => {
-    if (nodeId === map.id) {
-      // Root has no siblings — degrade to "add child of root"
-      addChild(map.id, count);
-      return;
-    }
-    let parentId = null;
-    const findParent = (n) => {
-      for (const c of (n.children || [])) {
-        if (c.id === nodeId) { parentId = n.id; return true; }
-        if (findParent(c)) return true;
-      }
-      return false;
-    };
-    findParent(map);
-    if (!parentId) { addChild(map.id, count); return; }
-    if (Number.isFinite(nodeCap)) {
-      const total = countNodes(map);
-      if (total + count > nodeCap) {
-        const tierLabel = nodeCap === FREE_NODE_CAP ? "Free" : "Lite";
-        toast.error(`${tierLabel} limit reached (${nodeCap} map elements). Upgrade to Pro for unlimited.`);
-        onUpgrade && onUpgrade();
-        return;
-      }
-    }
-    const sibling = findNode(nodeId);
-    const siblingPos = positions[nodeId] || { x: 0, y: 0 };
-    const newIds = [];
-    const newPositions = {};
-    const next = findAndUpdate(map, parentId, (n) => {
-      n.children = n.children || [];
-      for (let i = 0; i < count; i++) {
-        const childId = newNodeId();
-        newIds.push(childId);
-        newPositions[childId] = {
-          x: siblingPos.x + 140 + i * 30,
-          y: siblingPos.y + 30 + i * 60,
-        };
-        n.children.push({
-          id: childId,
-          title: "New idea",
-          shape: sibling?.shape || "ellipse",
-          ...(sibling?.fill ? { fill: sibling.fill } : {}),
-          ...(sibling?.stroke ? { stroke: sibling.stroke } : {}),
-          ...(sibling?.fontSize ? { fontSize: sibling.fontSize } : {}),
-          ...(sibling?.fontFamily ? { fontFamily: sibling.fontFamily } : {}),
-          children: [],
-        });
-      }
-    });
-    next.positions = { ...(next.positions || {}), ...newPositions };
-    onChange(next);
-    const lastId = newIds[newIds.length - 1];
-    setSelected(lastId);
-    if (count === 1) setTimeout(() => setEditing(lastId), 50);
-  };
-
-  const removeNode = (id) => {
-    if (id === map.id) return;
-    onChange(findAndRemove(map, id));
-    setSelected(null);
-  };
+  // --- CRUD — extracted hook ---
+  const { countNodes, addChild, addSibling, removeNode, updateNode } = useNodeCrud({
+    map,
+    onChange,
+    positions,
+    nodeCap,
+    onUpgrade,
+    findNode,
+    setSelected,
+    setEditing,
+  });
 
   // --- Keyboard shortcuts — extracted hook. ---
   useCanvasHotkeys({
@@ -553,8 +400,6 @@ export default function MindMapCanvas({
   });
 
   // --- Context menu action helpers ---
-  const updateNode = (id, mutator) => onChange(findAndUpdate(map, id, mutator));
-
   const ctxNode = menu?.type === "node" ? findNode(menu.id) : null;
   const ctxEdgeChild = menu?.type === "edge" ? findNode(menu.id) : null;
 
@@ -577,68 +422,15 @@ export default function MindMapCanvas({
     setShapePickerOpen(false);
   };
 
-  const handleExportPng = async () => {
-    try {
-      toast.loading("Rendering PNG…", { id: "exp-png" });
-      await exportMapAsPng(map, `${(map.title || "mindmap").replace(/[^\w-]+/g, "_")}.png`, 2);
-      toast.success("PNG downloaded", { id: "exp-png" });
-    } catch (e) {
-      toast.error(`PNG export failed: ${e.message || e}`, { id: "exp-png" });
-    }
-  };
-
-  const handleExportHighResPng = async () => {
-    try {
-      toast.loading("Rendering high-res PNG (4×)…", { id: "exp-png4" });
-      await exportMapAsHighResPng(map, `${(map.title || "mindmap").replace(/[^\w-]+/g, "_")}@4x.png`);
-      toast.success("High-res PNG downloaded", { id: "exp-png4" });
-    } catch (e) {
-      toast.error(`PNG export failed: ${e.message || e}`, { id: "exp-png4" });
-    }
-  };
-
-  const handleExportSvg = () => {
-    try {
-      exportMapAsSvg(map, `${(map.title || "mindmap").replace(/[^\w-]+/g, "_")}.svg`);
-      toast.success("SVG downloaded");
-    } catch (e) {
-      toast.error(`SVG export failed: ${e.message || e}`);
-    }
-  };
-
-  const handleExportMarkdown = () => {
-    try {
-      exportMapAsMarkdown(map, `${(map.title || "mindmap").replace(/[^\w-]+/g, "_")}.md`);
-      toast.success("Markdown downloaded");
-    } catch (e) {
-      toast.error(`Markdown export failed: ${e.message || e}`);
-    }
-  };
-
-  const handleExportPdf = async () => {
-    try {
-      toast.loading("Building PDF…", { id: "exp-pdf" });
-      await exportMapAsPdf(map, `${(map.title || "mindmap").replace(/[^\w-]+/g, "_")}.pdf`);
-      toast.success("PDF downloaded", { id: "exp-pdf" });
-    } catch (e) {
-      toast.error(`PDF export failed: ${e.message || e}`, { id: "exp-pdf" });
-    }
-  };
-
-  const handleScreenshot = async () => {
-    try {
-      await captureScreenRegion(
-        `${(map.title || "mindmap").replace(/[^\w-]+/g, "_")}-screenshot.png`
-      );
-      toast.success("Screenshot saved");
-    } catch (e) {
-      if (String(e?.name) === "NotAllowedError") {
-        toast("Screenshot cancelled");
-      } else {
-        toast.error(`Screenshot failed: ${e.message || e}`);
-      }
-    }
-  };
+  // Export handlers — extracted hook
+  const {
+    handleExportPng,
+    handleExportHighResPng,
+    handleExportSvg,
+    handleExportMarkdown,
+    handleExportPdf,
+    handleScreenshot,
+  } = useExportHandlers(map);
 
   const handleToolbarUndo = () => {
     if (!canUndo) return;
@@ -835,77 +627,20 @@ export default function MindMapCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, selectedAnnotation, map, annotations]);
 
-  // ---- Cut / Copy / Paste ----
-  // The clipboard holds either a deep-cloned node sub-tree OR an annotation.
-  // Paste re-keys all ids so the same payload can be pasted N times. Position
-  // is offset from the original by 32px in world space so the paste is
-  // visually distinct.
-  const cloneNodeSubtree = (n) => {
-    const fresh = { ...n, id: `n${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}` };
-    if (Array.isArray(n.children)) {
-      fresh.children = n.children.map((c) => cloneNodeSubtree(c));
-    }
-    return fresh;
-  };
-  const copyToClipboard = (kind, payload) => {
-    clipboardRef.current = { kind, payload: JSON.parse(JSON.stringify(payload)), takenAt: Date.now() };
-    toast.success(kind === "node" ? "Map element copied" : "Annotation copied");
-  };
-  const cutSelection = () => {
-    if (selected && selected !== map.id) {
-      const target = findNode(selected);
-      if (!target) return;
-      copyToClipboard("node", target);
-      removeNode(selected);
-      return;
-    }
-    if (selectedAnnotation) {
-      const target = annotations.find((a) => a.id === selectedAnnotation);
-      if (!target) return;
-      copyToClipboard("annotation", target);
-      deleteAnnotation(selectedAnnotation);
-      setSelectedAnnotation(null);
-    }
-  };
-  const copySelection = () => {
-    if (selected && selected !== map.id) {
-      const target = findNode(selected);
-      if (target) copyToClipboard("node", target);
-      return;
-    }
-    if (selectedAnnotation) {
-      const target = annotations.find((a) => a.id === selectedAnnotation);
-      if (target) copyToClipboard("annotation", target);
-    }
-  };
-  const pasteFromClipboard = () => {
-    const c = clipboardRef.current;
-    if (!c) { toast.error("Nothing to paste yet — copy something first"); return; }
-    if (c.kind === "node") {
-      // Paste as a child of the currently-selected node (or root).
-      const parentId = (selected && findNode(selected)) ? selected : map.id;
-      const fresh = cloneNodeSubtree(c.payload);
-      const next = findAndUpdate(map, parentId, (n) => {
-        n.children = [...(n.children || []), fresh];
-      });
-      onChange(next);
-      setSelected(fresh.id);
-      toast.success("Pasted");
-      return;
-    }
-    if (c.kind === "annotation") {
-      const fresh = {
-        ...c.payload,
-        id: `a${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
-        x: (c.payload.x || 0) + 32,
-        y: (c.payload.y || 0) + 32,
-      };
-      setAnnotations([...annotations, fresh]);
-      setSelectedAnnotation(fresh.id);
-      toast.success("Pasted");
-    }
-  };
-  const hasClipboard = () => !!clipboardRef.current;
+  // ---- Cut / Copy / Paste — extracted hook ----
+  const { cutSelection, copySelection, pasteFromClipboard, hasClipboard } = useClipboard({
+    map,
+    onChange,
+    selected,
+    selectedAnnotation,
+    setSelected,
+    setSelectedAnnotation,
+    findNode,
+    removeNode,
+    annotations,
+    setAnnotations,
+    deleteAnnotation,
+  });
   const hasSelection = () => !!((selected && selected !== map.id) || selectedAnnotation);
 
   // Drop a clipart icon at the canvas centre. Picked from ClipartPicker.
@@ -1108,273 +843,98 @@ export default function MindMapCanvas({
   };
 
   // --- Render helpers ---
-  const renderNode = ({ node, depth }, v) => {
-    const pos = positions[node.id];
-    if (!pos) return null;
-    const isRoot = depth === 0;
-    const shape = node.shape || (isRoot ? "rect" : "ellipse");
-    const { w, h } = sizeOf({ ...node, shape }, isRoot);
-    const fill = node.fill || (isRoot ? DEFAULT_ROOT_FILL : DEFAULT_FILL);
-    const stroke = node.stroke || (isRoot ? DEFAULT_ROOT_STROKE : DEFAULT_STROKE);
-    const fontSize = (node.fontSize || (isRoot ? 16 : 13)) * v.k;
-    const fontFamily = node.fontFamily || "'Sora', sans-serif";
-    const isSel = selected === node.id;
-    const isHover = hover === node.id;
-    const isEditing = editing === node.id;
-    const isMulti = multiSelected.has(node.id);
-    // Bake view transform into position/size
-    const sw = w * v.k;
-    const sh = h * v.k;
-    const left = v.x + pos.x * v.k - sw / 2;
-    const top = v.y + pos.y * v.k - sh / 2;
+  // Click handler (extracted: handles connect-mode chaining, ctrl-click
+  // open-link, shift/cmd multi-select, plain select).
+  const handleNodeClick = useCallback((e, node) => {
+    e.stopPropagation();
+    // ---- Click-to-connect mode ----
+    if (connectMode) {
+      if (!connectFrom) {
+        setConnectFrom({ id: node.id });
+        return;
+      }
+      if (connectFrom.id === node.id) {
+        setConnectFrom(null);
+        return;
+      }
+      const a = positions[connectFrom.id];
+      const b = positions[node.id];
+      if (a && b) {
+        const conn = {
+          id: `annot_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          type: "connector",
+          x1: a.x, y1: a.y,
+          x2: b.x, y2: b.y,
+          color: "#00f0ff",
+          width: 1.6,
+          arrow: true,
+        };
+        setAnnotations([...annotations, conn]);
+        toast.success("Connected", { duration: 900 });
+      }
+      setConnectFrom({ id: node.id });
+      return;
+    }
+    if ((e.metaKey || e.ctrlKey) && node.link) {
+      openNodeLink(node);
+      return;
+    }
+    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+      setMultiSelected((prev) => {
+        const next = new Set(prev);
+        const cur = selectedRef.current;
+        if (next.size === 0 && cur && cur !== node.id) next.add(cur);
+        if (next.has(node.id)) next.delete(node.id);
+        else next.add(node.id);
+        return next;
+      });
+      selectNode(node.id);
+      closeMenu();
+      return;
+    }
+    setMultiSelected(new Set());
+    setSelectedAnnotation(null);
+    selectNode(node.id);
+    closeMenu();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [connectMode, connectFrom, positions, annotations, selectNode, closeMenu]);
 
-    return (
-      <div
-        key={node.id}
-        data-testid={`mm-node-${node.id}`}
-        onMouseEnter={() => setHover(node.id)}
-        onMouseLeave={() => setHover((h) => (h === node.id ? null : h))}
-        onMouseDown={(e) => startNodeDrag(e, node.id)}
-        onClick={(e) => {
-          e.stopPropagation();
-          // ---- Click-to-connect mode ----
-          // 1st click stores the source; 2nd click drops a connector between
-          // the two node centres and re-arms the source for chaining.
-          if (connectMode) {
-            if (!connectFrom) {
-              setConnectFrom({ id: node.id });
-              return;
-            }
-            if (connectFrom.id === node.id) {
-              // Click same node twice → cancel selection
-              setConnectFrom(null);
-              return;
-            }
-            const a = positions[connectFrom.id];
-            const b = positions[node.id];
-            if (a && b) {
-              const conn = {
-                id: `annot_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-                type: "connector",
-                x1: a.x, y1: a.y,
-                x2: b.x, y2: b.y,
-                color: "#00f0ff",
-                width: 1.6,
-                arrow: true,
-              };
-              setAnnotations([...annotations, conn]);
-              toast.success("Connected", { duration: 900 });
-            }
-            // Re-arm: the just-clicked target becomes the new source so the
-            // user can chain a→b→c without re-clicking the toolbar.
-            setConnectFrom({ id: node.id });
-            return;
-          }
-          if ((e.metaKey || e.ctrlKey) && node.link) {
-            openNodeLink(node);
-            return;
-          }
-          // Shift-click adds/removes from the multi-select pool — used for
-          // "Join with line" via right-click. Plain click clears the pool.
-          // Ctrl/Cmd OR Shift = additive multi-select (toggle in/out).
-          if (e.shiftKey || e.ctrlKey || e.metaKey) {
-            setMultiSelected((prev) => {
-              const next = new Set(prev);
-              // First augmentation after a plain selection — promote the
-              // currently-selected node into the multi-set so the user gets
-              // BOTH nodes (the previous click target + this shift-click).
-              // Read from selectedRef to dodge stale-closure values when
-              // mousedown→click events fire faster than React re-renders.
-              const cur = selectedRef.current;
-              if (next.size === 0 && cur && cur !== node.id) next.add(cur);
-              if (next.has(node.id)) next.delete(node.id);
-              else next.add(node.id);
-              return next;
-            });
-            selectNode(node.id);
-            closeMenu();
-            return;
-          }
-          setMultiSelected(new Set());
-          setSelectedAnnotation(null);
-          selectNode(node.id);
-          closeMenu();
-        }}
-        onDoubleClick={(e) => { if (readOnly) return; e.stopPropagation(); setEditing(node.id); }}
-        onContextMenu={(e) => openNodeMenu(e, node.id)}
-        className="node-pop absolute"
-        style={{
-          left,
-          top,
-          width: sw,
-          height: sh,
-          pointerEvents: "auto",
-          cursor: connectMode ? "crosshair" : "grab",
-          userSelect: isEditing ? "text" : "none",
-          filter: connectFrom?.id === node.id
-            ? `drop-shadow(0 0 14px #ff6ad5) drop-shadow(0 0 28px #ff6ad5cc)`
-            : `drop-shadow(0 0 8px ${isMulti ? "#ff6ad5" : stroke}aa) drop-shadow(0 0 16px ${isMulti ? "#ff6ad5" : stroke}44)`,
-          outline: connectFrom?.id === node.id
-            ? "2px dashed #ff6ad5"
-            : isMulti ? "2px dashed #ff6ad5" : "none",
-          outlineOffset: (connectFrom?.id === node.id || isMulti) ? 4 : 0,
-          transition: "filter 0.18s ease",
-        }}
-      >
-        <svg
-          width={sw}
-          height={sh}
-          viewBox={`0 0 ${w} ${h}`}
-          style={{ display: "block", overflow: "visible" }}
-        >
-          <ShapeSvg shape={shape} w={w} h={h} fill={fill} stroke={stroke} strokeWidth={isSel ? 2.4 : isRoot ? 2 : 1.5} />
-        </svg>
-        <div
-          className="absolute inset-0 flex items-center justify-center text-center px-3"
-          style={{ pointerEvents: isEditing ? "auto" : "none" }}
-        >
-          {isEditing ? (
-            <input
-              ref={editInputRef}
-              data-testid={`mm-edit-${node.id}`}
-              defaultValue={node.title}
-              onBlur={(e) => commitEdit(node.id, e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") commitEdit(node.id, e.target.value);
-                if (e.key === "Escape") setEditing(null);
-              }}
-              className="bg-transparent text-center outline-none w-full text-white"
-              style={{ fontSize, fontFamily, pointerEvents: "auto" }}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-            />
-          ) : (
-            <div
-              className="leading-tight"
-              style={{
-                fontSize,
-                fontFamily,
-                fontWeight: isRoot ? 700 : 600,
-                color: "#eaf6ff",
-                letterSpacing: isRoot ? "0.04em" : "0.02em",
-                textTransform: isRoot ? "uppercase" : "none",
-                textShadow: `0 0 6px ${stroke}55`,
-                wordBreak: "break-word",
-              }}
-            >
-              {node.title}
-            </div>
-          )}
-        </div>
+  const handleIconClick = useCallback((node, clickable) => {
+    if (clickable) openNodeLink(node);
+    else openIconPicker(node.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-        {/* Icon badge (top-left). Clickable when a link is also set. */}
-        {node.icon && !isEditing && (() => {
-          const iconCfg = getIconConfig(node.icon);
-          if (!iconCfg) return null;
-          const Icon = iconCfg.component;
-          const accent = iconCfg.accent || stroke;
-          const clickable = !!node.link;
-          return (
-            <button
-              data-testid={`mm-icon-${node.id}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (clickable) openNodeLink(node);
-                else openIconPicker(node.id);
-              }}
-              onMouseDown={(e) => e.stopPropagation()}
-              title={
-                clickable
-                  ? `Open: ${node.linkLabel || node.link}`
-                  : `${iconCfg.label} · click to change`
-              }
-              className="absolute -top-2.5 -left-2.5 w-7 h-7 rounded-full grid place-items-center transition-all hover:scale-110"
-              style={{
-                background: "#0a0f24",
-                border: `1.5px solid ${accent}`,
-                boxShadow: `0 0 8px ${accent}aa`,
-                color: accent,
-                pointerEvents: "auto",
-              }}
-            >
-              <Icon size={13} />
-            </button>
-          );
-        })()}
-
-        {/* Link badge (clickable to open) */}
-        {node.link && !isEditing && (
-          <button
-            data-testid={`mm-link-${node.id}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              openNodeLink(node);
-            }}
-            onMouseDown={(e) => e.stopPropagation()}
-            title={`Open: ${node.link}`}
-            className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full grid place-items-center transition-all hover:scale-110"
-            style={{
-              background: "#0a0f24",
-              border: `1.5px solid ${stroke}`,
-              boxShadow: `0 0 8px ${stroke}aa`,
-              color: stroke,
-              pointerEvents: "auto",
-            }}
-          >
-            {linkKind(node.link) === "email" ? (
-              <Mail size={11} />
-            ) : linkKind(node.link) === "file" ? (
-              <FileIcon size={11} />
-            ) : (
-              <Globe size={11} />
-            )}
-          </button>
-        )}
-
-        {/* Resize handles when selected */}
-        {isSel && !isEditing && (
-          <>
-            {[
-              ["tl", 0, 0, "nwse-resize"],
-              ["tr", sw, 0, "nesw-resize"],
-              ["bl", 0, sh, "nesw-resize"],
-              ["br", sw, sh, "nwse-resize"],
-            ].map(([corner, hx, hy, cur]) => (
-              <div
-                key={corner}
-                data-testid={`mm-resize-${corner}-${node.id}`}
-                onMouseDown={(e) => startResize(e, node.id, corner, w, h)}
-                style={{
-                  position: "absolute",
-                  left: hx - 6,
-                  top: hy - 6,
-                  width: 12,
-                  height: 12,
-                  background: "#0a0f24",
-                  border: `1.5px solid ${stroke}`,
-                  borderRadius: 3,
-                  boxShadow: `0 0 8px ${stroke}`,
-                  cursor: cur,
-                  pointerEvents: "auto",
-                }}
-              />
-            ))}
-          </>
-        )}
-
-        {/* Hover / select chrome */}
-        {(isHover || isSel) && !isEditing && (
-          <NodeChrome
-            node={node}
-            isRoot={isRoot}
-            onEdit={setEditing}
-            onAdd={addChild}
-            onDel={removeNode}
-          />
-        )}
-      </div>
-    );
-  };
+  const renderNode = ({ node, depth }, v) => (
+    <MapNode
+      key={node.id}
+      node={node}
+      depth={depth}
+      pos={positions[node.id]}
+      v={v}
+      selected={selected}
+      hover={hover}
+      editing={editing}
+      multiSelected={multiSelected}
+      connectMode={connectMode}
+      connectFrom={connectFrom}
+      editInputRef={editInputRef}
+      onMouseEnter={() => setHover(node.id)}
+      onMouseLeave={() => setHover((h) => (h === node.id ? null : h))}
+      onMouseDown={(e) => startNodeDrag(e, node.id)}
+      onClick={(e) => handleNodeClick(e, node)}
+      onDoubleClick={(e) => { if (readOnly) return; e.stopPropagation(); setEditing(node.id); }}
+      onContextMenu={(e) => openNodeMenu(e, node.id)}
+      onEditCommit={commitEdit}
+      onEditCancel={() => setEditing(null)}
+      onResizeStart={startResize}
+      onIconClick={handleIconClick}
+      onLinkClick={openNodeLink}
+      onChromeEdit={setEditing}
+      onChromeAdd={addChild}
+      onChromeDel={removeNode}
+    />
+  );
 
   // Drag-to-select rectangle. While the user holds Shift and drags on the
   // empty canvas, we paint a translucent cyan box; on mouse-up every node
@@ -1686,7 +1246,6 @@ export default function MindMapCanvas({
               : undefined
           }
           onCompile={() => { closeMenu(); openCompileDialog("auto", menu.id); }}
-          onAiExpand={() => { closeMenu(); aiExpand(menu.id); }}
           onDeleteNode={() => { closeMenu(); removeNode(menu.id); }}
           onEditLink={() => { closeMenu(); openLinkDialog(menu.id); }}
           onUploadLink={() => { closeMenu(); triggerUpload(menu.id); }}

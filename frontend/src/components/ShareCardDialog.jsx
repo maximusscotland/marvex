@@ -55,7 +55,7 @@ export default function ShareCardDialog({ open, map, shareSlug, onClose }) {
   if (!open || !map) return null;
 
   const siteUrl = shareSlug
-    ? `${window.location.origin}/share/${shareSlug}`
+    ? `${window.location.origin}/api/share/${shareSlug}/unfurl`
     : "https://marvex.app";
 
   const handleDownload = () => {

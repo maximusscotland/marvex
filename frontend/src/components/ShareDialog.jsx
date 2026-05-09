@@ -59,7 +59,14 @@ export default function ShareDialog({ open, map, onClose, onOpenShareCard }) {
 
   if (!open || !map) return null;
 
-  const shareUrl = slug ? `${window.location.origin}/share/${slug}` : "";
+  // Universal share URL — points at the backend's `/api/share/:slug/unfurl`
+  // endpoint which returns server-rendered HTML with full OG / Twitter
+  // meta tags. This means link previews unfurl correctly on EVERY platform
+  // (Slack, Discord, WhatsApp, iMessage, Twitter, LinkedIn, Facebook).
+  // Real human visitors are transparently redirected to the interactive
+  // SPA viewer via `<meta http-equiv="refresh">` inside the unfurl page.
+  const shareUrl = slug ? `${window.location.origin}/api/share/${slug}/unfurl` : "";
+  const directViewerUrl = slug ? `${window.location.origin}/share/${slug}` : "";
 
   const handleCreate = async () => {
     if (!user) { signIn(); return; }
@@ -280,8 +287,9 @@ export default function ShareDialog({ open, map, onClose, onOpenShareCard }) {
         ) : (
           <div className="space-y-4">
             <div>
-              <div className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-1.5">
-                Share URL
+              <div className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-1.5 flex items-center gap-1.5">
+                <Share2 size={10} /> Universal share link
+                <span className="text-[9px] text-[#566187] normal-case tracking-normal">· works on Slack · Discord · WhatsApp · X · LinkedIn</span>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -300,34 +308,36 @@ export default function ShareDialog({ open, map, onClose, onOpenShareCard }) {
                   {copied ? "Copied" : "Copy"}
                 </button>
               </div>
+              <div className="mt-1.5 text-[10.5px] text-[#566187] leading-relaxed">
+                Generates a full preview card with image &amp; title on every platform. Humans are redirected straight to the interactive viewer.
+              </div>
             </div>
 
-            {/* Unfurl URL — server-rendered HTML for Slack / Discord / WhatsApp */}
+            {/* Direct viewer link — for users who want the prettier /share/:slug
+                URL or who are linking from inside email signatures, blog posts, etc. */}
             <details
               data-testid="share-unfurl-details"
               className="rounded-lg border border-white/10 bg-white/[0.015] px-3 py-2 group"
             >
               <summary className="cursor-pointer mono text-[10px] uppercase tracking-[0.22em] text-[#9aa7c7] hover:text-cyan-300 list-none flex items-center justify-between">
-                <span>Link for Slack / Discord / WhatsApp previews</span>
+                <span>Direct viewer link (no preview card)</span>
                 <span className="text-[9px] text-[#566187] group-open:rotate-180 transition-transform">▾</span>
               </summary>
               <div className="mt-2 space-y-2">
                 <div className="text-[11.5px] text-[#7a87ad] leading-relaxed">
-                  These apps don&apos;t run JavaScript when generating link previews.
-                  Use the unfurl URL to get the full image &amp; title card when pasting.
+                  Skips the preview redirect — opens the interactive map immediately. Use for emails, blog embeds, or anywhere you want the cleanest URL.
                 </div>
                 <div className="flex items-center gap-2">
                   <input
                     readOnly
-                    value={`${window.location.origin}/api/share/${slug}/unfurl`}
+                    value={directViewerUrl}
                     data-testid="share-unfurl-url"
                     className="flex-1 bg-[#0a0f24] border border-white/10 rounded-lg px-3 py-2 text-[12px] text-fuchsia-200 font-mono focus:outline-none focus:border-fuchsia-400/60"
                     onFocus={(e) => e.target.select()}
                   />
                   <button
                     onClick={async () => {
-                      const u = `${window.location.origin}/api/share/${slug}/unfurl`;
-                      try { await navigator.clipboard.writeText(u); toast("Unfurl link copied"); } catch { toast.error("Copy failed"); }
+                      try { await navigator.clipboard.writeText(directViewerUrl); toast("Direct link copied"); } catch { toast.error("Copy failed"); }
                     }}
                     data-testid="share-unfurl-copy"
                     className="mono text-[10px] uppercase tracking-[0.22em] px-3 py-2 rounded-lg bg-fuchsia-400/15 border border-fuchsia-400/40 text-fuchsia-200 hover:bg-fuchsia-400/25 transition flex items-center gap-1.5"
@@ -340,7 +350,7 @@ export default function ShareDialog({ open, map, onClose, onOpenShareCard }) {
 
             <div className="flex items-center justify-between px-1">
               <a
-                href={shareUrl}
+                href={directViewerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-testid="share-preview"
