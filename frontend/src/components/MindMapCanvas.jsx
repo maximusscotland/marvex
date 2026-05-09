@@ -569,7 +569,13 @@ export default function MindMapCanvas({
   };
 
   // --- Annotations (sticky notes / text / images) ---
-  const annotations = map.annotations || [];
+  // Memoized so that when `map.annotations` is undefined we don't mint a
+  // fresh `[]` on every render — that would make this an unstable
+  // dependency for the selection-change useEffect below and trigger
+  // "Maximum update depth exceeded" loops once free users start adding
+  // nodes (each save bumps map ref → annotations ref churn → useEffect
+  // re-fires → setSelectionInfo → Studio re-renders → loop).
+  const annotations = useMemo(() => map.annotations || [], [map.annotations]);
   const setAnnotations = (next) => onChange({ ...map, annotations: next });
 
   const addAnnotation = (item) => {

@@ -439,6 +439,15 @@ export default function Studio({ mode = "mindmap" }) {
 
   const refresh = useCallback(() => setMaps(listMaps()), []);
 
+  // Stable upgrade-dialog opener — passed to MindMapCanvas → useNodeCrud,
+  // where it ends up in the useCallback deps of `_capExceeded` and
+  // `addChild`. An inline `() => setUpgradeOpen(true)` here would mint
+  // a fresh fn ref on every Studio render, invalidating `addChild` and
+  // causing a "Maximum update depth exceeded" cascade once free users
+  // start hitting the 30-node cap. Same pattern as the iter76 fix for
+  // `active`/`handleMapChange`.
+  const openUpgradeDialog = useCallback(() => setUpgradeOpen(true), []);
+
   const toggleSidebar = () => {
     setSidebarOpen((v) => {
       const next = !v;
@@ -1321,7 +1330,7 @@ export default function Studio({ mode = "mindmap" }) {
             isPro={isPro}
             isProOnly={license.isProOnly}
             nodeCap={license.nodeCap}
-            onUpgrade={() => setUpgradeOpen(true)}
+            onUpgrade={openUpgradeDialog}
             canUndo={canUndo}
             canRedo={canRedo}
             onUndo={handleUndo}
