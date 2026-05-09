@@ -438,10 +438,11 @@ export default function Library() {
               <button
                 data-testid="library-new-timeline"
                 onClick={() => navigate("/timeline/new")}
-                title="Build a pannable timeline — could be 100 years of history or a month of expenses"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full mono text-[10px] uppercase tracking-[0.18em] bg-violet-400/10 hover:bg-violet-400/20 border border-violet-400/40 text-violet-200 transition"
+                title="Build a pannable timeline — Pro feature, currently in beta"
+                className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-full mono text-[10px] uppercase tracking-[0.18em] bg-violet-400/10 hover:bg-violet-400/20 border border-violet-400/40 text-violet-200 transition"
               >
                 <ClockIcon size={11} /> Timeline
+                <span className="mono text-[8px] font-bold px-1 rounded-full bg-fuchsia-500 text-white" style={{ letterSpacing: "0.05em" }}>β</span>
               </button>
             </section>
             {/* Timelines section — separate row above the maps grid since
@@ -709,6 +710,8 @@ function TimelinesRow({ navigate, tick, bumpTick }) {
       <div className="flex items-center justify-between mb-2.5">
         <h2 className="mono text-[11px] uppercase tracking-[0.22em] text-violet-300/90 flex items-center gap-1.5">
           <ClockIcon size={11} /> Timelines · {items.length}
+          <span className="mono text-[8px] font-bold px-1.5 py-0.5 rounded-full bg-fuchsia-500 text-white ml-1" style={{ letterSpacing: "0.08em" }}>BETA</span>
+          <span className="mono text-[8px] uppercase text-fuchsia-300 normal-case tracking-normal">· Pro feature</span>
         </h2>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">

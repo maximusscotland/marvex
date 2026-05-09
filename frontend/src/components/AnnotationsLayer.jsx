@@ -1070,6 +1070,13 @@ function TimelineEmbedCard({ annotation, isSelected, onDelete, onChangeAnnotatio
         <div className="flex items-center gap-1.5 min-w-0">
           <Clock size={11} className="text-violet-300 shrink-0" />
           <div className="text-[12px] text-white font-semibold truncate">{tl.title}</div>
+          <span
+            className="mono text-[7px] font-bold px-1 rounded-full bg-fuchsia-500 text-white shrink-0"
+            style={{ letterSpacing: "0.06em", lineHeight: 1.2 }}
+            title="Timeline Studio is in public beta"
+          >
+            β
+          </span>
         </div>
         <button
           onClick={open}

@@ -10,6 +10,8 @@ import TimelineEventDialog from "@/components/timeline/TimelineEventDialog";
 import TimelineCreateDialog from "@/components/timeline/TimelineCreateDialog";
 import TimelineDecorationDialog from "@/components/timeline/TimelineDecorationDialog";
 import TimelineNotesPane from "@/components/timeline/TimelineNotesPane";
+import TimelinePaywall from "@/components/timeline/TimelinePaywall";
+import { useLicense } from "@/lib/license";
 import {
   getTimeline,
   saveTimeline,
@@ -31,6 +33,12 @@ import usePageMeta from "@/lib/usePageMeta";
 export default function TimelineStudio() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const license = useLicense();
+  // Gate: Pro / Founder / Lifetime only. Lite users see the upgrade
+  // panel since timelines are a flagship Pro+ feature (still in beta).
+  // We allow `loading` through to avoid a flash of paywall during the
+  // initial license fetch.
+  const canUseTimelines = license.loading || license.isProOnly || license.founder;
   const [timeline, setTimeline] = useState(() => (id && id !== "new" ? getTimeline(id) : null));
   const [createOpen, setCreateOpen] = useState(!timeline);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -207,6 +215,10 @@ export default function TimelineStudio() {
     };
   }, [timeline, hiddenCategories]);
 
+  if (!canUseTimelines) {
+    return <TimelinePaywall tier={license.tier} />;
+  }
+
   if (!timeline) {
     return (
       <>
@@ -249,6 +261,13 @@ export default function TimelineStudio() {
             data-testid="timeline-title"
             className="bg-transparent text-[15px] font-semibold text-white outline-none border-b border-transparent focus:border-cyan-400/60 transition px-0.5"
           />
+          <span
+            data-testid="timeline-beta-pill"
+            className="mono text-[9px] uppercase tracking-[0.22em] px-2 py-0.5 rounded-full border border-fuchsia-400/50 bg-fuchsia-500/[0.10] text-fuchsia-200"
+            title="Timeline Studio is in public beta — we're still polishing. Feedback welcome at tech@marvex.app"
+          >
+            Beta
+          </span>
           <div className="mono text-[9px] uppercase tracking-[0.22em] text-[#566187] hidden md:block">
             · timeline ·
             {" "}{new Date(timeline.scope.startISO).toLocaleDateString(undefined, { year: "numeric", month: "short" })}

@@ -22,6 +22,7 @@ import BookmarkPickerModal from "@/components/BookmarkPickerModal";
 import { openLink as openLinkExternally } from "@/lib/openLink";
 import { useNavigate } from "react-router-dom";
 import { blankTimeline, saveTimeline } from "@/lib/timelineStorage";
+import { useLicense } from "@/lib/license";
 
 import {
   computeLayout,
@@ -114,6 +115,8 @@ export default function MindMapCanvas({
   // Router instance — used by the link helper to deep-link PDFs into the
   // internal Reader (`/read?src=…`) instead of opening them externally.
   const navigate = useNavigate();
+  // License — gates the "Insert Timeline" toolbar action behind Pro+.
+  const license = useLicense();
 
   // Selection (node + edge) — extracted hook.
   const {
@@ -609,6 +612,14 @@ export default function MindMapCanvas({
    * the user keeps their map context.
    */
   const handleInsertTimeline = () => {
+    // Pro-only feature — bounce non-Pro users to /pricing with a toast
+    // explaining the gate. Lite users explicitly NOT included since
+    // timelines are a flagship Pro+ feature (still in beta).
+    if (!(license.isProOnly || license.founder)) {
+      toast.error("Timelines are a Pro feature (currently in beta) — upgrade to unlock");
+      navigate("/pricing");
+      return;
+    }
     const start = new Date();
     const end = new Date();
     end.setFullYear(end.getFullYear() + 1);

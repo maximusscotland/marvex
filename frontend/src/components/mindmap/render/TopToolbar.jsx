@@ -270,9 +270,18 @@ export default function TopToolbar({
         </ToolbarBtn>
       )}
       {onAddTimeline && (
-        <ToolbarBtn testid="mm-tb-insert-timeline" label="Insert timeline (16:9 card · click to open in Timeline Studio)" onClick={onAddTimeline}>
-          <Clock size={14} style={{ color: "#a08cff" }} />
-        </ToolbarBtn>
+        <div className="relative">
+          <ToolbarBtn testid="mm-tb-insert-timeline" label="Insert timeline · BETA · Pro feature · click to embed a 16:9 timeline card" onClick={onAddTimeline}>
+            <Clock size={14} style={{ color: "#a08cff" }} />
+          </ToolbarBtn>
+          <span
+            className="absolute -top-0.5 -right-0.5 mono text-[8px] font-bold px-1 rounded-full bg-fuchsia-500 text-white pointer-events-none"
+            style={{ letterSpacing: "0.05em", lineHeight: 1.2 }}
+            data-testid="mm-tb-insert-timeline-beta"
+          >
+            β
+          </span>
+        </div>
       )}
       {onCompile && (
         <ToolbarBtn testid="mm-tb-compile-doc" label="Compile map to a written document (AI)" onClick={() => onCompile()}>
