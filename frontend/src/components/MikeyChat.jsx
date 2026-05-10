@@ -139,6 +139,16 @@ export default function MikeyChat() {
     try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
   }, [state]);
 
+  // Listen for a global "open Mikey" custom event so any in-page CTA
+  // (e.g. the landing hero "Meet Mikey" button) can pop the chat panel
+  // without prop-drilling. Custom-event pattern keeps MikeyChat a
+  // floating singleton mounted in App.js.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("marvex:openMikey", onOpen);
+    return () => window.removeEventListener("marvex:openMikey", onOpen);
+  }, []);
+
   // Tier label sent to backend for context-aware answers.
   const tierLabel = useMemo(() => {
     if (license.tier === "tester") return "tester (full access)";

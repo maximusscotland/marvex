@@ -241,6 +241,27 @@ export default function Landing() {
             >
               Example map <ArrowRight size={14} />
             </Link>
+            {/* Hero "Meet Mikey" CTA — top-of-funnel discoverability for
+                the in-app tutor.  Visitors who don't know what the app
+                does can have a 30-second conversation with Mikey before
+                ever touching the studio. Custom event is dispatched so
+                the floating MikeyChat singleton (mounted in App.js)
+                pops open without prop-drilling. */}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("marvex:openMikey"))}
+              data-testid="hero-meet-mikey-btn"
+              className="group flex items-center gap-2 pl-1.5 pr-4 py-1.5 rounded-full border border-violet-400/40 bg-[#0a0f24]/70 backdrop-blur-md text-white hover:border-fuchsia-300/60 hover:shadow-[0_8px_28px_rgba(255,106,213,0.35)] transition text-[14px]"
+            >
+              <span
+                className="w-7 h-7 rounded-full overflow-hidden border border-violet-400/50 grid place-items-center bg-[#03040a] flex-shrink-0"
+                style={{ boxShadow: "0 0 8px rgba(160,140,255,0.45)" }}
+              >
+                <img src="/mikey/mikey-headshot.png" alt="Mikey" className="w-full h-full object-cover" />
+              </span>
+              Meet Mikey
+              <ArrowRight size={13} className="text-fuchsia-300 group-hover:translate-x-0.5 transition" />
+            </button>
             <a href="#features" data-testid="hero-explore-btn" className="cta-ghost text-[14px]">
               {t("common.seeWhatItDoes")}
             </a>

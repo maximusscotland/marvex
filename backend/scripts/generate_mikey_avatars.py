@@ -18,16 +18,24 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Shared style direction so all 4 variants stay coherent.
 STYLE = (
-    "A friendly, slightly geeky cartoon owl character — Mikey, the research "
-    "assistant for Marvex Studio. Warm gradient feathers in deep cosmic navy, "
-    "violet and magenta. Round wire-frame spectacles glowing with subtle cyan "
-    "neon. Big intelligent amber eyes that look kind, focused, never creepy. "
-    "Soft cosmic-dark background with a faint nebula and tiny constellation "
-    "stars (#00f0ff and #ff6ad5 specks). Modern flat illustration with "
-    "cel-shading + soft inner glow — NOT photorealistic, NOT 3D-rendered. "
-    "Style: Pixar storyboard meets Studio Ghibli space scene. The owl looks "
-    "wise but approachable, like a patient university tutor. Avoid uncanny "
-    "human features, avoid headsets, avoid generic AI-robot tropes."
+    "An ELDERLY MALE cartoon owl character — 'Professor Mikey', the research "
+    "tutor for Marvex Studio. Distinctly masculine and aged: silver-grey "
+    "feathers around the brow, cheeks and chest with deeper navy-violet across "
+    "the back and crown, hint of a tufted feathered 'beard' under the beak, "
+    "broader/squarer head, prominent feathered eyebrows giving a wise "
+    "professorial expression. Round wire-frame spectacles glowing faintly "
+    "cyan, perched halfway down the beak. Big amber eyes — knowing but warm, "
+    "with subtle laugh-lines. Mature scholarly presence — think Sir Patrick "
+    "Stewart or Sir Ian McKellen as an owl. NOT cute / NOT young / NOT female. "
+    "Wears a fitted academic jacket with elbow patches in deep cosmic violet, "
+    "a small bow-tie or scarf in cyan. Soft cosmic-dark background with faint "
+    "nebula and tiny constellation stars (#00f0ff and #ff6ad5 specks). Modern "
+    "flat illustration with cel-shading + soft inner glow — NOT photorealistic, "
+    "NOT 3D-rendered. Style: Pixar 'Up'-era Carl Fredricksen elder warmth meets "
+    "Studio Ghibli space scene. The owl looks like a venerable senior tutor — "
+    "the kind of mentor a graduate student would seek out for advice. Avoid "
+    "uncanny human features, avoid headsets, avoid generic AI-robot tropes, "
+    "avoid juvenile/baby-bird proportions."
 )
 
 VARIANTS = [
