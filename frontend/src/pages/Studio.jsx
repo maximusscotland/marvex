@@ -160,18 +160,29 @@ export default function Studio({ mode = "mindmap" }) {
     //   3. Fall back to whatever `listMaps()` returns first.
     try {
       const recents = getRecents();
-      const recentLive = recents.find((id) => all.some((m) => m.id === id));
+      // Skip flowchart-flagged maps when we're in mind-map mode — without
+      // this, navigating from /flowchart to /app would re-open the user's
+      // most-recent flowchart inside the mind-map studio shell, leaving
+      // them with no obvious way back to a regular mind map. (Flowchart
+      // mode does the inverse filter above on line 129.)
+      const recentLive = recents.find((id) => {
+        const m = all.find((x) => x.id === id);
+        if (!m) return false;
+        if (isFlowchartMap(m)) return false;
+        return true;
+      });
       if (recentLive) {
         addToRecents(recentLive);
         return recentLive;
       }
     } catch { /* ignore */ }
     const welcome = all.find((m) => m.id === "example-welcome");
-    if (welcome) {
+    if (welcome && !isFlowchartMap(welcome)) {
       addToRecents(welcome.id);
       return welcome.id;
     }
-    const first = all[0]?.id || null;
+    // Final fallback — first non-flowchart map the user has.
+    const first = all.find((m) => !isFlowchartMap(m))?.id || all[0]?.id || null;
     if (first) addToRecents(first);
     return first;
   });
