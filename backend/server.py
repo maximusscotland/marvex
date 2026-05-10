@@ -45,6 +45,7 @@ from access_codes import make_router as make_access_router
 from admin_ops import make_router as make_admin_ops_router
 from press import make_router as make_press_router
 from bugreport import make_router as make_bugreport_router
+from mikey_chat import mikey_router
 from magic_auth import make_router as make_magic_auth_router, ensure_indexes as ensure_magic_indexes
 from apple_auth import make_router as make_apple_auth_router, ensure_indexes as ensure_apple_indexes
 from sentry_init import init_sentry
@@ -1800,6 +1801,7 @@ app.include_router(press_router)
 app.include_router(bugreport_router)
 app.include_router(make_magic_auth_router(db))
 app.include_router(make_apple_auth_router(db))
+app.include_router(mikey_router)
 
 app.add_middleware(
     CORSMiddleware,

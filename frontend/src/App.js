@@ -64,6 +64,7 @@ function LearnSlugRouter() {
 import AccessGate from "@/components/AccessGate";
 import MaintenanceMode from "@/components/MaintenanceMode";
 import OfflineBanner from "@/components/OfflineBanner";
+import MikeyChat from "@/components/MikeyChat";
 import NavShortcuts from "@/components/NavShortcuts";
 import AnalyticsRouterListener from "@/components/AnalyticsRouterListener";
 import ReferralCapture from "@/components/ReferralCapture";
@@ -112,6 +113,10 @@ export default function App() {
           <ScrollToTop />
           <CookieConsent />
           <OfflineBanner />
+          {/* Floating "Ask Mikey" tutor — bottom-left launcher, side-panel
+              chat. Available on every route so visitors can ask "how do I
+              do X?" without leaving the page they're on. */}
+          <MikeyChat />
         <Suspense fallback={<RouteFallback />}>
         <Routes>
           {/* PUBLIC marketing & legal — fully open so the URL is shareable */}
