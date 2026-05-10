@@ -24,12 +24,31 @@ export default function ResearchProgressOverlay({ open, phase, branches, onCance
       aria-live="polite"
     >
       <div className="flex items-center gap-2 mb-3">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/30 to-fuchsia-500/20 border border-violet-400/40 grid place-items-center text-violet-200">
-          {done ? <CheckCircle2 size={16} /> : <Loader2 size={16} className="animate-spin" />}
+        <div
+          className="relative w-10 h-10 rounded-xl overflow-hidden border border-violet-400/40 grid place-items-center"
+          style={{
+            background: "radial-gradient(circle at 30% 30%, rgba(255,106,213,0.25), rgba(122,59,255,0.12) 60%, transparent)",
+          }}
+        >
+          {/* Mikey — your cosmic owl-professor research assistant. The
+              thinking-bubble portrait is the canonical Mikey avatar.
+              Falls back to a generic loader if the asset is unavailable
+              (offline / preview before image upload). */}
+          <img
+            src="/mikey/mikey-thinking-bubble.png"
+            alt="Mikey"
+            className={`w-full h-full object-cover ${done ? "" : "animate-pulse-slow"}`}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+          {done && (
+            <div className="absolute inset-0 grid place-items-center bg-emerald-500/30 backdrop-blur-[1px]">
+              <CheckCircle2 size={16} className="text-emerald-200" />
+            </div>
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="mono text-[9px] uppercase tracking-[0.22em] text-violet-300/80">
-            Research Assistant
+            Mikey · Research Assistant
           </div>
           <div
             className="text-[13px] text-white truncate"

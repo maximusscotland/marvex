@@ -355,11 +355,11 @@ function EnrichToggle({ enrich, onToggleEnrich, isPro, hasOwnKey, onUpgrade }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
           <img
-            src="/icons/enrich.webp"
-            alt=""
+            src="/mikey/mikey-thinking-bubble.png"
+            alt="Mikey"
             aria-hidden="true"
-            className="w-4 h-4 rounded-sm shrink-0"
-            style={{ objectFit: "cover" }}
+            className="w-5 h-5 rounded-md shrink-0 border border-violet-400/40"
+            style={{ objectFit: "cover", boxShadow: "0 0 6px rgba(160,140,255,0.45)" }}
           />
           <span className="text-[13px] font-medium text-white">
             Enrich with Research Assistant
