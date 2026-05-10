@@ -1,0 +1,54 @@
+tier,outlet,beat,contact_role,contact_url_or_handle,template,priority,notes
+high,Lenny's Newsletter,product/growth/leadership,Editor,https://www.lennysnewsletter.com/about,1,5,Highest leverage in tech-PM/SaaS niche. Reference recent guest essay.
+high,Stratechery (Ben Thompson),tech strategy,Author,https://stratechery.com/about/,1,5,Long shot but worth one tailored email; Ben covers strategy not tools.
+high,Daring Fireball (John Gruber),Apple/tools,Author,https://daringfireball.net/contact/,2,4,If you ship a polished Mac app build first; Gruber loves indie polish.
+high,Ness Labs (Anne-Laure Le Cunff),mindful productivity,Founder/editor,https://nesslabs.com/contact,1,5,Perfect audience overlap — note-takers/researchers. Use Template 1.
+high,Tiago Forte (Forte Labs),second-brain/PKM,Founder,https://fortelabs.com/contact/,1,5,Building Second Brain audience overlaps directly. Try the team contact form.
+high,Maggie Appleton,note-taking/PKM/digital gardens,Author,https://maggieappleton.com/contact,2,4,Great voice for thoughtful pieces; she's selective.
+high,Andy Matuschak,knowledge tools,Author,https://andymatuschak.org/,2,3,Niche but if he tweets it the impact is huge.
+high,The Sweet Setup,Mac/iOS productivity,Editor,https://thesweetsetup.com/contact/,1,4,Mac app launch story fits their format perfectly.
+high,Ali Abdaal (newsletter),study/productivity,Founder,https://aliabdaal.com/contact/,2,5,YouTube audience massive; team-driven so address to team.
+high,Thomas Frank,study/productivity,Founder,https://thomasjfrank.com/contact/,2,4,Notion power-user audience; mind-mapping angle works well.
+mid,Ev Chapman (Practical PKM),PKM,Author,https://evchapman.co/contact,3,4,Newsletter readers actively seek PKM tools.
+mid,Cassidoo Newsletter,dev/productivity,Author,https://cassidoo.co,3,3,Reaches devs who'd appreciate BYOK angle.
+mid,Console.dev,dev tools,Editor,https://console.dev/contact/,1,3,Marvex is more end-user than dev tool but BYOK + desktop apps fit.
+mid,Ship It Newsletter,indie launches,Editor,https://www.shipit.coffee,3,3,Indie maker launches — friendly outlet for first press wave.
+mid,Indie Hackers,indie SaaS,Editor,https://www.indiehackers.com/contact,1,4,Submit a launch story; founders comment generously.
+mid,Product Hunt (community),launches,Editor,https://www.producthunt.com/launch,1,5,Plan a Tuesday launch; 14-day trial perfect for hunters.
+mid,Hacker News Show HN,tech indie,Self-submit,https://news.ycombinator.com/showhn.html,1,5,One-shot post; lead with the BYOK 0-AI-fees angle.
+mid,Tech in Asia,Asia tech,Editor,https://www.techinasia.com/contact,2,3,Niche if expanding to APAC.
+mid,Sifted (EU tech),European startups,Editor,https://sifted.eu/contact/,1,4,Strong if you have EU users / story; Marvex is UK-built — angle there.
+mid,The Next Web,tech,Editor,tips@thenextweb.com,1,3,Cold tip line; low hit rate but fast.
+mid,Decoder (Verge podcast),tech leadership,Producer,https://www.theverge.com/decoder,2,3,Aim for the founder-story podcast angle.
+mid,Daniel Pink (newsletter),work/productivity,Author,https://www.danpink.com/contact/,3,3,Big audience; only pitch with a real research/writing angle.
+mid,Cal Newport (newsletter),deep work,Author,https://www.calnewport.com/contact,2,4,Deep-work audience perfectly aligned with thinking-tool framing.
+mid,How I Study (Reddit/YouTube),study,Mods,https://www.reddit.com/r/GetStudying/wiki/index/,2,4,Reach mods first; offer 5 codes for community giveaway.
+mid,Nick Milo (Linking Your Thinking),PKM/Obsidian,Founder,https://www.linkingyourthinking.com,2,5,LYT followers are mind-mappers; perfect overlap.
+mid,Bryan Jenks (YouTube),Obsidian/PKM,Creator,https://www.bryanjenks.com,2,4,YouTube reach; demos go down well on his channel.
+mid,FromSergio (YouTube),productivity,Creator,https://www.youtube.com/@FromSergio,3,3,Mid-size productivity channel; quick demo pitch.
+mid,Keep Productive (YouTube),productivity SaaS reviews,Founder Francesco D'Alessio,https://keepproductive.com/contact,1,5,Reviews productivity tools weekly; nearly perfect fit.
+mid,Productivity Game (YouTube),productivity books,Creator,https://www.youtube.com/@ProductivityGame,3,3,Book-summary audience overlaps with PDF-to-map use case.
+mid,Mike Schmitz (Practical PKM),PKM,Creator,https://practicalpkm.com,3,4,Dedicated PKM podcast; pitch Template 2.
+mid,Curtis McHale (YouTube),PKM/writing,Creator,https://curtismchale.ca/contact/,3,3,Tools-for-writers angle works.
+mid,August Bradley (YouTube),Notion mastery,Creator,https://www.augustbradley.com,3,3,Notion-heavy but open to adjacent tools.
+mid,Marie Poulin (Notion expert),Notion/biz,Creator,https://mariepoulin.com/contact,3,3,Stretch but worth one email.
+mid,Shu Omi (YouTube),PKM,Creator,https://www.youtube.com/@shuomi3,3,3,Smaller channel but engaged PKM viewers.
+mid,Effective Remote Work,remote/productivity,Editor,https://effectiveremotework.com,3,2,Lower priority unless remote-team angle fits.
+mid,Productivity Report (newsletter),productivity,Editor,https://productivity.report/,3,3,Newsletter; quick blurb works.
+mid,Dense Discovery (Kai Brach),design/thoughtful tech,Editor,https://www.densediscovery.com/contact,1,5,Beautiful audience for an aesthetically-strong app like Marvex. High fit.
+mid,Sidebar.io,design/dev links,Editor,https://sidebar.io/submit,3,3,Submit your launch link; gets some traffic.
+journalist,Casey Newton (Platformer),tech/social,Author,https://www.platformer.news/contact,2,3,Long shot — ask for press code only.
+journalist,Alex Heath (The Verge),tech/big tech,Reporter,Twitter @alexeheath,2,2,Stretch unless major news angle.
+journalist,Mat Honan (MIT Tech Review),consumer tech,Editor,https://www.technologyreview.com,3,2,Editorial team handles tools coverage rarely.
+journalist,Steven Levy (Wired),tech longform,Author,https://www.wired.com/author/steven-levy/,3,2,Long shot but covers thoughtful tech.
+journalist,Devin Coldewey (TechCrunch),consumer/AI tools,Reporter,https://techcrunch.com/author/devin-coldewey/,2,3,AI-tools beat; fast turnaround possible.
+journalist,Anissa Gardizy (The Information),enterprise software,Reporter,https://www.theinformation.com,3,2,Enterprise focus; only pitch if you have enterprise pilots.
+journalist,Cybenetics / Tom's Hardware (productivity beat),consumer software,Editor,https://www.tomshardware.com,3,2,Lower fit unless desktop-app angle gets pushed.
+journalist,The Verge tips line,consumer tech,General tips,tips@theverge.com,1,3,Submit a tip; one-shot.
+journalist,Wired tips line,tech,General tips,tips@wired.com,1,2,One-shot tip submission.
+journalist,Fast Company contributors,innovation/work,Contributor,https://www.fastcompany.com/contact,3,3,Pitch the founder-story angle.
+academic,Reddit r/ObsidianMD mods,PKM,Mods,https://www.reddit.com/r/ObsidianMD/,2,3,Cross-tool comparison piece angle works; offer giveaway.
+academic,Reddit r/notetaking mods,note-taking,Mods,https://www.reddit.com/r/notetaking/,2,4,Direct fit. Offer 5-10 free codes for a giveaway thread.
+academic,Reddit r/GetStudying mods,study,Mods,https://www.reddit.com/r/GetStudying/,2,4,Massive student audience; giveaway-friendly.
+academic,Reddit r/productivity mods,productivity,Mods,https://www.reddit.com/r/productivity/,2,3,Stricter mods; offer real value not promo.
+academic,Reddit r/PKMS mods,PKM,Mods,https://www.reddit.com/r/PKMS/,2,4,Direct fit.
