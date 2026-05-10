@@ -8,6 +8,12 @@ import { useLicense } from "@/lib/license";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const STORAGE_KEY = "marvex.mikey.session.v1";
+// Session-scoped dismissal flag for the launcher pill. Survives route
+// changes within the tab but resets on browser-tab close so a user
+// who gets back tomorrow still sees Mikey is available. Persistent
+// dismissal would risk users forgetting the help exists when they
+// later need it — sessionStorage is the gentler default.
+const DISMISS_KEY = "marvex.mikey.launcher.dismissed.v1";
 
 /**
  * MikeyChat — floating "Ask Mikey" tutor.
@@ -116,6 +122,9 @@ export default function MikeyChat() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [launcherDismissed, setLauncherDismissed] = useState(() => {
+    try { return sessionStorage.getItem(DISMISS_KEY) === "1"; } catch { return false; }
+  });
   const location = useLocation();
   const { user } = useAuth();
   const license = useLicense();
@@ -139,15 +148,25 @@ export default function MikeyChat() {
     try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch { /* ignore */ }
   }, [state]);
 
-  // Listen for a global "open Mikey" custom event so any in-page CTA
-  // (e.g. the landing hero "Meet Mikey" button) can pop the chat panel
-  // without prop-drilling. Custom-event pattern keeps MikeyChat a
-  // floating singleton mounted in App.js.
+  // The "Meet Mikey" CTA / hero button etc. dispatch this event to
+  // pop the chat — they should also un-hide the launcher so the user
+  // can dismiss it again later via the × on the pill.
   useEffect(() => {
-    const onOpen = () => setOpen(true);
+    const onOpen = () => {
+      setOpen(true);
+      setLauncherDismissed(false);
+      try { sessionStorage.removeItem(DISMISS_KEY); } catch { /* ignore */ }
+    };
     window.addEventListener("marvex:openMikey", onOpen);
     return () => window.removeEventListener("marvex:openMikey", onOpen);
   }, []);
+
+  const dismissLauncher = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setLauncherDismissed(true);
+    try { sessionStorage.setItem(DISMISS_KEY, "1"); } catch { /* ignore */ }
+  };
 
   // Tier label sent to backend for context-aware answers.
   const tierLabel = useMemo(() => {
@@ -224,30 +243,48 @@ export default function MikeyChat() {
   return (
     <>
       {/* Launcher pill — always visible, bottom-LEFT (right side has the
-          analytics banner + Emergent badge). */}
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          data-testid="mikey-launcher"
-          className="fixed bottom-5 left-5 z-[55] group flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full border border-violet-400/40 bg-[#0a0f24]/90 backdrop-blur-md text-white shadow-[0_8px_28px_rgba(122,59,255,0.35)] hover:shadow-[0_8px_36px_rgba(255,106,213,0.45)] hover:border-fuchsia-300/50 transition"
-          title="Ask Mikey"
-        >
-          <span
-            className="relative w-7 h-7 rounded-full overflow-hidden border border-violet-400/50 grid place-items-center bg-[#03040a]"
-            style={{ boxShadow: "0 0 10px rgba(255,106,213,0.5)" }}
+          analytics banner + Emergent badge). Hidden when the user has
+          dismissed it via the × this tab session — comes back on tab
+          refresh / new tab so the help isn't permanently lost. */}
+      {!open && !launcherDismissed && (
+        <div className="fixed bottom-5 left-5 z-[55]">
+          <button
+            onClick={() => setOpen(true)}
+            data-testid="mikey-launcher"
+            className="group flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full border border-violet-400/40 bg-[#0a0f24]/90 backdrop-blur-md text-white shadow-[0_8px_28px_rgba(122,59,255,0.35)] hover:shadow-[0_8px_36px_rgba(255,106,213,0.45)] hover:border-fuchsia-300/50 transition"
+            title="Ask Mikey"
           >
-            <img
-              src="/mikey/mikey-thinking-bubble.png"
-              alt="Mikey"
-              className="w-full h-full object-cover"
-              onError={(e) => { e.currentTarget.style.display = "none"; }}
-            />
-          </span>
-          <span className="mono text-[10px] uppercase tracking-[0.22em] flex items-center gap-1.5">
-            Ask Mikey
-            <Sparkles size={10} className="text-fuchsia-300 group-hover:text-fuchsia-200 transition" />
-          </span>
-        </button>
+            <span
+              className="relative w-7 h-7 rounded-full overflow-hidden border border-violet-400/50 grid place-items-center bg-[#03040a]"
+              style={{ boxShadow: "0 0 10px rgba(255,106,213,0.5)" }}
+            >
+              <img
+                src="/mikey/mikey-thinking-bubble.png"
+                alt="Mikey"
+                className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
+              />
+            </span>
+            <span className="mono text-[10px] uppercase tracking-[0.22em] flex items-center gap-1.5">
+              Ask Mikey
+              <Sparkles size={10} className="text-fuchsia-300 group-hover:text-fuchsia-200 transition" />
+            </span>
+          </button>
+          {/* Tiny dismiss × in the top-right corner of the pill — sits
+              above Mikey's head so power-users who find him a pain can
+              hide the launcher for the session without losing access
+              entirely (refresh brings him back). Stops propagation so
+              clicking × doesn't also open the panel. */}
+          <button
+            onClick={dismissLauncher}
+            data-testid="mikey-launcher-dismiss"
+            aria-label="Hide Mikey"
+            title="Hide for this session (refresh to bring back)"
+            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full grid place-items-center bg-[#0a0f24] border border-white/15 text-[#7a87ad] hover:text-white hover:border-white/40 hover:bg-[#1a1632] transition shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+          >
+            <X size={10} strokeWidth={2.5} />
+          </button>
+        </div>
       )}
 
       {/* Side panel */}
