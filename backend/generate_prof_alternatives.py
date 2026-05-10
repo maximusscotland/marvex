@@ -1,11 +1,10 @@
 """
-One-shot generator for "Ask the Prof" mature-professor character
-alternatives. Painterly storybook (Pixar/Ghibli) style, headshot
-composition, 6 distinct personas so the user can pick the favourite
-before we wire it into the launcher.
+Regen v2 — "Ask the Prof" mature-professor character alternatives.
 
-Outputs to /app/frontend/public/prof-alternatives/prof-{slug}.png
-(public/ so we can preview them via Pillow grid + browser).
+v1 read as "kindly grandads", not "PROFESSORS". v2 dials up explicit
+academic context: chalkboards, gowns, lecterns, books, pointers,
+mortarboards, lecture-hall lighting. Same painterly Pixar/Ghibli
+warmth but with unmistakable professor signifiers.
 
 Usage:
     cd /app/backend && python generate_prof_alternatives.py
@@ -28,66 +27,98 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 MODEL = "gemini-3.1-flash-image-preview"
 
 STYLE = (
-    " Painterly storybook illustration in the warm style of Pixar / Studio "
-    "Ghibli character art. Soft brushwork, gentle directional lighting, "
-    "warm rim-light, kind expressive eyes, slight smile, friendly inviting "
-    "atmosphere. Circular headshot composition — face and shoulders fill "
-    "the frame, centered. Painterly background of soft cosmic blues and "
-    "violets with subtle bokeh / starlight (NOT photorealistic, NOT 3D, "
-    "NOT line-art, NOT flat vector). Square 1024×1024 canvas designed to "
-    "be cropped to a circle for an app avatar. No text, no letters, no "
-    "logos, no watermark. Single character only, no other people."
+    " Painterly storybook character illustration in the warm style of "
+    "Pixar / Studio Ghibli concept art. Soft brushwork, warm rim-lighting, "
+    "kind expressive eyes, slight smile, friendly approachable atmosphere. "
+    "Portrait-orientation headshot composition — head, shoulders, and "
+    "upper chest fill the frame, centered, character facing camera. "
+    "Painterly background of soft cosmic blues and violets with a subtle "
+    "bokeh of golden chalk-dust starlight (NOT photorealistic, NOT 3D, "
+    "NOT line-art, NOT flat vector). Square 1024×1024 canvas designed "
+    "to be cropped into a circular app avatar. No legible text or "
+    "letters anywhere (any chalkboard markings are abstract painterly "
+    "scribbles, not real words). No logos, no watermark, no signature, "
+    "single character only."
 )
 
 PROFS = {
-    "einstein": (
-        "A kindly mature male professor in his late 60s with a great mane "
-        "of wild fluffy white hair, soft bushy white moustache, warm "
-        "twinkling brown eyes, gentle grandfather smile, wearing a rumpled "
-        "tweed jacket with leather elbow patches over a soft beige knit "
-        "sweater. Loose painterly brushstrokes, a hint of chalk dust on "
-        "his collar."
+    # Classic stereotype: tweed + chalkboard + pointer
+    "classic": (
+        "An unmistakable classic university professor, a kindly mature "
+        "man in his early 60s with neatly combed grey hair greying at "
+        "the temples, a tidy short grey beard, warm intelligent brown "
+        "eyes behind round wire-rim spectacles, gentle scholarly smile. "
+        "Wearing a classic dark-brown TWEED JACKET with prominent LEATHER "
+        "ELBOW PATCHES over a crisp white shirt and a maroon knit tie. "
+        "Behind him a large dark-green CHALKBOARD covered in abstract "
+        "painterly mathematical scribbles and diagrams (no real letters). "
+        "Holding a piece of WHITE CHALK in his right hand, mid-gesture as "
+        "if explaining a concept. Unmistakable professor."
     ),
-    "bookish": (
-        "A warm bookish male professor in his early 60s with neatly combed "
-        "silver hair, well-groomed short silver beard, round wire-rim "
-        "spectacles, soft blue eyes, a contented smile. Wearing a forest-"
-        "green wool cardigan over a white shirt, with an open hardcover "
-        "book held gently in one hand visible at the bottom of the frame. "
-        "Cosy academic warmth."
+    # Robed academic — gown + mortarboard
+    "robed": (
+        "A distinguished mature university professor in his mid-60s with "
+        "swept-back silver hair, a neatly trimmed silver moustache and "
+        "short beard, twinkling kind hazel eyes, a gentle dignified "
+        "smile. Wearing full black ACADEMIC REGALIA — flowing black "
+        "graduation GOWN with red and gold hood trim, a black square "
+        "MORTARBOARD CAP with a gold tassel, over a crisp white shirt "
+        "and dark tie. Background suggests an ornate old university hall "
+        "with warm wood panelling and softly painted bookshelves."
     ),
-    "bowtie": (
-        "A distinguished mature male professor in his mid-60s with neatly "
-        "trimmed swept-back grey hair, a small tidy grey moustache, sharp "
-        "intelligent green eyes, a confident knowing smile. Wearing a deep "
-        "burgundy bowtie, mustard-yellow waistcoat, and crisp white shirt. "
-        "Dignified Oxford-don energy with a playful glint."
+    # Librarian-professor surrounded by towering books
+    "librarian": (
+        "A warm scholarly male professor in his late 60s with soft fluffy "
+        "white hair, a full but neatly groomed white beard, warm twinkling "
+        "blue eyes behind half-moon spectacles balanced on the tip of his "
+        "nose, the kindest reassuring smile. Wearing a charcoal-grey "
+        "tweed three-piece suit with a forest-green knit waistcoat and a "
+        "burgundy bowtie. Tall painterly bookshelves crammed with leather-"
+        "bound books loom warmly behind him, with a single brass desk-"
+        "lamp throwing golden light across his shoulder. Holding an open "
+        "leather-bound tome in his hands at the lower edge of frame."
     ),
-    "inventor": (
-        "A whimsical mature male professor-inventor in his late 60s with "
-        "delightfully messy grey hair sticking up in every direction, "
-        "round brass goggles perched on his forehead, bushy expressive "
-        "white eyebrows, mischievous warm brown eyes, a big delighted "
-        "smile. Wearing a long mossy-green linen apron over a rumpled "
-        "indigo shirt, with a small smudge of cosmic stardust on one "
-        "cheek. Curious and inviting, like he just discovered something."
+    # Lecture-hall professor at the lectern, mid-talk
+    "lecturer": (
+        "A charismatic mature male professor in his late 50s mid-lecture, "
+        "neatly trimmed salt-and-pepper hair, short groomed dark-grey "
+        "beard, sharp intelligent green eyes behind dark-rimmed "
+        "rectangular spectacles, a warm engaged smile as if speaking to "
+        "students. Wearing a navy-blue blazer over a soft cream "
+        "rollneck sweater, with a small academic LAPEL PIN on the "
+        "blazer. Standing at a dark-wood LECTERN, one hand resting on "
+        "an open notebook, the other raised in a teaching gesture. "
+        "Behind him, soft golden lecture-hall light and the silhouette "
+        "of a curved auditorium with warm bokeh."
     ),
-    "cosy": (
-        "A warm cosy male professor in his mid-60s with soft silver hair "
-        "tucked behind his ears, gentle laugh-lines around kind hazel "
-        "eyes, a neat short white beard, the warmest grandfatherly smile. "
-        "Wearing a thick chunky-knit charcoal-grey cardigan and a long "
-        "wrapped mustard scarf, holding a steaming ceramic mug of tea "
-        "visible at the lower edge. Quiet, reassuring, hot-cocoa-by-the-"
-        "fireplace energy."
+    # Whimsical-but-clearly-academic with chalk dust + diagrams
+    "chalk-dust": (
+        "A delightfully whimsical mature male professor in his mid-60s "
+        "with cheerfully messy grey hair flecked with WHITE CHALK DUST, "
+        "expressive bushy white eyebrows, mischievous twinkling brown "
+        "eyes behind round tortoiseshell spectacles pushed up his "
+        "forehead, an enormous delighted smile mid-discovery. Wearing a "
+        "rumpled mustard-yellow CARDIGAN with leather elbow patches "
+        "over a soft sky-blue shirt with a slightly askew burgundy tie. "
+        "A small SMUDGE OF CHALK on one cheek. Behind him a chalkboard "
+        "covered in abstract painterly orbital diagrams, swirls and "
+        "constellations. Holding a stick of chalk between his fingers. "
+        "Professor who genuinely loves teaching."
     ),
-    "mentor": (
-        "A dignified mature male mentor-professor in his late 50s with "
-        "short neatly-trimmed salt-and-pepper hair, a tidy short greying "
-        "beard, thoughtful warm grey-blue eyes behind slim dark-rimmed "
-        "rectangular glasses, a gentle reassuring smile. Wearing a navy "
-        "blazer over a soft cream rollneck. Approachable mentor energy, "
-        "the favourite teacher who actually believed in you."
+    # Field-research professor — botanist / naturalist explorer vibe
+    "field": (
+        "A weathered but warm mature male professor-naturalist in his "
+        "early 60s with neatly tied-back grey-and-silver hair, a "
+        "well-groomed short greying beard, kind crinkle-eyed smile, "
+        "intelligent warm hazel eyes behind small round brass-framed "
+        "spectacles. Wearing a classic explorer's outfit — a worn olive-"
+        "green tweed FIELD JACKET with brown leather trim and many "
+        "pockets, over a soft khaki shirt with a small dark green "
+        "neckerchief. A pair of vintage brass binoculars hung around "
+        "his neck. Background suggests a sun-dappled painterly herbarium "
+        "with hanging botanical sketches and dried specimens, warm "
+        "afternoon light. Unmistakably a learned professor of natural "
+        "history."
     ),
 }
 
@@ -97,7 +128,7 @@ async def generate_one(name: str, prompt: str) -> bool:
     chat = (
         LlmChat(
             api_key=API_KEY,
-            session_id=f"prof-{name}-{uuid.uuid4().hex[:6]}",
+            session_id=f"prof2-{name}-{uuid.uuid4().hex[:6]}",
             system_message="You are a world-class storybook character illustrator. Output images only.",
         )
         .with_model("gemini", MODEL)
