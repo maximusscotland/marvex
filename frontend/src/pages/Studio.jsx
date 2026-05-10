@@ -1140,7 +1140,14 @@ export default function Studio({ mode = "mindmap" }) {
         <AssetsSidebar
           activeMapId={active?.id}
           studioActive={!!active}
-          onStudioClick={handleImportClick}
+          /* In Flowchart Studio, the "Marvex Studio" entry should route
+             to the mind-map studio (/app) — without this override the
+             default behaviour kicks in and opens the JSON-import file
+             picker, which is confusing because the button is labelled
+             "Marvex Studio". In mind-map mode we keep the import-file
+             shortcut since users there have no other quick way to load
+             a .json export. */
+          onStudioClick={isFlowchart ? (() => navigate("/app")) : handleImportClick}
         />
         <input
           ref={fileInputRef}
