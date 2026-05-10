@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Upload, FileText, Library as LibraryIcon, Highlighter, StickyNote, CalendarDays, Workflow } from "lucide-react";
+import { Upload, FileText, Library as LibraryIcon, Highlighter, StickyNote, CalendarDays, Workflow, Clock as ClockIcon } from "lucide-react";
 import { countActiveReminders } from "@/lib/reminders";
 
 /**
@@ -28,6 +28,7 @@ const AssetsSidebar = ({ activeMapId, studioActive = false, onStudioClick }) => 
     const p = location.pathname || "/";
     if (p.startsWith("/intake")) return "intake";
     if (p.startsWith("/flowchart")) return "flowchart";
+    if (p.startsWith("/timeline")) return "timeline";
     if (p.startsWith("/library")) return "library";
     if (p.startsWith("/output")) return "output";
     if (p.startsWith("/calendar")) return "calendar";
@@ -60,6 +61,15 @@ const AssetsSidebar = ({ activeMapId, studioActive = false, onStudioClick }) => 
       icon: Workflow,
       label: "Flowchart Studio",
       onClick: () => navigate("/flowchart"),
+    },
+    {
+      key: "timeline",
+      testid: "btn-timeline-studio",
+      icon: ClockIcon,
+      label: "Timeline Studio",
+      onClick: () => navigate("/timeline"),
+      // Beta indicator (matches the BETA pill in /timeline header).
+      badge: "β",
     },
     {
       key: "library",
