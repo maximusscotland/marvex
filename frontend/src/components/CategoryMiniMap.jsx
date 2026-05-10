@@ -51,8 +51,12 @@ export default function CategoryMiniMap({ selected, onSelect, mapCounts, compact
   // radius, so 4 categories don't sprawl while 12 still fit. We add a
   // little jitter on the angle so symmetric counts (4, 8) don't end up
   // axis-aligned (which looks rigid against the canvas grid below).
+  // ViewBox is 440 × 280 (NOT 220) so leaf chips at the top/bottom of
+  // the orbit (e.g. "All" near 12 o'clock, "Research" near 6 o'clock)
+  // don't get visually clipped by the surrounding card edges. The
+  // hub stays vertically centred at cy=140.
   const cx = 220;
-  const cy = 110;
+  const cy = 140;
   const N = items.length + 1; // +1 for the "+ New" leaf
   const baseRadius = 102;
   const stretch = Math.max(0, N - 6) * 4;     // grow with crowd
@@ -74,7 +78,7 @@ export default function CategoryMiniMap({ selected, onSelect, mapCounts, compact
       style={compact ? { maxWidth: 360, margin: "0 auto" } : undefined}
     >
       <svg
-        viewBox="0 0 440 220"
+        viewBox="0 0 440 280"
         className="w-full mx-auto block"
         style={{ height: "auto", maxWidth: compact ? 360 : 640 }}
       >
