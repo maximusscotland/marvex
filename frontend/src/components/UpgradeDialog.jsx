@@ -73,6 +73,16 @@ export default function UpgradeDialog({ open, onClose }) {
     return () => window.removeEventListener("keydown", handler);
   }, [open, onClose]);
 
+  // Funnel — top of in-app upgrade flow. Fires whenever the dialog opens
+  // (any source: free-cap nudge, sidebar Upgrade, Settings, etc).
+  // The `lite_visible` flag lands on every event so the experiment
+  // dashboard can compute open-rate per variant.
+  useEffect(() => {
+    if (!open) return;
+    track("upgrade_dialog_view", { lite_visible: liteVisible, auth: user ? "logged_in" : "guest" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   // Ask the backend which plans to surface. In live mode without a configured
   // Annual price ID, this will return ["monthly"] only.
   useEffect(() => {
@@ -185,7 +195,7 @@ export default function UpgradeDialog({ open, onClose }) {
               <button
                 key={p.id}
                 data-testid={`upgrade-plan-${p.id}`}
-                onClick={() => setPlan(p.id)}
+                onClick={() => { setPlan(p.id); track("upgrade_plan_selected", { plan: p.id, lite_visible: liteVisible }); }}
                 className={`text-left rounded-xl border p-4 transition-all relative ${
                   selected
                     ? p.id === "lite"

@@ -487,3 +487,16 @@ User-provided design references:
   - **Render-loop bug fixed**: when free users started hitting the cap, a "Maximum update depth exceeded" cascade fired after 5-15 Tab presses. Two unstable refs were the culprits — (1) `Studio.jsx` line 1324 was passing `onUpgrade={() => setUpgradeOpen(true)}` (fresh fn ref every Studio render → invalidated `addChild` useCallback in `useNodeCrud` → loop); fixed by extracting `openUpgradeDialog = useCallback(() => setUpgradeOpen(true), [])`. (2) `MindMapCanvas.jsx` line 572 had `const annotations = map.annotations || []` (fresh `[]` ref every render when undefined → unstable dep for the selection-change useEffect at line 652); fixed with `useMemo(() => map.annotations || [], [map.annotations])`. Verified via Playwright harness: free user can now Tab-spam 28+ nodes through the cap, both nudges appear correctly, UpgradeDialog opens cleanly, ZERO max-depth errors.
   - **Library header overlap fix** — added `flex-wrap gap-x-4 gap-y-3` to the Library header so the right-cluster (`MIND-MAP / FLOWCHART / TIMELINE` create chips + `ALL · MAPS · FLOWCHARTS` filter chips + `CARDS / SHELF` toggles + search) wraps to a new line on tighter viewports instead of crushing the title.
 
+
+- P1 — **Timeline Event Dialog scroll + Enter-to-save (Feb 2026)** — verified. `TimelineEventDialog.jsx` now wraps the body in a flex column with `max-h-[calc(100vh-3rem)]`, a sticky header, an `overflow-y-auto flex-1 min-h-0` scrollable body, and a sticky footer (Cancel + Save event always visible). Inputs are wrapped in `<form onSubmit={handleSave}>` so pressing **Enter** inside any field saves the event. Screenshot-verified: dialog opens, all fields rendered, Enter key submits ("Event added" toast fires, dialog closes).
+- P1 — **PostHog Stripe funnel events (Feb 2026)** — added complete conversion-funnel telemetry:
+  - `pricing_view` on `/pricing` mount (top of funnel, includes `ref` for affiliate attribution).
+  - `pricing_cta_clicked` → `checkout_started` on plan-tile click (already present).
+  - `checkout_failed` now fires on `/pricing` checkout errors too (matching `UpgradeDialog`).
+  - `upgrade_dialog_view` fires every time the in-app `UpgradeDialog` opens (tagged with `lite_visible`, `auth`).
+  - `upgrade_plan_selected` fires when a user changes the highlighted plan tile inside `UpgradeDialog`.
+  - `checkout_completed` fires on Studio.jsx return from Stripe with `?upgraded=true&session_id=...` once polling confirms `paid`.
+  - `checkout_stuck` fires when the webhook never confirms after 8 poll attempts (~16s).
+  - `checkout_cancelled` fires on `?upgraded=false` return.
+  - Files touched: `pages/Pricing.jsx` (mount tracker + failure event), `components/UpgradeDialog.jsx` (view + plan-selected events), `pages/Studio.jsx` (completed/stuck/cancelled events). Lint clean.
+

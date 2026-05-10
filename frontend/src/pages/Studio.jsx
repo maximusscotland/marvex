@@ -320,6 +320,7 @@ export default function Studio({ mode = "mindmap" }) {
           const r = await axios.get(`${API}/billing/checkout-status/${sessionId}`, { withCredentials: true });
           const paid = r.data?.payment_status === "paid" || r.data?.status === "completed";
           if (paid) {
+            track("checkout_completed", { plan: r.data?.plan || "unknown", session_id: sessionId });
             showProCelebration();
             await refreshUser();
             return;
@@ -330,16 +331,19 @@ export default function Studio({ mode = "mindmap" }) {
           setTimeout(poll, 2000);
         } else {
           // Webhook never arrived. Offer the user a Contact support rescue.
+          track("checkout_stuck", { session_id: sessionId });
           setStuckSession(sessionId);
         }
       };
       poll();
       window.history.replaceState({}, "", "/app");
     } else if (upgraded === "true") {
+      track("checkout_completed", { plan: "unknown", session_id: null });
       showProCelebration();
       refreshUser();
       window.history.replaceState({}, "", "/app");
     } else if (upgraded === "false") {
+      track("checkout_cancelled", { session_id: sessionId || null });
       toast("Upgrade cancelled");
       window.history.replaceState({}, "", "/app");
     }  }, [refreshUser, showProCelebration]);

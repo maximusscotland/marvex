@@ -80,6 +80,14 @@ export default function Pricing() {
     type: "website",
     url: "https://marvex.app/pricing",
   });
+  // Top-of-funnel: who lands on /pricing. Fires once per mount.
+  // Pairs with `pricing_cta_clicked` → `checkout_started` →
+  // `checkout_completed` (Studio.jsx) so the PostHog funnel report
+  // can compute conversion rates at each step.
+  useEffect(() => {
+    track("pricing_view", { ref: getRef() || null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [founders] = useState({ limit: 50, taken: 0, remaining: 50 });
   // A/B experiment: should the Lite tier be visible? PostHog flag
   // `lite_tier_visible` controls bucketing; default TRUE so Lite ships
@@ -143,7 +151,9 @@ export default function Pricing() {
       }
     } catch (e) {
       const detail = e?.response?.data?.detail;
-      toast.error(typeof detail === "string" ? detail : "Checkout failed — please try again.");
+      const msg = typeof detail === "string" ? detail : "Checkout failed — please try again.";
+      track("checkout_failed", { plan: planId, source: "pricing_page", error: msg });
+      toast.error(msg);
       setBusyPlan(null);
     }
   };
