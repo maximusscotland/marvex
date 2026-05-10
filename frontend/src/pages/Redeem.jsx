@@ -7,6 +7,20 @@ import { useAuth } from "@/lib/auth";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+/** Local helper — activate the `?fam67` tester bypass directly from the
+ *  /redeem form so users who type "FAM67" instead of pasting a real
+ *  MIND-FAM-XXXX invite still get full Pro access (365 days, fully
+ *  invisible). Mirrors lib/testerAccess.js semantics. */
+const activateFam67Bypass = () => {
+  try {
+    localStorage.setItem(
+      "marvex.tester.unlocked.v1",
+      JSON.stringify({ ts: Date.now() }),
+    );
+    localStorage.setItem("mindmapper.unlocked.v1", "1");
+  } catch { /* ignore */ }
+};
+
 /**
  * /redeem — visitor-facing invite redemption.  The owner shares a
  * `MIND-FAM-XXXX` code (or a /redeem?code=XXX link); the recipient signs in
@@ -26,12 +40,23 @@ export default function Redeem() {
     e?.preventDefault?.();
     setError(null);
     setResult(null);
+    const cleanEarly = (code || "").trim().toUpperCase();
+    // FAM67 does NOT require sign-in — it's a client-side localStorage
+    // toggle, not a server-side per-account grant. Hand it off to the
+    // bypass branch BEFORE the auth gate so testers without a Google
+    // account can still use it.
+    if (cleanEarly === "FAM67") {
+      activateFam67Bypass();
+      setResult({ already_redeemed: false, label: "Tester (full access)", bypass: true });
+      toast.success("Tester bypass active — full access for 365 days");
+      return;
+    }
     if (!user) {
       toast.message("Sign in first", { description: "We need to attach your Pro grant to a Google account." });
       signIn();
       return;
     }
-    const clean = (code || "").trim().toUpperCase();
+    const clean = cleanEarly;
     if (!clean) {
       setError("Paste your invite code first");
       return;
@@ -95,7 +120,9 @@ export default function Redeem() {
             <CheckCircle2 size={36} className="text-emerald-300 mx-auto mb-3" />
             <h2 className="text-xl font-semibold text-white mb-1">You're in.</h2>
             <p className="text-[13px] text-[#cfdaf3] leading-relaxed mb-5">
-              {result.already_redeemed
+              {result.bypass
+                ? <>Tester full access is active for <strong>365 days</strong>. No sign-in required.</>
+                : result.already_redeemed
                 ? "You'd already redeemed this code — your account stays Pro."
                 : result.isPress && result.days
                   ? <>Pro is active on <strong className="text-emerald-200">{user?.email}</strong> for the next <strong>{result.days} days</strong>.</>
