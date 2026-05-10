@@ -276,7 +276,7 @@ const PressKit = () => {
 
   const screenshots = [
     { src: "/teaser/book-to-map.webp", alt: "PDF transformed into a mind map", caption: "PDF → Mind map in 60 seconds" },
-    { src: "/mikey/mikey-thinking-bubble.png", alt: "Mikey, the cosmic owl-professor research assistant", caption: "Mikey, the AI tutor" },
+    { src: "/mikey/mikey-thinking-bubble.png", alt: "The Prof, Marvex Studio's in-app AI tutor", caption: "Ask the Prof — AI tutor" },
   ];
 
   return (
