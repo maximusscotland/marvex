@@ -44,21 +44,31 @@ export default function TimelineEventDialog({
   if (!open || !draft) return null;
   const dateValue = draft.dateISO ? draft.dateISO.slice(0, 10) : "";
 
+  // Submit handler used by both Save button + Enter-key in any text field.
+  // Trims label, defaults to "Event" if blank, then hands off to parent.
+  const handleSave = (e) => {
+    e?.preventDefault?.();
+    onSave?.({ ...draft, label: (draft.label || "").trim() || "Event" });
+  };
+
   return (
     <div
       data-testid="timeline-event-dialog"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm py-6 sm:py-10"
       onClick={onClose}
     >
-      <div
+      <form
+        onSubmit={handleSave}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md mx-4 rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-[#0a0f24] via-[#0a0f24] to-[#0e1632] p-6 shadow-[0_0_60px_rgba(0,240,255,0.2)]"
+        className="relative w-full max-w-md mx-4 rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-[#0a0f24] via-[#0a0f24] to-[#0e1632] shadow-[0_0_60px_rgba(0,240,255,0.2)] flex flex-col max-h-[calc(100vh-3rem)]"
       >
-        <div className="flex items-center justify-between mb-5">
+        {/* Header — fixed at top */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/8 flex-shrink-0">
           <h2 className="text-lg font-bold text-white">
             {event?.id?.startsWith("ev_new") ? "New event" : "Edit event"}
           </h2>
           <button
+            type="button"
             onClick={onClose}
             data-testid="tl-evt-close"
             className="text-[#7a87ad] hover:text-white transition"
@@ -67,6 +77,8 @@ export default function TimelineEventDialog({
           </button>
         </div>
 
+        {/* Body — the only scrolling region */}
+        <div className="px-6 py-4 overflow-y-auto flex-1 min-h-0">
         <div className="space-y-4">
           {/* Label */}
           <div>
@@ -302,10 +314,12 @@ export default function TimelineEventDialog({
             )}
           </div>
         </div>
-
-        <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/8">
+        </div>
+        {/* Footer — fixed at bottom, always visible */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-white/8 flex-shrink-0">
           {event?.id && !event.id.startsWith("ev_new") ? (
             <button
+              type="button"
               onClick={() => {
                 if (window.confirm("Delete this event?")) onDelete?.(event.id);
               }}
@@ -317,6 +331,7 @@ export default function TimelineEventDialog({
           ) : <span />}
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={onClose}
               className="cta-ghost text-[12px]"
               data-testid="tl-evt-cancel"
@@ -324,12 +339,7 @@ export default function TimelineEventDialog({
               Cancel
             </button>
             <button
-              onClick={() => {
-                if (!draft.label?.trim()) {
-                  setDraft({ ...draft, label: "Event" });
-                }
-                onSave?.({ ...draft, label: draft.label?.trim() || "Event" });
-              }}
+              type="submit"
               className="cta-pill text-[12px]"
               data-testid="tl-evt-save"
             >
@@ -337,7 +347,7 @@ export default function TimelineEventDialog({
             </button>
           </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
