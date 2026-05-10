@@ -1,5 +1,5 @@
 """
-Mikey Mind Map — platform-aware tutor chat endpoint.
+Ask the Prof — platform-aware tutor chat endpoint.
 
 Why server-side and not BYOK browser-side?
   Mikey-the-research-assistant uses the user's OWN API key (BYOK) — that's

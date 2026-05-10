@@ -242,7 +242,7 @@ export default function MikeyChat() {
 
   return (
     <>
-      {/* Launcher — circular floating Mikey avatar with "Mikey Mind Map"
+      {/* Launcher — circular floating Mikey avatar with "Ask the Prof"
           label underneath (bottom-LEFT; right side has the analytics
           banner + Emergent badge). Hidden when the user has dismissed
           it via the × this tab session — comes back on tab refresh /
@@ -252,9 +252,9 @@ export default function MikeyChat() {
           <button
             onClick={() => setOpen(true)}
             data-testid="mikey-launcher"
-            aria-label="Open Mikey Mind Map"
-            title="Mikey Mind Map"
-            className="group relative w-14 h-14 rounded-full overflow-hidden border-2 border-violet-400/60 bg-[#03040a] hover:border-fuchsia-300/70 transition"
+            aria-label="Open Ask the Prof"
+            title="Ask the Prof"
+            className="group relative w-28 h-28 rounded-full overflow-hidden border-2 border-violet-400/60 bg-[#03040a] hover:border-fuchsia-300/70 transition"
             style={{ boxShadow: "0 0 14px rgba(255,106,213,0.45), 0 8px 28px rgba(122,59,255,0.45)" }}
           >
             <img
@@ -265,15 +265,15 @@ export default function MikeyChat() {
             />
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#03040a] shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse"
+              className="pointer-events-none absolute top-1 right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-[#03040a] shadow-[0_0_10px_rgba(52,211,153,0.85)] animate-pulse"
             />
           </button>
           <span
             data-testid="mikey-launcher-label"
-            className="mt-1.5 mono text-[10px] uppercase tracking-[0.2em] text-violet-200/90 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] flex items-center gap-1 select-none"
+            className="mt-2 mono text-[11px] uppercase tracking-[0.22em] text-violet-200/90 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] flex items-center gap-1.5 select-none"
           >
-            Mikey Mind Map
-            <Sparkles size={9} className="text-fuchsia-300" />
+            Ask the Prof
+            <Sparkles size={10} className="text-fuchsia-300" />
           </span>
           {/* Tiny dismiss × in the top-LEFT corner of the avatar — sits
               above Mikey's head so power-users who find him a pain can
@@ -304,7 +304,7 @@ export default function MikeyChat() {
           <aside
             data-testid="mikey-panel"
             role="dialog"
-            aria-label="Mikey Mind Map"
+            aria-label="Ask the Prof"
             className="fixed left-4 bottom-4 top-4 sm:top-auto sm:bottom-5 sm:h-[640px] z-[56] w-[calc(100%-2rem)] sm:w-[400px] flex flex-col rounded-2xl border border-violet-400/35 bg-[#0a0f24]/95 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.6),0_0_50px_rgba(122,59,255,0.25)] fade-up"
           >
             {/* Header */}
@@ -316,7 +316,7 @@ export default function MikeyChat() {
                 <img src="/mikey/mikey-thinking-bubble.png" alt="" className="w-full h-full object-cover" />
               </span>
               <div className="flex-1 min-w-0">
-                <div className="text-[14px] text-white font-semibold leading-tight">Mikey Mind Map</div>
+                <div className="text-[14px] text-white font-semibold leading-tight">Ask the Prof</div>
                 <div className="mono text-[9px] uppercase tracking-[0.22em] text-violet-300/80 flex items-center gap-1.5 leading-tight mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   online · {tierLabel}

@@ -113,7 +113,7 @@ export default function App() {
           <ScrollToTop />
           <CookieConsent />
           <OfflineBanner />
-          {/* Floating "Mikey Mind Map" tutor — bottom-left launcher, side-panel
+          {/* Floating "Ask the Prof" tutor — bottom-left launcher, side-panel
               chat. Available on every route so visitors can ask "how do I
               do X?" without leaving the page they're on. */}
           <MikeyChat />
