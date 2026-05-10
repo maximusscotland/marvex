@@ -197,7 +197,7 @@ export default function MikeyChat() {
     if (!open) return;
     setTimeout(() => inputRef.current?.focus(), 100);
     if (state.messages.length === 0) {
-      const greet = `Hey 👋 I'm Mikey, your guide to Marvex Studio. Ask me anything — how to build a mind map, what's in Pro, how the AI works, anything. I can see you're on \`${location.pathname}\` so I'll tailor answers to where you are.`;
+      const greet = `Greetings 🎓 I'm the Prof, your tutor for Marvex Studio. Ask me anything — how to build a mind map, what's in Pro, how the AI works, anything. I can see you're on \`${location.pathname}\` so I'll tailor answers to where you are.`;
       setState((s) => ({ ...s, messages: [{ role: "assistant", content: greet }] }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -252,14 +252,14 @@ export default function MikeyChat() {
           <button
             onClick={() => setOpen(true)}
             data-testid="mikey-launcher"
-            aria-label="Open Ask the Prof"
+            aria-label="Open the Prof"
             title="Ask the Prof"
             className="group relative w-28 h-28 rounded-full overflow-hidden border-2 border-violet-400/60 bg-[#03040a] hover:border-fuchsia-300/70 transition"
             style={{ boxShadow: "0 0 14px rgba(255,106,213,0.45), 0 8px 28px rgba(122,59,255,0.45)" }}
           >
             <img
               src="/mikey/mikey-thinking-bubble.png"
-              alt="Mikey"
+              alt="The Prof"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
               onError={(e) => { e.currentTarget.style.display = "none"; }}
             />
@@ -283,7 +283,7 @@ export default function MikeyChat() {
           <button
             onClick={dismissLauncher}
             data-testid="mikey-launcher-dismiss"
-            aria-label="Hide Mikey"
+            aria-label="Hide the Prof"
             title="Hide for this session (refresh to bring back)"
             className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full grid place-items-center bg-[#0a0f24] border border-white/15 text-[#7a87ad] hover:text-white hover:border-white/40 hover:bg-[#1a1632] transition shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
           >
@@ -381,7 +381,7 @@ export default function MikeyChat() {
                   </span>
                   <div className="px-3 py-2 rounded-2xl rounded-bl-sm bg-white/[0.04] border border-white/10 flex items-center gap-2 text-[12px] text-[#a4b4d8]">
                     <Loader2 size={11} className="animate-spin text-violet-300" />
-                    Mikey is thinking…
+                    The Prof is thinking…
                   </div>
                 </div>
               )}
@@ -435,7 +435,7 @@ export default function MikeyChat() {
                 </button>
               </div>
               <div className="mono text-[9px] uppercase tracking-[0.22em] text-[#566187] text-center mt-2">
-                Powered by Mikey · context-aware · ~free for you
+                Powered by the Prof · context-aware · ~free for you
               </div>
             </form>
           </aside>
