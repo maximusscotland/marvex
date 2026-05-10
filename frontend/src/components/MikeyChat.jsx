@@ -242,35 +242,40 @@ export default function MikeyChat() {
 
   return (
     <>
-      {/* Launcher pill — always visible, bottom-LEFT (right side has the
-          analytics banner + Emergent badge). Hidden when the user has
-          dismissed it via the × this tab session — comes back on tab
-          refresh / new tab so the help isn't permanently lost. */}
+      {/* Launcher — circular floating Mikey avatar with "Mikey Mind Map"
+          label underneath (bottom-LEFT; right side has the analytics
+          banner + Emergent badge). Hidden when the user has dismissed
+          it via the × this tab session — comes back on tab refresh /
+          new tab so the help isn't permanently lost. */}
       {!open && !launcherDismissed && (
-        <div className="fixed bottom-5 left-5 z-[55]">
+        <div className="fixed bottom-5 left-5 z-[55] flex flex-col items-center">
           <button
             onClick={() => setOpen(true)}
             data-testid="mikey-launcher"
-            className="group flex items-center gap-2 pl-1.5 pr-3.5 py-1.5 rounded-full border border-violet-400/40 bg-[#0a0f24]/90 backdrop-blur-md text-white shadow-[0_8px_28px_rgba(122,59,255,0.35)] hover:shadow-[0_8px_36px_rgba(255,106,213,0.45)] hover:border-fuchsia-300/50 transition"
-            title="Ask Mikey"
+            aria-label="Open Mikey Mind Map"
+            title="Mikey Mind Map"
+            className="group relative w-14 h-14 rounded-full overflow-hidden border-2 border-violet-400/60 bg-[#03040a] hover:border-fuchsia-300/70 transition"
+            style={{ boxShadow: "0 0 14px rgba(255,106,213,0.45), 0 8px 28px rgba(122,59,255,0.45)" }}
           >
+            <img
+              src="/mikey/mikey-thinking-bubble.png"
+              alt="Mikey"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+            />
             <span
-              className="relative w-7 h-7 rounded-full overflow-hidden border border-violet-400/50 grid place-items-center bg-[#03040a]"
-              style={{ boxShadow: "0 0 10px rgba(255,106,213,0.5)" }}
-            >
-              <img
-                src="/mikey/mikey-thinking-bubble.png"
-                alt="Mikey"
-                className="w-full h-full object-cover"
-                onError={(e) => { e.currentTarget.style.display = "none"; }}
-              />
-            </span>
-            <span className="mono text-[10px] uppercase tracking-[0.22em] flex items-center gap-1.5">
-              Ask Mikey
-              <Sparkles size={10} className="text-fuchsia-300 group-hover:text-fuchsia-200 transition" />
-            </span>
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-[#03040a] shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse"
+            />
           </button>
-          {/* Tiny dismiss × in the top-right corner of the pill — sits
+          <span
+            data-testid="mikey-launcher-label"
+            className="mt-1.5 mono text-[10px] uppercase tracking-[0.2em] text-violet-200/90 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] flex items-center gap-1 select-none"
+          >
+            Mikey Mind Map
+            <Sparkles size={9} className="text-fuchsia-300" />
+          </span>
+          {/* Tiny dismiss × in the top-LEFT corner of the avatar — sits
               above Mikey's head so power-users who find him a pain can
               hide the launcher for the session without losing access
               entirely (refresh brings him back). Stops propagation so
@@ -280,7 +285,7 @@ export default function MikeyChat() {
             data-testid="mikey-launcher-dismiss"
             aria-label="Hide Mikey"
             title="Hide for this session (refresh to bring back)"
-            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full grid place-items-center bg-[#0a0f24] border border-white/15 text-[#7a87ad] hover:text-white hover:border-white/40 hover:bg-[#1a1632] transition shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+            className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full grid place-items-center bg-[#0a0f24] border border-white/15 text-[#7a87ad] hover:text-white hover:border-white/40 hover:bg-[#1a1632] transition shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
           >
             <X size={10} strokeWidth={2.5} />
           </button>
@@ -299,7 +304,7 @@ export default function MikeyChat() {
           <aside
             data-testid="mikey-panel"
             role="dialog"
-            aria-label="Ask Mikey"
+            aria-label="Mikey Mind Map"
             className="fixed left-4 bottom-4 top-4 sm:top-auto sm:bottom-5 sm:h-[640px] z-[56] w-[calc(100%-2rem)] sm:w-[400px] flex flex-col rounded-2xl border border-violet-400/35 bg-[#0a0f24]/95 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.6),0_0_50px_rgba(122,59,255,0.25)] fade-up"
           >
             {/* Header */}
@@ -311,7 +316,7 @@ export default function MikeyChat() {
                 <img src="/mikey/mikey-thinking-bubble.png" alt="" className="w-full h-full object-cover" />
               </span>
               <div className="flex-1 min-w-0">
-                <div className="text-[14px] text-white font-semibold leading-tight">Ask Mikey</div>
+                <div className="text-[14px] text-white font-semibold leading-tight">Mikey Mind Map</div>
                 <div className="mono text-[9px] uppercase tracking-[0.22em] text-violet-300/80 flex items-center gap-1.5 leading-tight mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   online · {tierLabel}
