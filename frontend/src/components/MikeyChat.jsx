@@ -14,6 +14,43 @@ const STORAGE_KEY = "marvex.mikey.session.v1";
 // dismissal would risk users forgetting the help exists when they
 // later need it — sessionStorage is the gentler default.
 const DISMISS_KEY = "marvex.mikey.launcher.dismissed.v1";
+// Persistent (across tabs / sessions) position so a user who drags the
+// launcher to their preferred corner doesn't have to re-drag every visit.
+// Stored as `{ x, y }` measured from the top-left of the viewport in
+// CSS pixels. We default to top-right (96px below header) so out-of-
+// the-box placement is consistent with the request.
+const POS_KEY = "marvex.mikey.launcher.pos.v1";
+const LAUNCHER_SIZE = 112; // matches w-28 h-28 in Tailwind
+const HEADER_GAP = 96;     // clearance below site header
+const EDGE_PAD = 16;       // min distance from any viewport edge
+
+const readPos = () => {
+  try {
+    const raw = localStorage.getItem(POS_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (Number.isFinite(p?.x) && Number.isFinite(p?.y)) return p;
+    }
+  } catch { /* ignore */ }
+  return null;
+};
+
+const defaultPos = () => {
+  // SSR-safe — fall back to (16, 96) when window is undefined.
+  if (typeof window === "undefined") return { x: 16, y: HEADER_GAP };
+  return {
+    x: Math.max(EDGE_PAD, window.innerWidth - LAUNCHER_SIZE - EDGE_PAD),
+    y: HEADER_GAP,
+  };
+};
+
+const clampPos = (p) => {
+  if (typeof window === "undefined") return p;
+  return {
+    x: Math.max(EDGE_PAD, Math.min(window.innerWidth  - LAUNCHER_SIZE - EDGE_PAD, p.x)),
+    y: Math.max(EDGE_PAD, Math.min(window.innerHeight - LAUNCHER_SIZE - EDGE_PAD, p.y)),
+  };
+};
 
 /**
  * MikeyChat — floating "Ask Mikey" tutor.
@@ -168,6 +205,71 @@ export default function MikeyChat() {
     try { sessionStorage.setItem(DISMISS_KEY, "1"); } catch { /* ignore */ }
   };
 
+  // ── Draggable launcher state ────────────────────────────────────────
+  // Position is the top-left corner of the launcher wrapper in viewport
+  // pixels.  We persist to localStorage so the user's chosen spot
+  // survives reloads and across tabs.  Initial value is read on mount
+  // (defaultPos = top-right).
+  const [pos, setPos] = useState(() => clampPos(readPos() || defaultPos()));
+  const dragRef = useRef({
+    active: false,    // true while pointer is down
+    moved: false,     // becomes true if pointer moves >4 px — distinguishes click from drag
+    offX: 0,          // pointer x relative to wrapper origin
+    offY: 0,
+    pointerId: null,
+  });
+
+  // If the window is resized, re-clamp so the launcher never floats
+  // outside the visible area.
+  useEffect(() => {
+    const onResize = () => setPos((p) => clampPos(p));
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const onLauncherPointerDown = (e) => {
+    // Skip drag init if the user pressed the dismiss × or used a
+    // non-primary button.
+    if (e.button !== 0) return;
+    if (e.target.closest('[data-testid="mikey-launcher-dismiss"]')) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    dragRef.current = {
+      active: true,
+      moved: false,
+      offX: e.clientX - rect.left,
+      offY: e.clientY - rect.top,
+      pointerId: e.pointerId,
+    };
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+  };
+
+  const onLauncherPointerMove = (e) => {
+    const d = dragRef.current;
+    if (!d.active) return;
+    // 4-px tolerance — small jitter from a click shouldn't trigger drag.
+    if (!d.moved) {
+      const dx = Math.abs(e.clientX - (pos.x + d.offX));
+      const dy = Math.abs(e.clientY - (pos.y + d.offY));
+      if (dx < 4 && dy < 4) return;
+      d.moved = true;
+    }
+    setPos(clampPos({ x: e.clientX - d.offX, y: e.clientY - d.offY }));
+  };
+
+  const onLauncherPointerUp = (e) => {
+    const d = dragRef.current;
+    if (!d.active) return;
+    dragRef.current = { active: false, moved: false, offX: 0, offY: 0, pointerId: null };
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
+    // Persist final position.  Even if the user didn't actually drag
+    // (just clicked) we write — cheap and keeps storage in sync after
+    // a window-resize-induced clamp.
+    try { localStorage.setItem(POS_KEY, JSON.stringify(pos)); } catch { /* ignore */ }
+    // If the pointer moved past the tolerance, swallow this click so the
+    // launcher's own onClick (which opens the chat) doesn't fire.  We do
+    // this by checking d.moved inside onClick.
+  };
+
   // Tier label sent to backend for context-aware answers.
   const tierLabel = useMemo(() => {
     if (license.tier === "tester") return "tester (full access)";
@@ -242,25 +344,41 @@ export default function MikeyChat() {
 
   return (
     <>
-      {/* Launcher — circular floating Mikey avatar with "Ask the Prof"
-          label underneath (bottom-LEFT; right side has the analytics
-          banner + Emergent badge). Hidden when the user has dismissed
-          it via the × this tab session — comes back on tab refresh /
-          new tab so the help isn't permanently lost. */}
+      {/* Launcher — circular floating Prof avatar with "Ask the Prof"
+          label underneath. Position is fully draggable (pointer-based,
+          works on touch + desktop) and persists to localStorage. Out-
+          of-the-box placement is the TOP-RIGHT, comfortably below the
+          site header.  Hidden when the user has dismissed it via × this
+          tab session — comes back on tab refresh / new tab so the help
+          isn't permanently lost. */}
       {!open && !launcherDismissed && (
-        <div className="fixed bottom-5 left-5 z-[55] flex flex-col items-center">
+        <div
+          className="fixed z-[55] flex flex-col items-center select-none touch-none"
+          style={{ left: pos.x, top: pos.y }}
+          onPointerDown={onLauncherPointerDown}
+          onPointerMove={onLauncherPointerMove}
+          onPointerUp={onLauncherPointerUp}
+          onPointerCancel={onLauncherPointerUp}
+        >
           <button
-            onClick={() => setOpen(true)}
+            onClick={(e) => {
+              // Suppress click-after-drag — pointerup already persisted
+              // the new position; we don't want this same gesture to
+              // also pop the chat panel.
+              if (dragRef.current.moved) { e.preventDefault(); return; }
+              setOpen(true);
+            }}
             data-testid="mikey-launcher"
-            aria-label="Open the Prof"
-            title="Ask the Prof"
-            className="group relative w-28 h-28 rounded-full overflow-hidden border-2 border-violet-400/60 bg-[#03040a] hover:border-fuchsia-300/70 transition"
+            aria-label="Open the Prof (drag to move)"
+            title="Click to open · drag to move"
+            className="group relative w-28 h-28 rounded-full overflow-hidden border-2 border-violet-400/60 bg-[#03040a] hover:border-fuchsia-300/70 transition cursor-grab active:cursor-grabbing"
             style={{ boxShadow: "0 0 14px rgba(255,106,213,0.45), 0 8px 28px rgba(122,59,255,0.45)" }}
           >
             <img
               src="/mikey/mikey-thinking-bubble.png"
               alt="The Prof"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              draggable={false}
+              className="w-full h-full object-cover pointer-events-none group-hover:scale-105 transition-transform"
               onError={(e) => { e.currentTarget.style.display = "none"; }}
             />
             <span
@@ -270,17 +388,19 @@ export default function MikeyChat() {
           </button>
           <span
             data-testid="mikey-launcher-label"
-            className="mt-2 mono text-[11px] uppercase tracking-[0.22em] text-violet-200/90 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] flex items-center gap-1.5 select-none"
+            className="mt-2 mono text-[11px] uppercase tracking-[0.22em] text-violet-200/90 drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)] flex items-center gap-1.5 select-none pointer-events-none"
           >
             Ask the Prof
             <Sparkles size={10} className="text-fuchsia-300" />
           </span>
           {/* Tiny dismiss × in the top-LEFT corner of the avatar — sits
-              above Mikey's head so power-users who find him a pain can
-              hide the launcher for the session without losing access
-              entirely (refresh brings him back). Stops propagation so
-              clicking × doesn't also open the panel. */}
+              above the Prof's head so power-users who find him a pain
+              can hide the launcher for the session without losing
+              access entirely (refresh brings him back). Pointer events
+              are explicitly enabled so it works inside the touch-none
+              parent. */}
           <button
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={dismissLauncher}
             data-testid="mikey-launcher-dismiss"
             aria-label="Hide the Prof"
