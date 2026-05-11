@@ -34,7 +34,7 @@ const PLAN_DETAIL = {
 // Flowchart Studio / Law Pack add-on, and caps at 200 nodes per map.
 const PERKS_PRO = [
   "Bring your own AI key — zero quota limits",
-  "Unlimited mind-map size (free tier caps at 30 structured map elements)",
+  "Unlimited maps + unlimited mind-map size (free tier = 3 maps × 30 elements)",
   "Cloud Save to Google Drive · Dropbox · Zotero (mirror to all 3)",
   "Deep Research · Auto-deepen · Flowchart Studio",
   "Law Pack add-on available ($10 one-off · 1% to BAILII)",
@@ -45,7 +45,7 @@ const PERKS_PRO = [
 
 const PERKS_LITE = [
   "Bring your own AI key — pay your provider directly",
-  "Up to 200 map elements per map (free tier = 30)",
+  "Up to 200 map elements per map (free tier = 3 maps × 30 elements)",
   "Cloud Save to Drive OR Dropbox OR Zotero (one target per save)",
   "PDF Reader with persistent highlights & ink annotations",
   "Premium shapes, fonts & colour packs",
@@ -224,8 +224,8 @@ export default function Pricing() {
                 What&apos;s actually free
               </div>
               <p className="text-[14px] text-[#cfdaf3] leading-relaxed mb-3">
-                Free includes <strong className="text-white">unlimited stickies, clipart, lines, arrows, images, exports, and cloud save</strong> — only the 30-structured-element cap applies.
-                Sketch, brainstorm, and ship full research maps without ever hitting a wall on the free tier.
+                Free includes <strong className="text-white">3 maps</strong>, plus unlimited stickies, clipart, lines, arrows, images, exports, and cloud save.
+                Each map caps at 30 structured elements. Plenty of room to evaluate the full product across mind-map, flowchart, and timeline patterns.
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {[

@@ -403,7 +403,7 @@ export const ARTICLES = [
       },
       {
         q: "Is there a free Notion alternative for mind mapping?",
-        a: "Marvex Studio has a free tier with a 30-element cap, unlimited stickies / clipart / lines / images / exports / cloud-save, and BYO-AI-key (use your own Anthropic / OpenAI / Gemini key and pay $0 markup). Paid tiers start at $9/mo Lite or $200 once for lifetime Pro.",
+        a: "Marvex Studio has a free tier with 3 maps (each capped at 30 structured elements), unlimited stickies / clipart / lines / images / exports / cloud-save, and BYO-AI-key (use your own Anthropic / OpenAI / Gemini key and pay $0 markup). Paid tiers start at $9/mo Lite or $200 once for lifetime Pro.",
       },
       {
         q: "Should I cancel Notion and just use a mind-mapper?",

@@ -192,7 +192,7 @@ export default function PdfToMindMap() {
         <div className="grid md:grid-cols-2 gap-5">
           {[
             { title: "AI mind map generator", body: "Powered by your own Claude Sonnet 4.5, GPT-5, or Gemini 3 API key. We don't markup AI usage — you pay the provider directly." },
-            { title: "Free PDF mind map", body: "The free tier converts PDFs with Quick Outline at zero cost. Upgrade to Pro ($9–15/mo) for AI Analysis, unlimited maps, and the full export suite." },
+            { title: "Free PDF mind map", body: "The free tier converts PDFs with Quick Outline at zero cost (3 maps × 30 elements each). Upgrade to Pro ($9–15/mo) for AI Analysis, unlimited maps, and the full export suite." },
             { title: "Mind map maker that respects privacy", body: "Local-first storage. No accounts. No tracking. Your maps stay in your browser and filesystem unless you explicitly sync them." },
             { title: "Cross-platform mind mapping software", body: "Use Marvex Studio on the web, or install the native desktop app for Mac (Apple Silicon + Intel), Windows (x64 + ARM64), and Linux (.AppImage / .deb / .rpm)." },
             { title: "Concept map software for researchers", body: "PDF reader, AI co-pilot, citation chips, side-by-side highlights, exportable summaries — built for people who actually read papers, not just file them." },

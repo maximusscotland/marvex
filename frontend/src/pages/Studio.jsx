@@ -482,12 +482,22 @@ export default function Studio({ mode = "mindmap" }) {
       setRenewAction("new-map");
       return;
     }
-    // Free users (no active sub) who already have an oversized map (>30
-    // structured nodes — likely grandfathered from a previous Pro period
-    // or pre-cap era) can keep editing those maps but can't spawn NEW
-    // maps until they upgrade. The trigger is a strong usage signal —
-    // they're already heavy users — and the existing-map carve-out keeps
-    // the rule from feeling punitive on a fresh free signup.
+    // Free users (no active sub) hit two caps now:
+    //   1. PER-MAP cap of 30 structured nodes (the original "30-element"
+    //      free-tier promise — enforced at edit-time elsewhere).
+    //   2. TOTAL-MAPS cap of 3.  This is new (Feb 2026): the free tier
+    //      used to advertise "unlimited maps" but in practice gave away
+    //      enough that committed users never needed to upgrade.  Three
+    //      maps is enough to evaluate the product across mind-map +
+    //      flowchart + timeline patterns, while creating a clean nudge
+    //      at the right time.  Existing maps are NEVER touched — only
+    //      the 4th new map prompts an upgrade.
+    //
+    // The carve-out "oversized existing map" rule below is kept on top
+    // for users grandfathered from before this cap existed (they had a
+    // single big map → they can keep editing it, but can't create a
+    // fourth net-new map either).
+    const FREE_TIER_MAP_CAP = 3;
     if (!license.active) {
       try {
         const all = listMaps();
@@ -506,6 +516,17 @@ export default function Studio({ mode = "mindmap" }) {
             "You've outgrown the free tier — upgrade to keep creating new maps. Your existing maps stay editable.",
             { duration: 6000 }
           );
+          setUpgradeOpen(true);
+          return;
+        }
+        if (all.length >= FREE_TIER_MAP_CAP) {
+          toast.error(
+            `Free tier limit reached — you have ${all.length} of ${FREE_TIER_MAP_CAP} maps. Upgrade for unlimited maps + bigger node caps.`,
+            { duration: 6000 }
+          );
+          // Surface the upgrade dialog directly — beats a silent toast,
+          // and the dialog already routes to /pricing on a primary CTA
+          // so users who DO want to upgrade get there in one click.
           setUpgradeOpen(true);
           return;
         }
