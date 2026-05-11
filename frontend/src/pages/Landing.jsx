@@ -28,6 +28,7 @@ import AccessCodeBox from "@/components/AccessCodeBox";
 import LandingFaq from "@/components/LandingFaq";
 import ThemeToggle from "@/components/ThemeToggle";
 import usePageMeta from "@/lib/usePageMeta";
+import { track } from "@/lib/posthog";
 import { PRESET_BACKGROUNDS } from "@/lib/backgrounds";
 
 const TESTIMONIALS_API = `${process.env.REACT_APP_BACKEND_URL || ""}/api/testimonials`;
@@ -102,6 +103,42 @@ export default function Landing() {
   }, []);
 
   const showRealTestimonials = testimonials.length >= MIN_TESTIMONIALS_TO_SWAP;
+
+  // ── Hero sub-headline A/B/C test ────────────────────────────────────
+  // Three positioning lines are rotated PER SESSION (not per render —
+  // changing copy mid-visit is jarring). The chosen variant is logged
+  // to PostHog so we can read the resulting funnel split in the
+  // "Acquisition Funnel — by Channel" dashboard alongside utm_source.
+  //
+  // Once we collect enough data (~200 unique visitors per variant), the
+  // winner can be hard-coded and this rotation removed. Until then,
+  // sessionStorage keeps each visitor on the same variant for the whole
+  // visit so navigating /landing → /pricing → back doesn't change copy.
+  const HERO_VARIANTS = [
+    { id: "A", text: "Mind-maps with your AI. Not theirs. Not their bill." },
+    { id: "B", text: "Your AI key. Zero markup. Maps that stay yours." },
+    { id: "C", text: "The studio for visual thinkers who want to own their own tools." },
+  ];
+  const [heroVariant] = useState(() => {
+    try {
+      const cached = sessionStorage.getItem("marvex.landing.hero.variant.v1");
+      if (cached) {
+        const found = HERO_VARIANTS.find((v) => v.id === cached);
+        if (found) return found;
+      }
+    } catch { /* sessionStorage may be unavailable in SSR / privacy mode */ }
+    const picked = HERO_VARIANTS[Math.floor(Math.random() * HERO_VARIANTS.length)];
+    try { sessionStorage.setItem("marvex.landing.hero.variant.v1", picked.id); } catch { /* ignore */ }
+    return picked;
+  });
+  // Fire the PostHog impression event once per session so the
+  // landing_hero_view event count == variant impressions. PostHog
+  // dedupes correctly even if React strict-mode double-mounts in dev.
+  useEffect(() => {
+    track("landing_hero_variant_shown", { variant: heroVariant.id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const heroSubheadline = heroVariant.text;
 
   return (
     <div data-testid="landing-page" className="cosmic-bg min-h-screen text-white">
@@ -186,11 +223,8 @@ export default function Landing() {
             <span className="gradient-text">{t("landing.heroTitleB")}</span>
           </ScrollReveal>
 
-          <ScrollReveal as="p" delay={240} className="mt-8 max-w-2xl text-lg text-[#a4b4d8] leading-relaxed">
-            <span className="font-semibold tracking-wide"><span className="gradient-text">{t("landing.heroLeadBrand")}</span></span>{" "}
-            {t("landing.heroLead")}
-            {" "}
-            <span className="text-xl sm:text-2xl font-bold text-white">{t("landing.heroZeroCloud")}</span>
+          <ScrollReveal as="p" delay={240} className="mt-8 max-w-2xl text-xl sm:text-2xl font-semibold text-white leading-snug">
+            {heroSubheadline}
           </ScrollReveal>
 
           {/* VIDEO / cinematic teaser — slot 4 */}
