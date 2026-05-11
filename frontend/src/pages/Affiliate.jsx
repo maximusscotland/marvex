@@ -235,6 +235,12 @@ export default function Affiliate() {
               </div>
             </div>
 
+            {/* Per-channel tracked links — one-click copy for each major
+                referral channel. PostHog reads utm_source automatically
+                so the user can answer "which channel converts best?"
+                inside their analytics dashboard without writing a query. */}
+            <ChannelLinkBuilder baseLink={data.link} />
+
             {/* Stats grid */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
               <Stat icon={MousePointerClick} label="Clicks" value={data.stats.clicks.toLocaleString()} testid="affiliate-stat-clicks" />
@@ -414,3 +420,128 @@ const Stat = ({ icon: Icon, label, value, testid, highlight }) => (
     <div className={`text-xl font-semibold ${highlight ? "text-cyan-200" : "text-white"}`}>{value}</div>
   </div>
 );
+
+/**
+ * ChannelLinkBuilder — UTM-tagged link generator + one-click copy for
+ * each major referral channel. The base affiliate link already carries
+ * the user's `ref` code; we just append `utm_source` (and optionally
+ * `utm_medium` / `utm_campaign`) so PostHog can split conversions by
+ * channel out of the box.
+ *
+ * Channels are hard-coded to the five that consistently produce the
+ * best ROI for indie SaaS launches:
+ *   YouTube · X / Twitter · Reddit · Newsletter · LinkedIn
+ *
+ * Custom row at the bottom lets the user type any channel name + get
+ * the same tracked URL — so any niche surface (Discord, Bluesky, a
+ * specific YT video ID) can be tagged separately.
+ */
+const CHANNELS = [
+  { id: "youtube",    label: "YouTube",    medium: "video",   color: "#ff4d4d" },
+  { id: "twitter",    label: "X (Twitter)",medium: "social",  color: "#1da1f2" },
+  { id: "reddit",     label: "Reddit",     medium: "social",  color: "#ff4500" },
+  { id: "newsletter", label: "Newsletter", medium: "email",   color: "#22d3ee" },
+  { id: "linkedin",   label: "LinkedIn",   medium: "social",  color: "#0a66c2" },
+];
+
+const buildTrackedLink = (base, source, medium, campaign) => {
+  try {
+    const u = new URL(base);
+    u.searchParams.set("utm_source", source);
+    if (medium) u.searchParams.set("utm_medium", medium);
+    if (campaign) u.searchParams.set("utm_campaign", campaign);
+    return u.toString();
+  } catch {
+    // Fallback if base is not a valid URL — append manually.
+    const sep = base.includes("?") ? "&" : "?";
+    return `${base}${sep}utm_source=${encodeURIComponent(source)}${medium ? `&utm_medium=${medium}` : ""}${campaign ? `&utm_campaign=${campaign}` : ""}`;
+  }
+};
+
+const ChannelLinkBuilder = ({ baseLink }) => {
+  const [custom, setCustom] = useState("");
+  const [campaign, setCampaign] = useState("");
+  const copy = async (url, label) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(`${label} link copied`);
+    } catch {
+      toast.error("Couldn't copy — long-press to select instead");
+    }
+  };
+  return (
+    <div
+      data-testid="affiliate-channel-builder"
+      className="rounded-2xl border border-cyan-400/25 bg-cyan-500/[0.03] p-5 mb-8"
+    >
+      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
+        <div>
+          <div className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-1">
+            Channel-tagged links
+          </div>
+          <p className="text-[12.5px] text-[#9aaad0] max-w-xl">
+            One copy per channel. PostHog will split your conversion funnel by{" "}
+            <code className="text-cyan-200">utm_source</code> so you know which
+            channel is actually paying off — not just generating clicks.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="mono text-[10px] uppercase tracking-[0.18em] text-[#7a87ad]">
+            campaign (opt.)
+          </span>
+          <input
+            data-testid="affiliate-campaign-input"
+            value={campaign}
+            onChange={(e) => setCampaign(e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+            placeholder="launch-week"
+            className="w-40 bg-[#0a0f24] border border-white/10 rounded px-2.5 py-1 text-[12px] text-cyan-200 font-mono outline-none focus:border-cyan-400/60"
+          />
+        </div>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {CHANNELS.map((ch) => {
+          const url = buildTrackedLink(baseLink, ch.id, ch.medium, campaign || undefined);
+          return (
+            <button
+              key={ch.id}
+              type="button"
+              data-testid={`affiliate-channel-${ch.id}`}
+              onClick={() => copy(url, ch.label)}
+              className="group flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 bg-[#0a0f24] hover:bg-white/[0.04] hover:border-white/25 transition text-left"
+              title={url}
+            >
+              <span className="w-2 h-2 rounded-full" style={{ background: ch.color, boxShadow: `0 0 8px ${ch.color}aa` }} />
+              <span className="flex-1 min-w-0">
+                <span className="block text-[13px] font-medium text-white">{ch.label}</span>
+                <span className="block mono text-[10px] truncate text-[#7a87ad] group-hover:text-cyan-300/80">
+                  ?utm_source={ch.id}{campaign ? `&campaign=${campaign}` : ""}
+                </span>
+              </span>
+              <Copy size={11} className="text-[#7a87ad] group-hover:text-cyan-300" />
+            </button>
+          );
+        })}
+        {/* Custom channel row — for niche surfaces (Discord servers,
+            specific YT video IDs, a single tweet URL, etc) */}
+        <div className="sm:col-span-2 lg:col-span-3 flex items-stretch gap-2 mt-1">
+          <input
+            data-testid="affiliate-custom-source"
+            value={custom}
+            onChange={(e) => setCustom(e.target.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+            placeholder="custom-source (e.g. discord-pkm)"
+            className="flex-1 bg-[#0a0f24] border border-white/10 rounded-lg px-3 py-2 text-[13px] text-cyan-200 font-mono outline-none focus:border-cyan-400/60"
+          />
+          <button
+            type="button"
+            data-testid="affiliate-custom-copy"
+            disabled={!custom}
+            onClick={() => copy(buildTrackedLink(baseLink, custom, undefined, campaign || undefined), custom)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12.5px] font-medium border border-cyan-400/40 text-cyan-200 bg-cyan-500/[0.06] hover:bg-cyan-500/[0.15] hover:border-cyan-400/70 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            <Copy size={12} /> Copy tracked link
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

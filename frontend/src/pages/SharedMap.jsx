@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { Loader2, Sparkles, ExternalLink, Eye } from "lucide-react";
+import { Loader2, Sparkles, ExternalLink, Eye, Twitter } from "lucide-react";
 import { getSharedMap } from "@/lib/api";
 import MindMapCanvas from "@/components/MindMapCanvas";
 import Logo from "@/components/Logo";
@@ -198,6 +198,32 @@ function ShareHeader({ data, navigate }) {
             <Eye size={11} /> {data.view_count.toLocaleString()} views
           </div>
         )}
+        {/* Tweet-this-map — every shared link is potential acquisition.
+            Pre-fills the tweet with the map title + canonical URL +
+            ?utm_source=twitter so we can attribute Twitter-originated
+            signups in PostHog. Open in a new tab so the viewer doesn't
+            lose their reading flow. */}
+        {(() => {
+          const pageUrl = typeof window !== "undefined" ? window.location.href : "";
+          const trackedUrl = pageUrl
+            ? `${pageUrl}${pageUrl.includes("?") ? "&" : "?"}utm_source=twitter&utm_medium=social`
+            : "";
+          const title = (data?.title || "Mind-Map").slice(0, 110);
+          const text = `📌 ${title}\n\nSeen on @MarvexStudio — turn any PDF into a mind map in 1 minute. Your AI key, no markup.\n`;
+          const tweet = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(trackedUrl)}`;
+          return (
+            <a
+              data-testid="shared-map-tweet"
+              href={tweet}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Share this map on X — link is utm-tagged so we know it came from you"
+              className="mono text-[10px] uppercase tracking-[0.22em] px-3 py-1.5 rounded-full border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/10 hover:border-cyan-400/70 transition flex items-center gap-1.5"
+            >
+              <Twitter size={11} /> Tweet
+            </a>
+          );
+        })()}
         <Link
           to="/"
           data-testid="shared-map-cta"

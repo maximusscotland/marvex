@@ -61,6 +61,17 @@ function LearnSlugRouter() {
   return getTutorial(slug) ? <LearnTutorial /> : <LearnArticle />;
 }
 
+/**
+ * /blog/:slug → /learn/:slug redirect. Preserves the slug so external
+ * backlinks like /blog/mind-mapping-for-students still resolve to the
+ * correct article without breaking referrer headers. We use Navigate
+ * with replace so the browser history shows the canonical /learn URL.
+ */
+function BlogSlugRedirect() {
+  const { slug } = useParams();
+  return <Navigate to={`/learn/${slug}`} replace />;
+}
+
 import AccessGate from "@/components/AccessGate";
 import MaintenanceMode from "@/components/MaintenanceMode";
 import OfflineBanner from "@/components/OfflineBanner";
@@ -184,6 +195,12 @@ export default function App() {
               /learn/ prefix. Cheap redirects so an inbound /ai-mind-map…
               link from a blog or social post doesn't render a blank screen. */}
           <Route path="/ai-mind-map-generator-explained" element={<Navigate to="/learn/ai-mind-map-generator-explained" replace />} />
+          {/* /blog and /blog/:slug — "blog" is what people Google ~5×
+              more often than "learn", so we redirect both shapes to
+              the existing /learn cluster. Zero new content needed; we
+              just stop bleeding inbound traffic that's typing /blog. */}
+          <Route path="/blog" element={<Navigate to="/learn" replace />} />
+          <Route path="/blog/:slug" element={<BlogSlugRedirect />} />
 
           {/* Catch-all — unknown URLs fall back to the landing page rather
               than rendering nothing. Better for inbound traffic from typo'd
