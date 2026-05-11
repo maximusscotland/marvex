@@ -148,6 +148,10 @@ export default function ContextMenu({
   // shows a 9-shape palette instead of the generic Child/Sibling row.
   flowchartMode = false,
   onAddShapeChild,
+  // When the active node is a flowchart "decision" shape we surface a
+  // one-click "Branch Yes/No" button right above the shape grid. Caller
+  // creates two child process nodes labelled Yes + No respectively.
+  onBranchYesNo,
 }) {
   const [pos, setPos] = useState(null);
   const dragRef = useRef(null);
@@ -267,6 +271,7 @@ export default function ContextMenu({
             onAddSibling={onAddSibling}
             flowchartMode={flowchartMode}
             onAddShapeChild={onAddShapeChild}
+            onBranchYesNo={onBranchYesNo}
             onDeleteNode={onDeleteNode}
             onEditLink={onEditLink}
             onUploadLink={onUploadLink}
@@ -318,6 +323,7 @@ const NodeMenu = ({
   onAddSibling,
   flowchartMode = false,
   onAddShapeChild,
+  onBranchYesNo,
   onDeleteNode,
   onEditLink,
   onUploadLink,
@@ -380,7 +386,12 @@ const NodeMenu = ({
         even when the menu is positioned near the bottom edge of the screen. */}
     <div className="flex flex-col gap-1">
       {flowchartMode && onAddShapeChild ? (
-        <FlowchartShapeRow onAddShapeChild={onAddShapeChild} onAddSibling={onAddSibling} />
+        <FlowchartShapeRow
+          node={node}
+          onAddShapeChild={onAddShapeChild}
+          onAddSibling={onAddSibling}
+          onBranchYesNo={onBranchYesNo}
+        />
       ) : (
         <AddChildSiblingRow onAddChild={onAddChild} onAddSibling={onAddSibling} />
       )}
@@ -858,9 +869,27 @@ const AddChildSiblingRow = ({ onAddChild, onAddSibling }) => {
  * onAddShapeChild(shapeDef) — the canvas converts that to a new child
  * with the matching shape, fill, and stroke colour.
  */
-const FlowchartShapeRow = ({ onAddShapeChild, onAddSibling }) => {
+const FlowchartShapeRow = ({ node, onAddShapeChild, onAddSibling, onBranchYesNo }) => {
+  const isDecision = node?.flowchartShape === "decision";
   return (
     <div className="px-1 py-1">
+      {/* "Branch Yes/No" — surfaced ONLY for decision-shape nodes since
+          that's the universal flowchart pattern that benefits most from
+          a one-click affordance. Two amber outline arrows hint at the
+          two branches. Sits above the generic palette so power-users
+          don't have to scan the grid for the common case. */}
+      {isDecision && onBranchYesNo && (
+        <button
+          type="button"
+          data-testid="mm-ctx-flow-branch-yesno"
+          onClick={() => onBranchYesNo()}
+          className="mb-2 w-full flex items-center justify-center gap-2 px-2.5 py-2 rounded-md text-[11.5px] font-semibold tracking-tight text-amber-100 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-400/40 hover:border-amber-300/70 transition"
+          title="Adds two child Process shapes labelled Yes and No, fanning left + right"
+        >
+          <Plus size={11} className="text-amber-300" />
+          Branch <span className="text-emerald-300">Yes</span> <span className="text-amber-300/60">/</span> <span className="text-rose-300">No</span>
+        </button>
+      )}
       <div className="mono text-[9px] uppercase tracking-[0.22em] text-cyan-300/70 px-1 mb-1.5">
         Add child shape
       </div>
