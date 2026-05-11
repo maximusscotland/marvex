@@ -4,11 +4,10 @@ import { Users } from "lucide-react";
 /**
  * Compact social-proof strip — sits below the hero CTA buttons.
  *
- * Currently renders a static "Private preview · be among the first" badge
- * (no fake numbers). The waitlist-count branch is intentionally disabled
- * until we have organic traffic worth surfacing — bringing it back is a
- * one-liner. Decorative cosmic avatar dots stay so the layout still
- * signals "people use this" without claiming a specific count.
+ * Now renders a "Founder spots still available" badge to reinforce the
+ * $200 lifetime tier and create gentle urgency without fake scarcity.
+ * Decorative cosmic avatar dots signal "people use this" without
+ * claiming a specific count.
  */
 
 export default function SocialProofStrip() {
@@ -35,7 +34,7 @@ export default function SocialProofStrip() {
       <div className="flex items-center gap-1.5">
         <Users size={13} className="text-cyan-300/80" />
         <span className="mono text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">
-          Be among the first
+          Founder spots still available
         </span>
       </div>
     </div>
