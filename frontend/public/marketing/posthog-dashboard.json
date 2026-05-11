@@ -1,0 +1,128 @@
+{
+  "name": "Marvex Studio — Acquisition Funnel by Channel",
+  "description": "Conversion funnel + revenue + retention split by utm_source. Imported from /admin/marketing-dashboards. Built around the canonical Marvex events: pricing_view → pricing_cta_clicked → checkout_started → checkout_completed. Drop into PostHog → Dashboards → New Dashboard → Import to scaffold the entire reporting setup in one click.",
+  "tags": ["marvex", "acquisition", "funnel", "auto-generated"],
+  "tiles": [
+    {
+      "name": "Acquisition Funnel — by Channel (last 30 days)",
+      "description": "Stage-by-stage drop-off, split by utm_source. The bar with the steepest slope between any two stages is your biggest leak — fix that first.",
+      "insight": {
+        "name": "Acquisition Funnel — by Channel",
+        "filters": {
+          "insight": "FUNNELS",
+          "interval": "day",
+          "date_from": "-30d",
+          "actions": [],
+          "events": [
+            { "id": "pricing_view",        "name": "pricing_view",        "type": "events", "order": 0 },
+            { "id": "pricing_cta_clicked", "name": "pricing_cta_clicked", "type": "events", "order": 1 },
+            { "id": "checkout_started",    "name": "checkout_started",    "type": "events", "order": 2 },
+            { "id": "checkout_completed",  "name": "checkout_completed",  "type": "events", "order": 3 }
+          ],
+          "breakdown": "utm_source",
+          "breakdown_type": "event",
+          "funnel_viz_type": "steps",
+          "funnel_window_interval": 7,
+          "funnel_window_interval_unit": "day"
+        },
+        "layouts": { "sm": { "i": "1", "x": 0, "y": 0, "w": 12, "h": 5 } }
+      }
+    },
+    {
+      "name": "Pricing Page Views — by Channel",
+      "description": "Top-of-funnel volume per channel. Use to spot which channels are pushing traffic but failing to convert — that's where you double down on copy, not spend.",
+      "insight": {
+        "name": "Pricing Page Views — by Channel",
+        "filters": {
+          "insight": "TRENDS",
+          "interval": "day",
+          "date_from": "-30d",
+          "events": [
+            { "id": "pricing_view", "name": "pricing_view", "type": "events", "order": 0, "math": "total" }
+          ],
+          "breakdown": "utm_source",
+          "breakdown_type": "event",
+          "display": "ActionsBar"
+        },
+        "layouts": { "sm": { "i": "2", "x": 0, "y": 5, "w": 6, "h": 5 } }
+      }
+    },
+    {
+      "name": "Paid Conversions — by Channel",
+      "description": "checkout_completed count per utm_source. The bar that beats your CAC × monthly_value is your winning channel. Anything below is hobby traffic.",
+      "insight": {
+        "name": "Paid Conversions — by Channel",
+        "filters": {
+          "insight": "TRENDS",
+          "interval": "day",
+          "date_from": "-30d",
+          "events": [
+            { "id": "checkout_completed", "name": "checkout_completed", "type": "events", "order": 0, "math": "total" }
+          ],
+          "breakdown": "utm_source",
+          "breakdown_type": "event",
+          "display": "ActionsBar"
+        },
+        "layouts": { "sm": { "i": "3", "x": 6, "y": 5, "w": 6, "h": 5 } }
+      }
+    },
+    {
+      "name": "Revenue Mix — by Plan",
+      "description": "Which plan is actually carrying the business. Lifetime tends to spike on launches; Pro Annual is the recurring backbone.",
+      "insight": {
+        "name": "Revenue Mix — by Plan",
+        "filters": {
+          "insight": "TRENDS",
+          "interval": "week",
+          "date_from": "-90d",
+          "events": [
+            { "id": "checkout_completed", "name": "checkout_completed", "type": "events", "order": 0, "math": "total" }
+          ],
+          "breakdown": "plan",
+          "breakdown_type": "event",
+          "display": "ActionsLineGraph"
+        },
+        "layouts": { "sm": { "i": "4", "x": 0, "y": 10, "w": 6, "h": 5 } }
+      }
+    },
+    {
+      "name": "Drop-off Sniper — Cancelled vs Stuck",
+      "description": "Trend of checkout_cancelled (user backed out at Stripe) and checkout_stuck (webhook never confirmed) over time. A spike in stuck = Stripe webhook issue; a spike in cancelled = pricing-page friction.",
+      "insight": {
+        "name": "Drop-off Sniper — Cancelled vs Stuck",
+        "filters": {
+          "insight": "TRENDS",
+          "interval": "day",
+          "date_from": "-30d",
+          "events": [
+            { "id": "checkout_cancelled", "name": "checkout_cancelled", "type": "events", "order": 0, "math": "total" },
+            { "id": "checkout_stuck",     "name": "checkout_stuck",     "type": "events", "order": 1, "math": "total" },
+            { "id": "checkout_failed",    "name": "checkout_failed",    "type": "events", "order": 2, "math": "total" }
+          ],
+          "display": "ActionsLineGraph"
+        },
+        "layouts": { "sm": { "i": "5", "x": 6, "y": 10, "w": 6, "h": 5 } }
+      }
+    },
+    {
+      "name": "Upgrade Dialog Effectiveness",
+      "description": "How often the in-app UpgradeDialog opens vs converts. upgrade_dialog_view → upgrade_plan_selected → checkout_started → checkout_completed.",
+      "insight": {
+        "name": "Upgrade Dialog Funnel",
+        "filters": {
+          "insight": "FUNNELS",
+          "interval": "day",
+          "date_from": "-30d",
+          "events": [
+            { "id": "upgrade_dialog_view",  "name": "upgrade_dialog_view",  "type": "events", "order": 0 },
+            { "id": "upgrade_plan_selected","name": "upgrade_plan_selected","type": "events", "order": 1 },
+            { "id": "checkout_started",     "name": "checkout_started",     "type": "events", "order": 2 },
+            { "id": "checkout_completed",   "name": "checkout_completed",   "type": "events", "order": 3 }
+          ],
+          "funnel_viz_type": "steps"
+        },
+        "layouts": { "sm": { "i": "6", "x": 0, "y": 15, "w": 12, "h": 5 } }
+      }
+    }
+  ]
+}

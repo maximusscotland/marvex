@@ -38,6 +38,7 @@ const AdminTestimonials   = lazy(() => import("@/pages/AdminTestimonials"));
 const AdminAffiliates     = lazy(() => import("@/pages/AdminAffiliates"));
 const AdminFamily         = lazy(() => import("@/pages/AdminFamily"));
 const AdminReviewers      = lazy(() => import("@/pages/AdminReviewers"));
+const AdminMarketingDashboards = lazy(() => import("@/pages/AdminMarketingDashboards"));
 const AdminOps            = lazy(() => import("@/pages/AdminOps"));
 const FeedbackForm        = lazy(() => import("@/pages/FeedbackForm"));
 const Affiliate           = lazy(() => import("@/pages/Affiliate"));
@@ -190,6 +191,7 @@ export default function App() {
           <Route path="/admin/affiliates" element={<AccessGate><AdminAffiliates /></AccessGate>} />
           <Route path="/admin/family" element={<AccessGate><AdminFamily /></AccessGate>} />
           <Route path="/admin/reviewers" element={<AccessGate><AdminReviewers /></AccessGate>} />
+          <Route path="/admin/marketing-dashboards" element={<AccessGate><AdminMarketingDashboards /></AccessGate>} />
 
           {/* Aliases for shareable / inbound-link slugs that pre-date the
               /learn/ prefix. Cheap redirects so an inbound /ai-mind-map…
