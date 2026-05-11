@@ -41,6 +41,9 @@ export default function MapNode({
   connectMode,
   connectFrom,
   editInputRef,
+  // Drop-target highlight — set by the parent canvas during drag-over
+  // of a real File so the user sees which node they'll attach to.
+  dropTarget = false,
   // Callbacks
   onMouseEnter,
   onMouseLeave,
@@ -97,11 +100,15 @@ export default function MapNode({
         userSelect: isEditing ? "text" : "none",
         filter: isConnectFrom
           ? `drop-shadow(0 0 14px #ff6ad5) drop-shadow(0 0 28px #ff6ad5cc)`
+          : dropTarget
+          ? `drop-shadow(0 0 12px #00f0ff) drop-shadow(0 0 28px #00f0ffcc)`
           : `drop-shadow(0 0 8px ${isMulti ? "#ff6ad5" : stroke}aa) drop-shadow(0 0 16px ${isMulti ? "#ff6ad5" : stroke}44)`,
         outline: isConnectFrom
           ? "2px dashed #ff6ad5"
+          : dropTarget
+          ? "2px dashed #00f0ff"
           : isMulti ? "2px dashed #ff6ad5" : "none",
-        outlineOffset: (isConnectFrom || isMulti) ? 4 : 0,
+        outlineOffset: (isConnectFrom || isMulti || dropTarget) ? 4 : 0,
         transition: "filter 0.18s ease",
       }}
     >

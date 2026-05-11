@@ -507,22 +507,22 @@ export default function MindMapCanvas({
   // For images we keep the existing inline-on-canvas feature. This is for
   // *linking* (PDF, video, audio, generic doc) — the file becomes a clickable
   // link from the icon badge or node title.
-  // Cap at 3MB to keep localStorage usable. For larger files, recommend
-  // hosting on Drive/Dropbox and pasting a URL.
-  const FILE_LINK_CAP_BYTES = 3 * 1024 * 1024;
+  // Cap at 12MB — matches the FilePickerButton component. Larger
+  // files should live behind a cloud link (Drive/Dropbox).
+  const FILE_LINK_CAP_BYTES = 12 * 1024 * 1024;
   const triggerUpload = (nodeId) => {
     fileLinkTargetRef.current = nodeId;
     fileLinkInputRef.current?.click();
   };
-  const onFileLinkPicked = async (e) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // reset so picking the same file again works
-    const nodeId = fileLinkTargetRef.current;
-    fileLinkTargetRef.current = null;
-    if (!file || !nodeId) return;
+
+  // Core helper — extracted so both the file-picker dialog and the
+  // drag-and-drop handler can call it. Reads `file` as a data URL,
+  // attaches it as the node's link, auto-picks an icon by MIME.
+  const linkFileToNode = async (nodeId, file) => {
+    if (!nodeId || !file) return false;
     if (file.size > FILE_LINK_CAP_BYTES) {
-      toast.error("File is over 3 MB — please host on Drive/Dropbox and paste the URL instead.");
-      return;
+      toast.error("File is over 12 MB — please host on Drive/Dropbox and paste the URL instead.");
+      return false;
     }
     try {
       const dataUrl = await new Promise((resolve, reject) => {
@@ -531,9 +531,8 @@ export default function MindMapCanvas({
         r.onerror = reject;
         r.readAsDataURL(file);
       });
-      // Auto-pick a default icon based on MIME type if the node has none.
       const guessedIcon = (() => {
-        const m = file.type.toLowerCase();
+        const m = (file.type || "").toLowerCase();
         if (m.startsWith("video/")) return "video";
         if (m.startsWith("audio/")) return "music";
         if (m === "application/pdf") return "pdf";
@@ -546,9 +545,57 @@ export default function MindMapCanvas({
         if (!n.icon && guessedIcon) n.icon = guessedIcon;
       });
       toast.success(`Linked: ${file.name}`);
+      return true;
     } catch {
       toast.error("Could not read that file");
+      return false;
     }
+  };
+
+  const onFileLinkPicked = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset so picking the same file again works
+    const nodeId = fileLinkTargetRef.current;
+    fileLinkTargetRef.current = null;
+    await linkFileToNode(nodeId, file);
+  };
+
+  // Drag-and-drop file → node. Walks up from the drop target to find a
+  // mm-node-* dataset, then routes through linkFileToNode. Drops on
+  // empty canvas are ignored (no-op + toast hint) because we don't have
+  // a sensible "create new node here from this file" UX yet.
+  const [dropHoverNodeId, setDropHoverNodeId] = useState(null);
+  const findNodeIdAtTarget = (target) => {
+    let n = target;
+    while (n && n.dataset) {
+      const tid = n.dataset.testid || "";
+      if (tid.startsWith("mm-node-")) return tid.replace(/^mm-node-/, "");
+      n = n.parentNode;
+    }
+    return null;
+  };
+  const handleCanvasDragOver = (e) => {
+    if (!e.dataTransfer?.types?.includes("Files")) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    const id = findNodeIdAtTarget(e.target);
+    setDropHoverNodeId(id);
+  };
+  const handleCanvasDragLeave = (e) => {
+    // Only clear when the cursor exits the canvas wrapper entirely
+    if (e.target === e.currentTarget) setDropHoverNodeId(null);
+  };
+  const handleCanvasDrop = async (e) => {
+    if (!e.dataTransfer?.files?.length) return;
+    e.preventDefault();
+    const nodeId = findNodeIdAtTarget(e.target);
+    setDropHoverNodeId(null);
+    if (!nodeId) {
+      toast("Drop a file onto a map element to attach it");
+      return;
+    }
+    const file = e.dataTransfer.files[0];
+    await linkFileToNode(nodeId, file);
   };
 
   // --- Icon picker
@@ -975,6 +1022,7 @@ export default function MindMapCanvas({
       connectMode={connectMode}
       connectFrom={connectFrom}
       editInputRef={editInputRef}
+      dropTarget={dropHoverNodeId === node.id}
       onMouseEnter={() => setHover(node.id)}
       onMouseLeave={() => setHover((h) => (h === node.id ? null : h))}
       onMouseDown={(e) => startNodeDrag(e, node.id)}
@@ -1004,6 +1052,9 @@ export default function MindMapCanvas({
     <div
       ref={containerRef}
       data-testid="mindmap-canvas"
+      onDragOver={handleCanvasDragOver}
+      onDragLeave={handleCanvasDragLeave}
+      onDrop={handleCanvasDrop}
       onMouseDown={(e) => {
         // Shift + drag on empty canvas = selection-rectangle. We hand off
         // to the existing pan handler only when no modifier is held.
