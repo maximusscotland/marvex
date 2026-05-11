@@ -591,6 +591,83 @@ export default function Landing() {
           footer + bottom CTAs land. */}
       <PressTestimonials limit={6} />
 
+      {/* FROM OUR RESEARCH BLOG — top-3 /learn articles surfaced on
+          Landing for two-fer SEO benefit: (a) every home-page visitor
+          sees relevant educational content (often the highest-converting
+          path is via an article → /pdf-to-mind-map), and (b) the home
+          page distributes link-equity to the freshest /learn pieces,
+          accelerating their Google indexing + ranking. Order matches
+          the pillar page's "Related reads" — newest piece first. */}
+      <section
+        data-testid="landing-research-blog"
+        className="relative z-20 px-6 lg:px-12 py-20 border-t border-white/5"
+      >
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-baseline justify-between mb-7 gap-4">
+            <div>
+              <div className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-1.5">
+                From the research blog
+              </div>
+              <h2 className="text-2xl sm:text-4xl font-bold tracking-tight">
+                Read before you <span className="gradient-text">map</span>.
+              </h2>
+            </div>
+            <Link
+              to="/learn"
+              data-testid="landing-research-see-all"
+              className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300 hover:text-cyan-200 shrink-0"
+            >
+              See all →
+            </Link>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[
+              {
+                slug: "notion-alternative-for-mind-mapping-2026",
+                kicker: "Comparison",
+                title: "Notion alternative for mind mapping (2026)",
+                blurb: "Notion's native mind-map options vs purpose-built tools — and why the smartest setup actually uses both.",
+                mins: 8,
+              },
+              {
+                slug: "best-pdf-mind-map-tools-2026",
+                kicker: "Roundup",
+                title: "Best PDF to mind map tools in 2026",
+                blurb: "7 tools tested over 4 weeks across papers, reports, and legal cases. Honest picks, real pricing, what to avoid.",
+                mins: 9,
+              },
+              {
+                slug: "how-to-turn-pdf-into-mind-map",
+                kicker: "Tutorial",
+                title: "How to turn a PDF into a mind map",
+                blurb: "The exact 5-step workflow we use to absorb a 40-page paper in under a minute. Free, no signup needed.",
+                mins: 6,
+              },
+            ].map((a) => (
+              <Link
+                key={a.slug}
+                to={`/learn/${a.slug}`}
+                data-testid={`landing-research-${a.slug}`}
+                className="group rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-cyan-400/40 transition p-5 flex flex-col"
+              >
+                <span className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-2">
+                  {a.kicker} · {a.mins} min
+                </span>
+                <h3 className="text-[15px] font-semibold text-white leading-snug mb-2 group-hover:text-cyan-200 transition">
+                  {a.title}
+                </h3>
+                <p className="text-[12.5px] text-[#9aa7c7] leading-relaxed flex-1">
+                  {a.blurb}
+                </p>
+                <span className="mt-3 mono text-[10px] uppercase tracking-[0.22em] text-[#7a87ad] group-hover:text-cyan-300 inline-flex items-center gap-1">
+                  Read article →
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* SITE-LINKS FOOTER — discreet 4-column text-link sitemap. Provides
           internal links from Landing to every important deep page (Learn
           articles, /vs comparisons, Press, Affiliate). Critical for SEO:
