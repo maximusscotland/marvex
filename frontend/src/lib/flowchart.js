@@ -82,8 +82,29 @@ export const blankFlowchart = () => {
     };
   };
 
+  // Linear chain id (kept in render order so the explicit-positions
+  // map below stays in lock-step with the children tree).
+  const rootId = rid("flowmap");
+
+  // Explicit positions — top-to-bottom vertical chain. The radial
+  // auto-layout in computeLayout() defaults flowcharts to fan-out
+  // around the root, which reads upside-down ("Start" at the bottom);
+  // for flowcharts we want the classic top-down convention. Spacing
+  // is chosen so the whole chain fits inside a 720px viewport with
+  // margin, letting the canvas auto-fit zoom display all 5 nodes
+  // centered without scrolling/panning.
+  const STEP = 100; // vertical px between node centres (kept in sync with tree.layoutFlowchart)
+  // Place Start at -2*STEP (top) and End at +2*STEP (bottom).
+  const positions = {
+    [rootId]:     { x: 0, y: -2 * STEP }, // Start (top)
+    [inputId]:    { x: 0, y: -1 * STEP },
+    [processId]:  { x: 0, y:  0        },
+    [decisionId]: { x: 0, y:  1 * STEP },
+    [endId]:      { x: 0, y:  2 * STEP }, // End (bottom)
+  };
+
   return {
-    id: rid("flowmap"),
+    id: rootId,
     title: "Start",
     flowchart: true,
     isFlowchart: true,
@@ -91,10 +112,7 @@ export const blankFlowchart = () => {
     fill: FLOWCHART_SHAPE_BY_ID.terminator.fill,
     stroke: FLOWCHART_SHAPE_BY_ID.terminator.stroke,
     flowchartShape: "terminator",
-    // Linear chain so the chart reads top-to-bottom like every flowchart
-    // they've ever seen. Each child has exactly ONE child of its own —
-    // the canvas's existing auto-layout handles the spacing/columns so
-    // the result is centred and breathable on first paint.
+    positions,
     children: [
       {
         ...mk(inputId, "io", "Input"),

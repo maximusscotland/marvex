@@ -39,6 +39,28 @@ const walk = (node, fn, depth = 0, parent = null) => {
 
 // Duplicated layout so export matches what the canvas would lay out by default
 const computeLayout = (root) => {
+  // Flowchart mode — strict top-down vertical layout (matches the
+  // canvas's tree.layoutFlowchart). Stops "Start" from rendering at
+  // the bottom of the exported PNG / PDF.
+  if (root && (root.flowchart || root.isFlowchart)) {
+    const FLOW_V_STEP = 100;
+    const FLOW_H_STEP = 200;
+    const positions = {};
+    positions[root.id] = { x: 0, y: 0 };
+    const place = (node, parentX, parentY) => {
+      const children = node.children || [];
+      if (!children.length) return;
+      const totalW = (children.length - 1) * FLOW_H_STEP;
+      const y = parentY + FLOW_V_STEP;
+      children.forEach((child, i) => {
+        const x = parentX - totalW / 2 + i * FLOW_H_STEP;
+        positions[child.id] = { x, y };
+        place(child, x, y);
+      });
+    };
+    place(root, 0, 0);
+    return positions;
+  }
   const positions = {};
   positions[root.id] = { x: 0, y: 0 };
   const placeChildren = (node, parentX, parentY, baseAngle, spread, depth, baseRadius) => {

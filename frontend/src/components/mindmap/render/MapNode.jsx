@@ -83,6 +83,11 @@ export default function MapNode({
   return (
     <div
       data-testid={`mm-node-${node.id}`}
+      title={
+        node.linkLabel
+          ? `📎 ${node.linkLabel}`
+          : (node.link && !/^data:/.test(node.link) ? node.link : undefined)
+      }
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onMouseDown={onMouseDown}

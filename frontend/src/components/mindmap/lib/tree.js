@@ -38,8 +38,42 @@ export const sizeOf = (node, isRoot) => {
  * Radial layout: returns `{ [id]: {x, y} }`.
  * Children fan out around their parent; deeper levels push further away
  * with a "crowdBoost" that widens the arc when many siblings exist.
+ *
+ * Flowchart mode (root.flowchart === true): falls back to a strict
+ * top-down vertical layout where the root sits at the top, every child
+ * is stacked directly below its parent, and siblings spread horizontally
+ * around the parent's column. This matches the ANSI/ISO 5807 convention
+ * users expect and stops "Start" from rendering at the bottom of the
+ * canvas.
  */
+const FLOW_V_STEP = 100;
+const FLOW_H_STEP = 200;
+
+const layoutFlowchart = (root) => {
+  const positions = {};
+  positions[root.id] = { x: 0, y: 0 };
+  const place = (node, parentX, parentY, depth) => {
+    const children = node.children || [];
+    if (children.length === 0) return;
+    const n = children.length;
+    // Centre children below the parent. Single child → directly below.
+    // Multiple → spread on the same horizontal row, equal spacing.
+    const totalW = (n - 1) * FLOW_H_STEP;
+    const y = parentY + FLOW_V_STEP;
+    children.forEach((child, i) => {
+      const x = parentX - totalW / 2 + i * FLOW_H_STEP;
+      positions[child.id] = { x, y };
+      place(child, x, y, depth + 1);
+    });
+  };
+  place(root, 0, 0, 0);
+  return positions;
+};
+
 export const computeLayout = (root) => {
+  if (root && (root.flowchart || root.isFlowchart)) {
+    return layoutFlowchart(root);
+  }
   const positions = {};
   positions[root.id] = { x: 0, y: 0 };
 
