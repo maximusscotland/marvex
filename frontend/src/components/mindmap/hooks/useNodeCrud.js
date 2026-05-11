@@ -89,6 +89,12 @@ export default function useNodeCrud({
           ...(inheritedFontSize ? { fontSize: inheritedFontSize } : {}),
           ...(inheritedFontFamily ? { fontFamily: inheritedFontFamily } : {}),
           ...(flowchartShapeId ? { flowchartShape: flowchartShapeId } : {}),
+          // Pre-set an edge label on the parent→child connector when
+          // the caller supplies one (used by Branch Yes/No so the two
+          // outgoing edges read "Yes" and "No" without a second click).
+          ...(overrideShape && overrideShape.edgeLabel
+            ? { edgeStyle: { label: overrideShape.edgeLabel } }
+            : {}),
           children: [],
         });
       }

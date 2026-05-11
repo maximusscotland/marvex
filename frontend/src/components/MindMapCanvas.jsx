@@ -1332,20 +1332,18 @@ export default function MindMapCanvas({
           onAddChild={(count = 1) => { closeMenu(); addChild(menu.id, count); }}
           onAddShapeChild={(shapeDef) => { closeMenu(); addChild(menu.id, 1, shapeDef); }}
           onBranchYesNo={() => {
-            // Add two "process" children with custom Yes/No titles.
-            // Uses the existing addChild contract — pass a shape def
-            // whose `label` becomes the seed title.  We call it twice
-            // (rather than count=2) so each child gets its own label.
+            // Add two "process" children with custom Yes/No titles AND
+            // matching edge labels — so the parent→child connectors
+            // visibly read "Yes" / "No" on the canvas without a second
+            // click. Two calls (not count=2) so each child gets its own
+            // label.
             const proc = FLOWCHART_SHAPE_BY_ID.process;
-            const term = FLOWCHART_SHAPE_BY_ID.terminator;
             closeMenu();
-            addChild(menu.id, 1, { ...proc, label: "Yes" });
-            // After the first addChild commits, schedule the No branch
-            // on the next tick so addChild's parent-state read is fresh.
-            setTimeout(() => addChild(menu.id, 1, { ...proc, label: "No" }), 30);
-            // Discard `term` reference — kept for future "End"-style
-            // branching variants without re-imports churn.
-            void term;
+            addChild(menu.id, 1, { ...proc, label: "Yes", edgeLabel: "Yes" });
+            setTimeout(
+              () => addChild(menu.id, 1, { ...proc, label: "No", edgeLabel: "No" }),
+              30,
+            );
           }}
           flowchartMode={flowchartMode}
           onAddSibling={(count = 1) => { closeMenu(); addSibling(menu.id, count); }}
