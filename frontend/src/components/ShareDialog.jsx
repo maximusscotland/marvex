@@ -92,7 +92,40 @@ export default function ShareDialog({ open, map, onClose, onOpenShareCard }) {
       const reg = readShareRegistry();
       reg[map.id] = res.slug;
       writeShareRegistry(reg);
-      toast.success("Share link created");
+      // First-share celebration — fire only once per user (localStorage
+      // flag, not registry size, so a user who shared, revoked, and
+      // re-shared the same map doesn't get spammed). The Tweet button
+      // on the toast pre-fills with the new slug + utm_source=twitter
+      // so the resulting tweet is tracked end-to-end in PostHog.
+      try {
+        const FLAG = "marvex.share.firstCelebrated.v1";
+        if (!localStorage.getItem(FLAG)) {
+          localStorage.setItem(FLAG, new Date().toISOString());
+          const url = `${window.location.origin}/share/${res.slug}?utm_source=twitter&utm_medium=social`;
+          const text = `🎉 Just shared my first mind-map on @MarvexStudio — PDF → mind map in 1 minute, your own AI key.\n\n${map?.title ? `📌 ${map.title}\n` : ""}`;
+          const tweetHref = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
+          // Sonner's rich toast: bigger, longer, with an action button.
+          toast(
+            "🎉 First share — nice one!",
+            {
+              description: "Want a one-click tweet about it? Auto-tracked so you'll see the signups it brings in.",
+              duration: 12000,
+              action: {
+                label: "Tweet it",
+                onClick: () => {
+                  try {
+                    window.open(tweetHref, "_blank", "noopener,noreferrer");
+                  } catch { /* ignore */ }
+                },
+              },
+            },
+          );
+        } else {
+          toast.success("Share link created");
+        }
+      } catch {
+        toast.success("Share link created");
+      }
     } catch (err) {
       const status = err?.response?.status;
       const detail = err?.response?.data?.detail;
