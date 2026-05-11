@@ -111,29 +111,21 @@ jobs:
       # Forcing a benign generic provider on dry-runs sidesteps both issues:
       # auto-detection is skipped, channel resolves to the explicit `latest`,
       # builds succeed, no real upload happens (--publish never).
+      # Build flag — always `--publish never`.
+      # We OWN the upload via softprops/action-gh-release (further down).
+      # Letting electron-builder's GitHub publisher do the upload was the
+      # source of every "release exists but Assets is empty" bug we hit:
+      # it would build the binaries, then crash in
+      # `getResolvedPublishConfig` before attaching them.
+      #
+      # Using a benign generic publisher config keeps electron-builder
+      # happy (it auto-injects a github publisher otherwise that
+      # auto-runs even with --publish never), without actually firing.
       - name: Pick publish flag
         id: flag
         shell: bash
         run: |
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            # Detect pre-release tags (beta / rc / alpha / preview) so the
-            # GitHub release is created as a pre-release rather than latest.
-            #
-            # Why no releaseType for stable tags?  electron-builder's
-            # `releaseType` field only accepts `draft` or `prerelease`
-            # (NOT a string like "release") — passing "release" makes
-            # `getResolvedPublishConfig` throw and the whole publish
-            # step exits 1.  For a normal stable release, simply omit
-            # releaseType and let electron-builder upload to the
-            # existing GitHub release that the tag push created.
-            if [[ "${GITHUB_REF}" =~ -(beta|rc|alpha|preview) ]]; then
-              echo "value=--publish always -c.publish.provider=github -c.publish.releaseType=prerelease -c.publish.vPrefixedTagName=true -c.publish.channel=beta" >> "$GITHUB_OUTPUT"
-            else
-              echo "value=--publish always -c.publish.provider=github -c.publish.vPrefixedTagName=true -c.publish.channel=latest" >> "$GITHUB_OUTPUT"
-            fi
-          else
-            echo "value=--publish never -c.publish.provider=generic -c.publish.url=https://marvex.app/updates -c.publish.channel=latest" >> "$GITHUB_OUTPUT"
-          fi
+          echo "value=--publish never -c.publish.provider=generic -c.publish.url=https://marvex.app/updates -c.publish.channel=latest" >> "$GITHUB_OUTPUT"
 
       - name: Build & publish (macOS)
         if: matrix.os == 'macos-latest'
@@ -185,6 +177,43 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: yarn electron-builder --linux ${{ steps.flag.outputs.value }}
         working-directory: ./desktop
+
+      # Belt-and-braces release uploader. electron-builder's own GitHub
+      # publisher is fragile — it computes channels and release types
+      # via app-builder-lib's internal heuristics that break on edge
+      # cases (private tokens, v0.x semver, draft vs release flags…).
+      # When that fails, we end up with binaries built but unattached.
+      #
+      # This step ignores electron-builder's publisher entirely and
+      # uploads every artifact in `desktop/dist/` directly to the tag's
+      # GitHub Release via softprops/action-gh-release, which is the
+      # community-standard, battle-tested release uploader. It creates
+      # the release if it doesn't exist, ensures the prerelease flag
+      # matches the tag (stable tag → stable release), and is
+      # idempotent (re-running just re-attaches the same files).
+      #
+      # Runs only on tag pushes — manual dispatch keeps the existing
+      # 14-day-artifact dry-run path below.
+      - name: Attach binaries to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          # If your tag is `v0.1.2-beta`, mark it as a prerelease.
+          # For plain `vX.Y.Z`, it's a stable release.
+          prerelease: ${{ contains(github.ref, '-beta') || contains(github.ref, '-rc') || contains(github.ref, '-alpha') || contains(github.ref, '-preview') }}
+          # `make_latest: legacy` lets the latest non-prerelease tag
+          # claim the /releases/latest URL automatically.
+          make_latest: legacy
+          fail_on_unmatched_files: false
+          files: |
+            desktop/dist/*.exe
+            desktop/dist/*.dmg
+            desktop/dist/*.zip
+            desktop/dist/*.AppImage
+            desktop/dist/*.deb
+            desktop/dist/*.rpm
+            desktop/dist/*.blockmap
+            desktop/dist/latest*.yml
 
       # Dry-run uploads: when triggered manually (no tag), keep the binaries
       # for 14 days as workflow artifacts so you can download + smoke-test
