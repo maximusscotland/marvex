@@ -258,6 +258,73 @@ export default function PdfToMindMap() {
         </div>
       </section>
 
+      {/* RELATED READS — internal-link equity ladder. Order matters for SEO:
+          fresh "Notion alternative" piece first because it has the strongest
+          search volume tail and benefits most from sitewide internal-link
+          juice from this pillar. Anchor text is varied to dodge over-
+          optimisation penalties. */}
+      <section
+        data-testid="ptm-related-reads"
+        className="max-w-5xl mx-auto px-6 lg:px-12 py-16 border-t border-white/5"
+      >
+        <div className="flex items-baseline justify-between mb-6 gap-4">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Related <span className="gradient-text">reads</span>
+          </h2>
+          <Link
+            to="/learn"
+            className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300 hover:text-cyan-200"
+          >
+            See all →
+          </Link>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[
+            {
+              slug: "notion-alternative-for-mind-mapping-2026",
+              kicker: "Comparison",
+              title: "Notion alternative for mind mapping (2026)",
+              blurb: "Honest take on Notion's native mind-map options vs purpose-built tools — and why the smartest setup uses both.",
+              mins: 8,
+            },
+            {
+              slug: "best-pdf-mind-map-tools-2026",
+              kicker: "Roundup",
+              title: "Best PDF to mind map tools in 2026",
+              blurb: "7 tools tested over 4 weeks across papers, reports, and legal cases. Picks, pricing, and what to avoid.",
+              mins: 9,
+            },
+            {
+              slug: "how-to-turn-pdf-into-mind-map",
+              kicker: "Tutorial",
+              title: "How to turn a PDF into a mind map",
+              blurb: "Step-by-step in under a minute. The exact 5-step workflow we use for academic papers and reports.",
+              mins: 6,
+            },
+          ].map((a) => (
+            <Link
+              key={a.slug}
+              to={`/learn/${a.slug}`}
+              data-testid={`ptm-related-${a.slug}`}
+              className="group rounded-xl border border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-cyan-400/40 transition p-5 flex flex-col"
+            >
+              <span className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-2">
+                {a.kicker} · {a.mins} min
+              </span>
+              <h3 className="text-[15px] font-semibold text-white leading-snug mb-2 group-hover:text-cyan-200 transition">
+                {a.title}
+              </h3>
+              <p className="text-[12.5px] text-[#9aa7c7] leading-relaxed flex-1">
+                {a.blurb}
+              </p>
+              <span className="mt-3 mono text-[10px] uppercase tracking-[0.22em] text-[#7a87ad] group-hover:text-cyan-300 inline-flex items-center gap-1">
+                Read article <ArrowRight size={10} />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       {/* BOTTOM CTA */}
       <section className="max-w-5xl mx-auto px-6 lg:px-12 py-20 border-t border-white/5 text-center">
         <Star className="text-cyan-300 mx-auto mb-4" size={32} />
