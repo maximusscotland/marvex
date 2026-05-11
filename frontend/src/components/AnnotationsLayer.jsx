@@ -6,6 +6,7 @@ import { CLIPART_REGISTRY, getClipart } from "@/components/ClipartLibrary";
 import { WORDART_PRESETS, getWordArtStyle } from "@/lib/wordartPresets";
 import { openLink as openLinkExternally } from "@/lib/openLink";
 import { getTimeline } from "@/lib/timelineStorage";
+import FilePickerButton, { AttachedFilePill } from "@/components/common/FilePickerButton";
 
 /**
  * AnnotationsLayer — renders sticky notes, text boxes, images, clipart icons,
@@ -773,23 +774,39 @@ export default function AnnotationsLayer({
                       <div className="mono text-[9px] uppercase tracking-[0.22em] text-cyan-300/70 mb-1.5">
                         Link to file or URL
                       </div>
-                      <input
-                        data-testid={`mm-annot-link-${annotMenu.id}`}
-                        defaultValue={target?.link || ""}
-                        onClick={(e) => e.stopPropagation()}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => {
-                          e.stopPropagation();
-                          if (e.key === "Enter") {
-                            updateItem(annotMenu.id, { link: e.target.value.trim() || undefined });
-                            setAnnotMenu(null);
+                      <div className="flex items-stretch gap-1.5">
+                        <input
+                          data-testid={`mm-annot-link-${annotMenu.id}`}
+                          defaultValue={target?.link && String(target.link).startsWith("data:") ? "" : (target?.link || "")}
+                          onClick={(e) => e.stopPropagation()}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            e.stopPropagation();
+                            if (e.key === "Enter") {
+                              updateItem(annotMenu.id, { link: e.target.value.trim() || undefined });
+                              setAnnotMenu(null);
+                            }
+                          }}
+                          onBlur={(e) =>
+                            updateItem(annotMenu.id, { link: e.target.value.trim() || undefined })
                           }
-                        }}
-                        onBlur={(e) =>
-                          updateItem(annotMenu.id, { link: e.target.value.trim() || undefined })
-                        }
-                        placeholder="https://… or file:///…"
-                        className="w-full bg-white/[0.04] border border-white/10 rounded px-2 py-1 text-[11px] text-cyan-100 outline-none focus:border-cyan-400"
+                          placeholder="https://… or pick a file →"
+                          className="flex-1 min-w-0 bg-white/[0.04] border border-white/10 rounded px-2 py-1 text-[11px] text-cyan-100 outline-none focus:border-cyan-400"
+                        />
+                        <FilePickerButton
+                          testId={`mm-annot-link-pick-${annotMenu.id}`}
+                          label="File…"
+                          compact
+                          onPicked={(dataUrl, fileName) => {
+                            updateItem(annotMenu.id, { link: dataUrl, linkName: fileName });
+                          }}
+                        />
+                      </div>
+                      <AttachedFilePill
+                        value={target?.link}
+                        fileName={target?.linkName}
+                        onClear={() => updateItem(annotMenu.id, { link: undefined, linkName: undefined })}
+                        testId={`mm-annot-link-attached-${annotMenu.id}`}
                       />
                       {target?.type === "text" && (
                         <>

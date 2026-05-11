@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, { useState } from "react";
 import { X, Trash2, Link2, Calendar, Tag } from "lucide-react";
+import FilePickerButton, { AttachedFilePill } from "@/components/common/FilePickerButton";
 
 /**
  * Available shapes for an event block. Mirror naming with mind-map
@@ -189,14 +190,29 @@ export default function TimelineEventDialog({
           {/* Link */}
           <div>
             <label className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-1.5 block flex items-center gap-1.5">
-              <Link2 size={10} /> Link (optional — file, URL or mailto:)
+              <Link2 size={10} /> Link (optional — URL or attach a file)
             </label>
-            <input
-              value={draft.link || ""}
-              onChange={(e) => setDraft({ ...draft, link: e.target.value })}
-              data-testid="tl-evt-link"
-              className="w-full bg-[#03040a] border border-white/15 rounded-lg px-3 py-2 text-[13px] text-white font-mono outline-none focus:border-cyan-400/60"
-              placeholder="https://… or mailto:… or local path"
+            <div className="flex items-stretch gap-2">
+              <input
+                value={(draft.link || "").startsWith("data:") ? "" : (draft.link || "")}
+                onChange={(e) => setDraft({ ...draft, link: e.target.value, linkName: undefined })}
+                data-testid="tl-evt-link"
+                className="flex-1 min-w-0 bg-[#03040a] border border-white/15 rounded-lg px-3 py-2 text-[13px] text-white font-mono outline-none focus:border-cyan-400/60"
+                placeholder="https://… or pick a file →"
+              />
+              <FilePickerButton
+                testId="tl-evt-link-pick"
+                label="Choose file…"
+                onPicked={(dataUrl, fileName) => {
+                  setDraft({ ...draft, link: dataUrl, linkName: fileName });
+                }}
+              />
+            </div>
+            <AttachedFilePill
+              value={draft.link}
+              fileName={draft.linkName}
+              onClear={() => setDraft({ ...draft, link: "", linkName: undefined })}
+              testId="tl-evt-link-attached"
             />
           </div>
 

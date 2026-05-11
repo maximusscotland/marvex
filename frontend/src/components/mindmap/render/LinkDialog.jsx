@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Bookmark } from "lucide-react";
 import { listMaps } from "@/lib/storage";
+import FilePickerButton, { AttachedFilePill } from "@/components/common/FilePickerButton";
 
 /**
  * Modal for attaching/editing/removing the link on a map element.
@@ -25,6 +26,7 @@ import { listMaps } from "@/lib/storage";
  */
 export default function LinkDialog({ initial = "", onSave, onCancel, onPickBookmark }) {
   const [val, setVal] = useState(initial);
+  const [pickedName, setPickedName] = useState("");
   const inputRef = useRef(null);
 
   // Quick scan for any imported bookmarks; if present, show the
@@ -92,14 +94,30 @@ export default function LinkDialog({ initial = "", onSave, onCancel, onPickBookm
           <span className="text-cyan-300 mono"> file://</span>, or bare domains
           (e.g. <span className="text-cyan-300 mono">arxiv.org/abs/2104.00234</span>).
         </p>
+        <div className="flex items-stretch gap-2">
         <input
           ref={inputRef}
           data-testid="mm-link-input"
-          value={val}
-          onChange={(e) => setVal(e.target.value)}
+          value={val.startsWith("data:") ? "" : val}
+          onChange={(e) => { setVal(e.target.value); setPickedName(""); }}
           onKeyDown={onKey}
-          placeholder="https://example.com  ·  me@x.com  ·  /Users/you/paper.pdf"
-          className="w-full bg-[#0a0f24] border border-white/10 rounded-lg px-3 py-2.5 outline-none focus:border-cyan-400/60 text-white text-[14px] placeholder-[#566187]"
+          placeholder="https://example.com  ·  me@x.com  ·  or click Choose file…"
+          className="flex-1 min-w-0 bg-[#0a0f24] border border-white/10 rounded-lg px-3 py-2.5 outline-none focus:border-cyan-400/60 text-white text-[14px] placeholder-[#566187]"
+        />
+          <FilePickerButton
+            testId="mm-link-file-picker"
+            label="Choose file…"
+            onPicked={(dataUrl, fileName) => {
+              setVal(dataUrl);
+              setPickedName(fileName);
+            }}
+          />
+        </div>
+        <AttachedFilePill
+          value={val}
+          fileName={pickedName}
+          onClear={() => { setVal(""); setPickedName(""); }}
+          testId="mm-link-attached"
         />
         {onPickBookmark && bookmarkCount > 0 && (
           <button
