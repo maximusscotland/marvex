@@ -167,9 +167,7 @@ const INSTALL_STEPS = {
       "Double-click the downloaded .dmg to mount the disk image.",
       "Drag \"Marvex Studio\" to the Applications folder (a shortcut to Applications appears in the disk image).",
       "Eject the disk image from Finder's sidebar.",
-      "v0.1 is unsigned — the first launch will show \"Marvex cannot be opened because the developer cannot be verified\". This is expected.",
-      "Right-click (or Ctrl-click) Marvex Studio in Applications → choose Open → click Open in the confirmation dialog.",
-      "macOS remembers — every launch after that is silent, no warnings.",
+      "Launch Marvex Studio from Applications or Launchpad — opens silently. The macOS build is signed by Apple and notarised, so Gatekeeper passes it without warnings.",
     ],
   },
   linux: {
@@ -483,14 +481,13 @@ export default function Download() {
                 {key === "mac" && (
                   <div
                     data-testid="download-mac-note"
-                    className="mt-4 rounded-lg border border-amber-400/30 bg-amber-500/[0.06] p-3 flex items-start gap-2.5"
+                    className="mt-4 rounded-lg border border-emerald-400/30 bg-emerald-500/[0.06] p-3 flex items-start gap-2.5"
                   >
-                    <ShieldAlert size={14} className="text-amber-300 mt-0.5 shrink-0" />
-                    <div className="text-[12px] text-amber-100/90 leading-relaxed">
-                      <strong className="text-amber-200">Heads up:</strong> v0.1 is <strong>unsigned</strong> on
-                      macOS (we'll add the $99/yr Apple Developer cert soon). First launch shows "cannot be
-                      opened because the developer cannot be verified". <strong>Right-click the app → Open →
-                      Open</strong>. macOS remembers — every launch after is silent.
+                    <ShieldAlert size={14} className="text-emerald-300 mt-0.5 shrink-0" />
+                    <div className="text-[12px] text-emerald-100/90 leading-relaxed">
+                      <strong className="text-emerald-200">Signed &amp; notarised by Apple.</strong> No Gatekeeper
+                      warnings, no right-click-Open trick. Just double-click the .dmg, drag to Applications,
+                      launch.
                     </div>
                   </div>
                 )}

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Marvex Studio — macOS entitlements for the hardened runtime.
+
+  Required for Apple's notarisation pipeline to accept the binary.
+  Without these the .dmg is signed but rejected by Gatekeeper on
+  download → which is the worst possible user experience (looks like
+  the app is signed but won't open).
+
+  Kept intentionally minimal: only what Electron + electron-updater
+  actually need at runtime.
+
+    com.apple.security.cs.allow-jit                       — V8 JIT
+    com.apple.security.cs.allow-unsigned-executable-memory — required by
+        Electron's content process & native modules that allocate +
+        execute memory pages (Skia, ffmpeg, etc).
+    com.apple.security.cs.allow-dyld-environment-variables — lets
+        Electron set DYLD_FALLBACK_LIBRARY_PATH internally on startup.
+    com.apple.security.network.client / .server          — Marvex talks
+        to the user's chosen AI provider (OpenAI/Anthropic/Gemini) and
+        to marvex.app for updates + sharing.  Without these Gatekeeper
+        will silently block outbound HTTPS.
+    com.apple.security.files.user-selected.read-write    — required for
+        the user's PDF/Mind-map file open + save dialogs.
+    com.apple.security.cs.disable-library-validation     — Electron
+        loads helper apps signed with the same Team ID but a different
+        bundle ID, which library validation otherwise rejects.
+
+  DO NOT add anything else here without an explicit need — every extra
+  entitlement enlarges the attack surface and slows notarisation.
+-->
+<plist version="1.0">
+<dict>
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+    <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+    <true/>
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <key>com.apple.security.network.server</key>
+    <true/>
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+</dict>
+</plist>

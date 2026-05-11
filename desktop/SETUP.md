@@ -1,271 +1,186 @@
-# Desktop App Launch Checklist
+# Desktop release setup — Marvex Studio
 
-This is the **one-page playbook** you follow to ship Mind-Mapper as a real
-downloadable desktop app for Windows / macOS / Linux. Most steps are
-one-time only.
+You already paid for Apple Developer. This guide is the **15-minute, one-time setup** that turns that $99/yr into shipped, signed macOS binaries on every git tag — plus unsigned Windows + Linux binaries, also published to GitHub Releases automatically.
 
-> **Time to first download link**: ~90 minutes spread over a day, mostly
-> waiting on Apple to issue your certificate.
+Total **new** spend: **£0**.
 
 ---
 
-## 🚀 Ship-unsigned-first path (no Apple cert needed today)
+## What ships out of the box
 
-The CI workflow is built so **steps 1-3 + 6 + 7 alone produce a working
-release** — Mac signing/notarisation is OPTIONAL.  When the four Apple
-secrets (`APPLE_ID`, `APPLE_APP_SPECIFIC_PASSWORD`, `APPLE_TEAM_ID`,
-`MAC_CERTS` + `MAC_CERTS_PASSWORD`) are missing, the macOS build runs
-unsigned, and Windows + Linux ship as normal.
+Once you complete this guide and push a tag like `v0.1.0`:
 
-**What unsigned means for users on macOS:**
-- First launch shows "Mind-Mapper is from an unidentified developer"
-- Workaround = **right-click the .app → Open → Open**.  Once approved,
-  every future launch is silent — Gatekeeper remembers the approval.
-- This is fine for early adopters / testers / private beta.  Anyone
-  comfortable installing a side-loaded app already knows this dance.
+| Platform | Output | Signing status | Cost |
+|---|---|---|---|
+| macOS Apple Silicon | `Marvex-Studio-arm64.dmg` | ✅ Signed + Notarised by Apple | $0 (your existing Apple Dev) |
+| macOS Intel | `Marvex-Studio-x64.dmg` | ✅ Signed + Notarised by Apple | $0 |
+| Windows x64 | `Marvex-Studio-Setup-x64.exe` | ❌ Unsigned (SmartScreen warning first launch) | $0 |
+| Windows ARM64 | `Marvex-Studio-Setup-arm64.exe` | ❌ Unsigned | $0 |
+| Windows portable | `Marvex-Studio-Portable-x64.exe` | ❌ Unsigned | $0 |
+| Linux AppImage | `Marvex-Studio-x86_64.AppImage` | n/a (Linux doesn't expect signing) | $0 |
+| Linux .deb | `Marvex-Studio-amd64.deb` | n/a | $0 |
+| Linux .rpm | `Marvex-Studio-x86_64.rpm` | n/a | $0 |
 
-**When you're ready to sign**, do steps 4-5 (cert + secrets) and tag a
-new version — the next CI run automatically signs and notarises.  No
-workflow edit needed.
+Auto-update is enabled — installed apps will fetch every future release automatically from your GitHub Releases.
 
 ---
 
-## 1. Create the GitHub repo (5 min · one-time)
+## Step 1 — Generate the Apple signing materials (~10 min, one-time)
 
-You'll publish releases here — installers, auto-updates, version history.
+You need access to **any Mac** (yours, a friend's, a Mac mini in Cloud, or 30 mins on MacInCloud / Scaleway Apple Silicon for ~$1 if you don't own one).
 
-1. Go to **https://github.com/new**
-2. **Owner**: your GitHub username (or an org if you have one)
-3. **Repository name**: `mind-mapper`
-4. **Visibility**: **Public** (makes downloads frictionless — no token to
-   share around) OR **Private** (releases can still be public, but you
-   need to grant access to anyone who pushes commits).
-5. **Do NOT** tick "Initialize with README" — Emergent will push existing
-   code into a fresh repo.
-6. Click **Create repository**
+1. **Open Keychain Access** on the Mac.
+2. **Certificate Assistant → Request a Certificate from a Certificate Authority**.
+   - Email: your Apple ID email
+   - Common name: `Marvex Developer ID`
+   - Saved to disk → tick "Let me specify key pair information"
+   - Save the `.certSigningRequest` file somewhere you can find it.
+3. Go to **[developer.apple.com/account/resources/certificates](https://developer.apple.com/account/resources/certificates)**.
+4. Click **+** → **Developer ID Application** → upload the `.certSigningRequest` from step 2 → download the resulting `.cer` file.
+5. **Double-click the `.cer`** to add it to Keychain Access. It appears under "My Certificates" as "Developer ID Application: Your Name (TEAM_ID)".
+6. **Expand the certificate** in Keychain → right-click the **private key** beneath it → **Export** → save as `developer-id.p12` → set a password (write it down — this becomes `MAC_CERTS_PASSWORD`).
+7. **Base64-encode** the `.p12` (this becomes `MAC_CERTS`):
+   ```bash
+   base64 -i developer-id.p12 | pbcopy   # copies to clipboard on Mac
+   ```
+   Or save to a file: `base64 -i developer-id.p12 -o developer-id.p12.b64`.
 
-GitHub will show you a URL like:
-```
-https://github.com/your-username/mind-mapper.git
-```
-**Copy that.** You'll need it in step 2.
+8. **Generate an App-Specific Password** (Apple requires this for notarisation):
+   - Sign in at [appleid.apple.com](https://appleid.apple.com)
+   - **Sign-In and Security → App-Specific Passwords → +**
+   - Label it `Marvex Notarisation`, copy the 19-char password (looks like `abcd-efgh-ijkl-mnop`).
 
----
-
-## 2. Push the codebase to your new repo (one-time)
-
-In the Emergent project chat, click the **"Save to GitHub"** button (usually
-top-right of the chat panel) and follow the prompts. It connects your
-GitHub account to Emergent and pushes the whole project tree, preserving
-the existing `.git` history.
-
-If you don't see the button, ask in chat: *"How do I push this project to my
-GitHub repo?"* — Emergent's support agent has the current UI path.
-
-After it's done, refresh `https://github.com/your-username/mind-mapper` —
-you should see all the folders (`backend`, `frontend`, `desktop`, etc.)
-plus the `.github/workflows/desktop-release.yml` file.
+9. **Find your Team ID**:
+   - [developer.apple.com/account](https://developer.apple.com/account) → **Membership** → copy the 10-char Team ID.
 
 ---
 
-## 3. Wire the frontend to your repo (1 min)
+## Step 2 — Add 5 secrets to GitHub (~3 min)
 
-Add this line to `/app/frontend/.env` (in **Emergent**, then re-save in the
-**production secrets panel** so the live `mind-mapper.com` picks it up):
+Go to **your GitHub repo → Settings → Secrets and variables → Actions → New repository secret**, and add these five:
 
-```
-REACT_APP_DESKTOP_GITHUB_REPO=your-username/mind-mapper
-```
-
-After the next deploy, the `/download` page on `mind-mapper.com` will
-auto-link to the latest release on your repo.
-
----
-
-## 4. Apple Developer signing setup (~30 min · one-time)
-
-Only macOS users will be affected if you skip this — they'll see a
-"can't be opened because it is from an unidentified developer" warning.
-Worth doing properly.
-
-### 4a. Generate the certificate
-
-1. Open **Keychain Access** on your Mac
-2. Menu: **Keychain Access → Certificate Assistant → Request a Certificate
-   from a Certificate Authority…**
-3. **User Email**: your Apple ID email
-4. **Common Name**: `Mind-Mapper Code Signing`
-5. **Saved to disk** → click Continue → save the `.certSigningRequest` file
-   to your Desktop
-6. Go to **https://developer.apple.com/account/resources/certificates**
-7. Click the **+** button → choose **"Developer ID Application"** → Continue
-8. Upload the `.certSigningRequest` file → Continue → Download the `.cer`
-9. **Double-click** the downloaded `.cer` to install it in Keychain
-
-### 4b. Export it as a .p12 for GitHub Actions
-
-1. In Keychain Access → **My Certificates** tab
-2. Find **"Developer ID Application: Your Name (TEAM_ID)"**
-3. **Right-click → Export…** → save as `MindMapperCert.p12`
-4. **Set a strong password** — write it down, you'll paste it into GitHub
-   in step 5.
-
-### 4c. Convert the .p12 to base64 (so it can live in a GitHub secret)
-
-Open Terminal:
-```bash
-base64 -i ~/Desktop/MindMapperCert.p12 | pbcopy
-```
-The base64 string is now on your clipboard.
-
-### 4d. Generate an app-specific password
-
-This is **NOT** your Apple ID password — Apple wants a separate one for
-notarising automation.
-
-1. Go to **https://appleid.apple.com**
-2. **Sign-In and Security → App-Specific Passwords**
-3. **Generate** → label it `mind-mapper-notarize` → copy the 19-character
-   password (looks like `xxxx-xxxx-xxxx-xxxx`)
-
-### 4e. Find your Team ID
-
-1. Go to **https://developer.apple.com/account**
-2. **Membership Details** → copy the 10-character **Team ID** (e.g. `A1B2C3D4E5`)
-
----
-
-## 5. Add GitHub repo secrets (5 min · one-time)
-
-1. Go to your repo: **Settings → Secrets and variables → Actions**
-2. Click **"New repository secret"** for each row below:
-
-| Name | Value |
+| Secret name | Value |
 |---|---|
-| `APPLE_ID` | your Apple ID email |
-| `APPLE_APP_SPECIFIC_PASSWORD` | the 19-char password from step 4d |
-| `APPLE_TEAM_ID` | the 10-char team ID from step 4e |
-| `MAC_CERTS` | the base64 string from step 4c (one long line) |
-| `MAC_CERTS_PASSWORD` | the password you set when exporting the .p12 |
+| `APPLE_ID` | Your Apple ID email |
+| `APPLE_APP_SPECIFIC_PASSWORD` | The 19-char password from Step 1.8 |
+| `APPLE_TEAM_ID` | The 10-char team ID from Step 1.9 |
+| `MAC_CERTS` | The base64 string from Step 1.7 (entire blob, no quotes) |
+| `MAC_CERTS_PASSWORD` | The password you set in Step 1.6 |
 
-Total: 5 secrets. None of them are visible to anyone except your GitHub
-Actions runs.
-
----
-
-## 6. Run a dry-run build (free · 10 min · DO THIS FIRST)
-
-**Always do a dry-run before cutting a real release** — that way if something
-goes wrong (missing secret, install error, etc.), you find out without burning
-a `v0.1.0` tag on a broken build.
-
-1. On GitHub: **Actions tab → desktop-release → Run workflow → Run workflow**
-2. Wait ~10 min while three runners (mac/win/linux) build in parallel
-3. If any runner goes red 🔴, click into it → expand the failed step →
-   read the last 30-50 lines of log. The most common failures:
-   - **`yarn install` fails** → out-of-date lockfile. Re-run `yarn install`
-     locally on the failing platform's lockfile, commit, push, retry.
-   - **`electron-builder` says "missing identity"** on Mac → the unsigned
-     fallback isn't working. Confirm `MAC_CERTS` secret is **not set at all**
-     (delete it if it exists empty) and retry.
-   - **`Cannot find module '...'`** → a dependency was added without a lockfile
-     update. Run `yarn install` locally, commit `yarn.lock`, push, retry.
-4. When all three runners are green ✅, click into the run → scroll to
-   **Artifacts** at the bottom. Download each artifact zip → unzip → install
-   → open. Smoke-test that the app launches and the UI loads.
-
-If the macOS build opens **without** a Gatekeeper warning, your signing
-+ notarisation worked. 🎉  If it shows "unidentified developer", you're on
-the **unsigned-first** path — that's expected until you finish step 4.
+> Leave `WIN_CSC_LINK` and `WIN_CSC_KEY_PASSWORD` **empty for now**. The workflow auto-detects their absence and ships Windows unsigned. When you eventually want to pay for a Windows cert (~£200/yr Certum Open Source or ~$199/yr SSL.com EV), add those two and the next CI run will sign Windows automatically — no workflow edit needed.
 
 ---
 
-## 7. Cut your first real release (5 min)
-
-When the dry-run is happy you have **two ways** to cut `v0.1.0` — pick whichever
-is easier for you. Both produce identical results.
-
-### Option A — From GitHub Web UI (zero terminal, easiest)
-
-1. Go to your repo → **Releases** (right sidebar of the repo home page) → **"Draft a new release"**
-2. Click **"Choose a tag"** → type `v0.1.0` → click **"Create new tag: v0.1.0 on publish"**
-3. **Release title**: `v0.1.0 — first public build`
-4. **Description**: e.g. *"First downloadable Mind-Mapper desktop build. Unsigned macOS DMG (right-click → Open on first launch). Windows + Linux work as normal."*
-5. Click **Publish release**
-
-Publishing the release **creates the tag** which fires the `desktop-release`
-workflow. Watch it in the **Actions** tab — three runners (mac/win/linux) take ~10
-min in parallel. When they're green, the installers appear back in the
-**Releases** view, attached to your `v0.1.0` release.
-
-### Option B — From a local git clone (if you have one)
+## Step 3 — Cut your first release (~1 min)
 
 ```bash
-# from your local clone
+cd /path/to/your/marvex/clone
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-### After it publishes
+That's it. GitHub Actions will:
+1. Spin up 3 runners (macOS, Windows, Linux) in parallel
+2. Build the renderer (React frontend → static bundle)
+3. Run electron-builder on each OS
+4. Sign + notarise the Mac binaries automatically (Apple's notary server takes ~3-5 min)
+5. Publish all artefacts to **[github.com/YOUR-REPO/releases/tag/v0.1.0](https://github.com)** with auto-generated release notes
+6. Update `latest-mac.yml` / `latest.yml` / `latest-linux.yml` so installed apps' auto-updater finds the new version
 
-~10 min later, the download links on `https://mind-mapper.com/download` go live
-automatically — no further deploy needed (the page reads the GitHub `latest`
-redirect).
-
-You can edit the release notes anytime at
-`https://github.com/your-username/mind-mapper/releases`.
-
----
-
-## 8. Test the auto-updater (5 min)
-
-`electron-updater` is already wired in `desktop/src/main.js`. Once your v0.1.0
-is live:
-
-1. Install v0.1.0 on your Mac
-2. Bump `desktop/package.json` to `0.1.1`, commit, tag, push
-3. Wait for the new release to publish
-4. Quit and re-launch the installed app — it'll detect the new version,
-   download silently, and prompt you to relaunch
-
-If that works, you have a fully self-updating product. 🪄
+Total runtime: ~12-18 minutes.
 
 ---
 
-## Future: Windows code-signing (optional · ~$200/year)
+## Step 4 — Verify the user-facing download links
 
-Windows users currently see a SmartScreen "Unknown publisher" warning the
-first time they run the installer. Reputation builds with downloads (after
-~3000 installs SmartScreen usually backs off automatically). You can pay
-for an EV certificate to skip the wait — the providers worth comparing:
+The `/download` page in Marvex links straight at:
+```
+https://github.com/YOUR-REPO/releases/latest/download/Marvex-Studio-arm64.dmg
+```
 
-- **DigiCert** — premium, ~$500/yr, gold-standard trust
-- **Sectigo / Comodo** — ~$200/yr, fine for indie apps
-- **SSL.com** — ~$250/yr, excellent docs
+GitHub serves these from `releases/latest`, which automatically points at the most recent **non-prerelease** tag. So tagging `v0.1.0-beta` won't break the public download links — handy for soft launches with a handful of testers.
 
-Add the cert as a `.pfx` base64 secret called `WIN_CERTS` plus
-`WIN_CERTS_PASSWORD` and uncomment the relevant block in
-`desktop/electron-builder.yml`.
+Double-check the `RELEASE_BASE` constant in `/app/frontend/src/pages/Download.jsx` matches your actual GitHub repo path before going live.
 
 ---
 
-## Cost summary
+## Step 5 — Test the auto-updater (optional but recommended)
 
-| Item | One-off | Recurring |
+1. Tag and release `v0.1.0`.
+2. Download the .dmg, install, launch Marvex.
+3. Tag and release `v0.1.1` with a trivial change.
+4. Within ~30 minutes the installed v0.1.0 should pop a "Marvex Studio update available" banner.
+5. Click **Restart and install** → the app relaunches as v0.1.1.
+
+If this doesn't work, check the autoupdater logs (in `~/Library/Logs/Marvex Studio/main.log` on Mac, `%APPDATA%/Marvex Studio/logs/main.log` on Windows) — the most common issue is `latest-mac.yml` being missing from the GitHub release, which usually means the workflow's `--publish always` flag didn't fire because the trigger wasn't a tag push.
+
+---
+
+## When to spend money later
+
+| Decision | Trigger | Cost |
 |---|---|---|
-| GitHub account | $0 | $0 (public repo) |
-| Apple Developer Program | – | $99 / year (you already have this) |
-| Domain (already paid) | – | – |
-| Spaceship hosting (already paid) | – | – |
-| Windows code-signing cert | – | $0–500 / year (skip until launch traction) |
-| GitHub Actions minutes | – | Free for public repos · 2000 min/mo for private |
-
-**Total to go live**: $0 today + the $99 Apple thing you've already paid.
+| Buy a Windows EV cert | When >5 sales/month are blocked by SmartScreen warnings | ~$200-400/yr |
+| Submit to Mac App Store | If you want discoverability via App Store search | Free signup, 30% rev share, 1-6 week review |
+| Mac on dedicated CI runner | If GH Actions macOS minutes run out (rare for indie scale) | $30-50/month elsewhere |
+| Apple Notary acceleration | Never — Apple's notary is already free + fast | $0 |
 
 ---
 
-## Questions / stuck?
+## File map
 
-The `desktop/README.md` file has more detail. If a step doesn't match the
-GitHub or Apple UI exactly (they change docs around), search for the same
-phrase in their docs — the underlying procedure is stable.
+These files were all generated for you and live in the repo:
+
+```
+/app/desktop/
+├── electron-builder.yml         # cross-platform packaging config
+├── package.json                 # electron + electron-builder deps
+├── src/
+│   ├── main.js                  # Electron entry point
+│   └── preload.js               # secure bridge to renderer
+├── scripts/
+│   └── build-renderer.sh        # builds the React bundle into ./renderer/
+└── build/                       # icons + entitlements (THIS IS WHAT WAS MISSING)
+    ├── source.jpeg              # 1024×1024 brand mark (input)
+    ├── generate_app_icons.py    # idempotent icon builder
+    ├── icon.png                 # macOS + Linux app icon
+    ├── icon.ico                 # Windows app icon (7 resolutions)
+    ├── icon.icns                # macOS legacy icon (8 resolutions)
+    ├── file-icon-mmap.{png,ico,icns}    # .mmap file association icons
+    ├── file-icon-mmlib.{png,ico,icns}   # .mmlib file association icons
+    └── entitlements.mac.plist   # hardened-runtime entitlements
+
+/app/.github/workflows/
+└── desktop-release.yml          # the CI that does all the work
+```
+
+---
+
+## Troubleshooting
+
+**Q: GitHub Actions failed on macos-latest with "errSecInternalComponent"**
+A: Your `MAC_CERTS_PASSWORD` doesn't match the `.p12` you uploaded. Re-do Step 1.6 — export the cert again with a new password and update both secrets.
+
+**Q: Notarisation hangs >15 min**
+A: Apple's notary occasionally lags. Check status manually:
+```bash
+xcrun notarytool history --apple-id "$APPLE_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID"
+```
+
+**Q: The .dmg installs but the app crashes on launch ("damaged, move to trash")**
+A: Signed but not notarised, or notarisation failed silently. Check the latest GitHub Actions log for `notarytool` output. Common cause: missing `com.apple.security.cs.allow-unsigned-executable-memory` in entitlements — but ours already has it.
+
+**Q: Windows SmartScreen still warns after 1000+ downloads**
+A: That's about the threshold; some installs only count if a user clicks "Run anyway". To accelerate, ask your fam67 testers to download + install + open the app, which generates the reputation signals Microsoft tracks. Or buy an EV cert (instant trust).
+
+---
+
+## Final sanity checklist before tagging v0.1.0
+
+- [ ] All 5 Apple secrets added to GitHub
+- [ ] `MAC_CERTS` is the **entire** base64 blob with no truncation
+- [ ] Your Apple Developer account is **active** (i.e. annual fee paid + Apple Developer Program enrollment complete — verify at [developer.apple.com/account](https://developer.apple.com/account))
+- [ ] Your GitHub repo has Actions enabled (Settings → Actions → General → "Allow all actions")
+- [ ] You're tagging from `main` (not a side branch)
+
+When in doubt, run a **manual dispatch** of the workflow first (Actions tab → desktop-release → Run workflow) — it'll build without publishing, so you can debug any cert issues without burning a real release tag.
