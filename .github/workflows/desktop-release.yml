@@ -118,14 +118,19 @@ jobs:
           if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
             # Detect pre-release tags (beta / rc / alpha / preview) so the
             # GitHub release is created as a pre-release rather than latest.
+            #
+            # Why no releaseType for stable tags?  electron-builder's
+            # `releaseType` field only accepts `draft` or `prerelease`
+            # (NOT a string like "release") — passing "release" makes
+            # `getResolvedPublishConfig` throw and the whole publish
+            # step exits 1.  For a normal stable release, simply omit
+            # releaseType and let electron-builder upload to the
+            # existing GitHub release that the tag push created.
             if [[ "${GITHUB_REF}" =~ -(beta|rc|alpha|preview) ]]; then
-              release_type="prerelease"
-              channel="beta"
+              echo "value=--publish always -c.publish.provider=github -c.publish.releaseType=prerelease -c.publish.vPrefixedTagName=true -c.publish.channel=beta" >> "$GITHUB_OUTPUT"
             else
-              release_type="release"
-              channel="latest"
+              echo "value=--publish always -c.publish.provider=github -c.publish.vPrefixedTagName=true -c.publish.channel=latest" >> "$GITHUB_OUTPUT"
             fi
-            echo "value=--publish always -c.publish.provider=github -c.publish.releaseType=${release_type} -c.publish.vPrefixedTagName=true -c.publish.channel=${channel}" >> "$GITHUB_OUTPUT"
           else
             echo "value=--publish never -c.publish.provider=generic -c.publish.url=https://marvex.app/updates -c.publish.channel=latest" >> "$GITHUB_OUTPUT"
           fi
