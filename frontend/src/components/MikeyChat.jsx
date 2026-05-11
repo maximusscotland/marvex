@@ -37,9 +37,12 @@ const readPos = () => {
 
 const defaultPos = () => {
   // SSR-safe — fall back to (16, 96) when window is undefined.
+  // Default placement: TOP-RIGHT, 96px below the header, pulled 64px
+  // in from the right edge (was 16px — too close to the menu icon,
+  // visually crowded). Users can still drag anywhere they want.
   if (typeof window === "undefined") return { x: 16, y: HEADER_GAP };
   return {
-    x: Math.max(EDGE_PAD, window.innerWidth - LAUNCHER_SIZE - EDGE_PAD),
+    x: Math.max(EDGE_PAD, window.innerWidth - LAUNCHER_SIZE - 64),
     y: HEADER_GAP,
   };
 };
