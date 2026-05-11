@@ -1,135 +1,150 @@
 # Desktop release setup — Marvex Studio
 
-You already paid for Apple Developer. This guide is the **15-minute, one-time setup** that turns that $99/yr into shipped, signed macOS binaries on every git tag — plus unsigned Windows + Linux binaries, also published to GitHub Releases automatically.
-
-Total **new** spend: **£0**.
+**Goal**: ship Windows / macOS / Linux binaries TODAY, zero new spend. Apple signing comes later when you have Mac access.
 
 ---
 
-## What ships out of the box
+## Phase 1 — Ship today (5 minutes, $0)
 
-Once you complete this guide and push a tag like `v0.1.0`:
+Everything you need is already in the repo:
+- ✅ Icons (`desktop/build/icon.{png,ico,icns}`)
+- ✅ File-type icons (`desktop/build/file-icon-*.{png,ico,icns}`)
+- ✅ Entitlements file (`desktop/build/entitlements.mac.plist`)
+- ✅ electron-builder config (`desktop/electron-builder.yml`)
+- ✅ CI workflow that auto-falls-back to unsigned when secrets are missing (`.github/workflows/desktop-release.yml`)
 
-| Platform | Output | Signing status | Cost |
-|---|---|---|---|
-| macOS Apple Silicon | `Marvex-Studio-arm64.dmg` | ✅ Signed + Notarised by Apple | $0 (your existing Apple Dev) |
-| macOS Intel | `Marvex-Studio-x64.dmg` | ✅ Signed + Notarised by Apple | $0 |
-| Windows x64 | `Marvex-Studio-Setup-x64.exe` | ❌ Unsigned (SmartScreen warning first launch) | $0 |
-| Windows ARM64 | `Marvex-Studio-Setup-arm64.exe` | ❌ Unsigned | $0 |
-| Windows portable | `Marvex-Studio-Portable-x64.exe` | ❌ Unsigned | $0 |
-| Linux AppImage | `Marvex-Studio-x86_64.AppImage` | n/a (Linux doesn't expect signing) | $0 |
-| Linux .deb | `Marvex-Studio-amd64.deb` | n/a | $0 |
-| Linux .rpm | `Marvex-Studio-x86_64.rpm` | n/a | $0 |
+You just need to cut a release.
 
-Auto-update is enabled — installed apps will fetch every future release automatically from your GitHub Releases.
+### Step 1 — Verify your GitHub repo path
 
----
+Open `/app/frontend/src/pages/Download.jsx` and confirm the `RELEASE_BASE` constant points at YOUR GitHub repo:
 
-## Step 1 — Generate the Apple signing materials (~10 min, one-time)
+```js
+const RELEASE_BASE = "https://github.com/YOUR-ORG/YOUR-REPO/releases/latest/download";
+```
 
-You need access to **any Mac** (yours, a friend's, a Mac mini in Cloud, or 30 mins on MacInCloud / Scaleway Apple Silicon for ~$1 if you don't own one).
+If it's pointing at a placeholder, fix it now or `/download` will 404 after release.
 
-1. **Open Keychain Access** on the Mac.
-2. **Certificate Assistant → Request a Certificate from a Certificate Authority**.
-   - Email: your Apple ID email
-   - Common name: `Marvex Developer ID`
-   - Saved to disk → tick "Let me specify key pair information"
-   - Save the `.certSigningRequest` file somewhere you can find it.
-3. Go to **[developer.apple.com/account/resources/certificates](https://developer.apple.com/account/resources/certificates)**.
-4. Click **+** → **Developer ID Application** → upload the `.certSigningRequest` from step 2 → download the resulting `.cer` file.
-5. **Double-click the `.cer`** to add it to Keychain Access. It appears under "My Certificates" as "Developer ID Application: Your Name (TEAM_ID)".
-6. **Expand the certificate** in Keychain → right-click the **private key** beneath it → **Export** → save as `developer-id.p12` → set a password (write it down — this becomes `MAC_CERTS_PASSWORD`).
-7. **Base64-encode** the `.p12` (this becomes `MAC_CERTS`):
-   ```bash
-   base64 -i developer-id.p12 | pbcopy   # copies to clipboard on Mac
-   ```
-   Or save to a file: `base64 -i developer-id.p12 -o developer-id.p12.b64`.
-
-8. **Generate an App-Specific Password** (Apple requires this for notarisation):
-   - Sign in at [appleid.apple.com](https://appleid.apple.com)
-   - **Sign-In and Security → App-Specific Passwords → +**
-   - Label it `Marvex Notarisation`, copy the 19-char password (looks like `abcd-efgh-ijkl-mnop`).
-
-9. **Find your Team ID**:
-   - [developer.apple.com/account](https://developer.apple.com/account) → **Membership** → copy the 10-char Team ID.
-
----
-
-## Step 2 — Add 5 secrets to GitHub (~3 min)
-
-Go to **your GitHub repo → Settings → Secrets and variables → Actions → New repository secret**, and add these five:
-
-| Secret name | Value |
-|---|---|
-| `APPLE_ID` | Your Apple ID email |
-| `APPLE_APP_SPECIFIC_PASSWORD` | The 19-char password from Step 1.8 |
-| `APPLE_TEAM_ID` | The 10-char team ID from Step 1.9 |
-| `MAC_CERTS` | The base64 string from Step 1.7 (entire blob, no quotes) |
-| `MAC_CERTS_PASSWORD` | The password you set in Step 1.6 |
-
-> Leave `WIN_CSC_LINK` and `WIN_CSC_KEY_PASSWORD` **empty for now**. The workflow auto-detects their absence and ships Windows unsigned. When you eventually want to pay for a Windows cert (~£200/yr Certum Open Source or ~$199/yr SSL.com EV), add those two and the next CI run will sign Windows automatically — no workflow edit needed.
-
----
-
-## Step 3 — Cut your first release (~1 min)
+### Step 2 — Tag and push
 
 ```bash
-cd /path/to/your/marvex/clone
+cd /path/to/your/local/clone
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
 That's it. GitHub Actions will:
 1. Spin up 3 runners (macOS, Windows, Linux) in parallel
-2. Build the renderer (React frontend → static bundle)
-3. Run electron-builder on each OS
-4. Sign + notarise the Mac binaries automatically (Apple's notary server takes ~3-5 min)
-5. Publish all artefacts to **[github.com/YOUR-REPO/releases/tag/v0.1.0](https://github.com)** with auto-generated release notes
-6. Update `latest-mac.yml` / `latest.yml` / `latest-linux.yml` so installed apps' auto-updater finds the new version
+2. Build the renderer + Electron app on each
+3. Detect that `MAC_CERTS` / `WIN_CSC_LINK` secrets are MISSING → fall back to unsigned binaries on all three OSes
+4. Publish the .dmg / .exe / .AppImage / .deb / .rpm to `github.com/YOUR-REPO/releases/tag/v0.1.0`
+5. Update `latest-mac.yml` / `latest.yml` / `latest-linux.yml` so the auto-updater can find future versions
 
-Total runtime: ~12-18 minutes.
+Total runtime: ~12-18 minutes. No babysitting needed.
+
+### Step 3 — Tell users
+
+`/download` already shows the right "first-time install" instructions for each OS:
+- **macOS**: amber notice → right-click → Open the first time
+- **Windows**: amber notice → SmartScreen → More info → Run anyway
+- **Linux**: no warnings, but `chmod +x` for AppImage
+
+Email your fam67 testers, post on Reddit/HN/PH, you're shipped.
 
 ---
 
-## Step 4 — Verify the user-facing download links
+## Phase 2 — Add Apple signing (later, when convenient)
 
-The `/download` page in Marvex links straight at:
+Triggers for doing this:
+- You see Mac install drop-off in PostHog (compare `download_clicked{platform=mac}` to actual usage)
+- A reviewer complains about the Gatekeeper warning in writing
+- You finally get access to a Mac for 30 minutes
+
+You have three options to generate the cert. Cheapest first:
+
+### Option A — Rent a Mac for 30 minutes (~£0-3)
+- **MacStadium Sandbox**: 24-hour free trial → [macstadium.com/sandbox](https://www.macstadium.com)
+- **MacInCloud Pay-As-You-Go**: $1/hr → [macincloud.com/pay-as-you-go](https://www.macincloud.com)
+- **Scaleway Apple Silicon M1**: €0.11/hr (24h minimum) → [scaleway.com/en/apple-silicon](https://www.scaleway.com/en/apple-silicon/)
+
+Follow Apple's standard Keychain flow:
+1. Open **Keychain Access** → Certificate Assistant → Request a Certificate from a Certificate Authority → save `.certSigningRequest`
+2. **[developer.apple.com/account/resources/certificates](https://developer.apple.com/account/resources/certificates)** → `+` → Developer ID Application → upload the CSR → download the `.cer`
+3. Double-click `.cer` to add to Keychain → expand → right-click the **private key** → Export → save as `developer-id.p12` with a password
+4. Base64-encode: `base64 -i developer-id.p12 | pbcopy`
+5. Generate an App-Specific Password at [appleid.apple.com](https://appleid.apple.com) → Sign-In and Security → App-Specific Passwords
+6. Note your 10-char Team ID from [developer.apple.com/account](https://developer.apple.com/account) → Membership
+
+### Option B — Pure-Linux openssl path (free, slightly fiddly)
+
+If you're allergic to renting a Mac:
+```bash
+# generate a private key + CSR locally
+openssl genrsa -out marvex-dev-id.key 2048
+openssl req -new -key marvex-dev-id.key -out marvex-dev-id.csr \
+  -subj "/emailAddress=YOUR_APPLE_EMAIL/CN=Marvex Developer ID/C=GB"
 ```
-https://github.com/YOUR-REPO/releases/latest/download/Marvex-Studio-arm64.dmg
+Then upload `marvex-dev-id.csr` to the same Apple Developer portal page. Apple returns a `.cer`. Convert to `.p12` with openssl:
+```bash
+openssl x509 -inform DER -in developer_id_application.cer -out developer_id.pem
+openssl pkcs12 -export -inkey marvex-dev-id.key -in developer_id.pem \
+  -out developer-id.p12 -password pass:YOUR_CHOSEN_PASSWORD
+base64 developer-id.p12 > developer-id.p12.b64
+```
+Caveat: 1-2% chance Apple's notary rejects a non-Keychain-generated cert later. If that happens, redo via Option A.
+
+### Step 7 — Add 5 GitHub secrets
+
+**Repo → Settings → Secrets and variables → Actions → New repository secret**:
+
+| Secret name | Value |
+|---|---|
+| `APPLE_ID` | Your Apple ID email |
+| `APPLE_APP_SPECIFIC_PASSWORD` | 19-char password from `appleid.apple.com` |
+| `APPLE_TEAM_ID` | 10-char team ID from `developer.apple.com/account` |
+| `MAC_CERTS` | Entire base64 blob from above |
+| `MAC_CERTS_PASSWORD` | The password you set on the .p12 |
+
+> Leave `WIN_CSC_LINK` and `WIN_CSC_KEY_PASSWORD` empty — Windows stays unsigned for now. Add them later when you hit ~$500 MRR and a £200/yr cert is worth it.
+
+### Step 8 — Tag v0.2.0
+
+```bash
+git tag v0.2.0 && git push origin v0.2.0
 ```
 
-GitHub serves these from `releases/latest`, which automatically points at the most recent **non-prerelease** tag. So tagging `v0.1.0-beta` won't break the public download links — handy for soft launches with a handful of testers.
-
-Double-check the `RELEASE_BASE` constant in `/app/frontend/src/pages/Download.jsx` matches your actual GitHub repo path before going live.
+GH Actions auto-detects the new secrets and signs + notarises the Mac builds on this run. Your `/download` page should also flip the Mac badge from amber "unsigned" to emerald "signed & notarised" (you can do that swap with one search-replace in `Download.jsx` when you're ready).
 
 ---
 
-## Step 5 — Test the auto-updater (optional but recommended)
+## When does signing actually matter?
 
-1. Tag and release `v0.1.0`.
-2. Download the .dmg, install, launch Marvex.
-3. Tag and release `v0.1.1` with a trivial change.
-4. Within ~30 minutes the installed v0.1.0 should pop a "Marvex Studio update available" banner.
-5. Click **Restart and install** → the app relaunches as v0.1.1.
+| Cohort | Cares about signing? |
+|---|---|
+| Fam67 testers | No — they'll trust the warning |
+| Indie hackers / r/PKMS power users | No — used to unsigned tools |
+| Mac users buying $200 lifetime | **Yes** — moderate friction risk |
+| Corporate buyers / IT admins | **Hard yes** — usually a deal-breaker without it |
+| Students / casual signups | No — will follow the right-click instructions |
 
-If this doesn't work, check the autoupdater logs (in `~/Library/Logs/Marvex Studio/main.log` on Mac, `%APPDATA%/Marvex Studio/logs/main.log` on Windows) — the most common issue is `latest-mac.yml` being missing from the GitHub release, which usually means the workflow's `--publish always` flag didn't fire because the trigger wasn't a tag push.
+For v0.1 launch, unsigned is the right call. Get the binaries out, learn from real download data, add signing when the data tells you to.
 
 ---
 
-## When to spend money later
+## Troubleshooting
 
-| Decision | Trigger | Cost |
-|---|---|---|
-| Buy a Windows EV cert | When >5 sales/month are blocked by SmartScreen warnings | ~$200-400/yr |
-| Submit to Mac App Store | If you want discoverability via App Store search | Free signup, 30% rev share, 1-6 week review |
-| Mac on dedicated CI runner | If GH Actions macOS minutes run out (rare for indie scale) | $30-50/month elsewhere |
-| Apple Notary acceleration | Never — Apple's notary is already free + fast | $0 |
+**Q: GitHub Actions failed with "Resource not accessible by integration"**
+A: Settings → Actions → General → Workflow permissions → "Read and write permissions" + tick "Allow GitHub Actions to create and approve pull requests"
+
+**Q: My .exe / .dmg / .AppImage didn't appear on the Releases page**
+A: Check the workflow log. The `Upload dry-run artifacts` step only runs on manual dispatches — for real tag pushes, the artifacts upload via electron-builder's `--publish always` directly to the GitHub release.
+
+**Q: Auto-update doesn't trigger**
+A: Common cause: `latest-mac.yml` (or `latest.yml`) missing from the release. This means electron-builder didn't fire its publish step. Usually a permissions issue — re-check workflow permissions above.
 
 ---
 
 ## File map
-
-These files were all generated for you and live in the repo:
 
 ```
 /app/desktop/
@@ -140,47 +155,14 @@ These files were all generated for you and live in the repo:
 │   └── preload.js               # secure bridge to renderer
 ├── scripts/
 │   └── build-renderer.sh        # builds the React bundle into ./renderer/
-└── build/                       # icons + entitlements (THIS IS WHAT WAS MISSING)
+└── build/
     ├── source.jpeg              # 1024×1024 brand mark (input)
     ├── generate_app_icons.py    # idempotent icon builder
-    ├── icon.png                 # macOS + Linux app icon
-    ├── icon.ico                 # Windows app icon (7 resolutions)
-    ├── icon.icns                # macOS legacy icon (8 resolutions)
-    ├── file-icon-mmap.{png,ico,icns}    # .mmap file association icons
-    ├── file-icon-mmlib.{png,ico,icns}   # .mmlib file association icons
-    └── entitlements.mac.plist   # hardened-runtime entitlements
+    ├── icon.png / icon.ico / icon.icns
+    ├── file-icon-mmap.{png,ico,icns}
+    ├── file-icon-mmlib.{png,ico,icns}
+    └── entitlements.mac.plist
 
 /app/.github/workflows/
-└── desktop-release.yml          # the CI that does all the work
+└── desktop-release.yml          # CI — handles signed AND unsigned paths
 ```
-
----
-
-## Troubleshooting
-
-**Q: GitHub Actions failed on macos-latest with "errSecInternalComponent"**
-A: Your `MAC_CERTS_PASSWORD` doesn't match the `.p12` you uploaded. Re-do Step 1.6 — export the cert again with a new password and update both secrets.
-
-**Q: Notarisation hangs >15 min**
-A: Apple's notary occasionally lags. Check status manually:
-```bash
-xcrun notarytool history --apple-id "$APPLE_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID"
-```
-
-**Q: The .dmg installs but the app crashes on launch ("damaged, move to trash")**
-A: Signed but not notarised, or notarisation failed silently. Check the latest GitHub Actions log for `notarytool` output. Common cause: missing `com.apple.security.cs.allow-unsigned-executable-memory` in entitlements — but ours already has it.
-
-**Q: Windows SmartScreen still warns after 1000+ downloads**
-A: That's about the threshold; some installs only count if a user clicks "Run anyway". To accelerate, ask your fam67 testers to download + install + open the app, which generates the reputation signals Microsoft tracks. Or buy an EV cert (instant trust).
-
----
-
-## Final sanity checklist before tagging v0.1.0
-
-- [ ] All 5 Apple secrets added to GitHub
-- [ ] `MAC_CERTS` is the **entire** base64 blob with no truncation
-- [ ] Your Apple Developer account is **active** (i.e. annual fee paid + Apple Developer Program enrollment complete — verify at [developer.apple.com/account](https://developer.apple.com/account))
-- [ ] Your GitHub repo has Actions enabled (Settings → Actions → General → "Allow all actions")
-- [ ] You're tagging from `main` (not a side branch)
-
-When in doubt, run a **manual dispatch** of the workflow first (Actions tab → desktop-release → Run workflow) — it'll build without publishing, so you can debug any cert issues without burning a real release tag.
