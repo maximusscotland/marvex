@@ -39,11 +39,19 @@ const COLUMNS = [
     heading: "Learn",
     links: [
       { to: "/learn",                                                  label: "All tutorials" },
+      // Featured: the multi-lesson mini-course earns top placement in
+      // the footer because it carries Course schema + is the deepest
+      // SEO asset on the site.
+      { to: "/mini-course/teaching-with-mind-maps",                    label: "Mini-course: Teaching with mind maps" },
       { to: "/learn/how-to-turn-pdf-into-mind-map",                    label: "How to turn a PDF into a mind map" },
       { to: "/learn/best-pdf-mind-map-tools-2026",                     label: "Best PDF mind map tools (2026)" },
       { to: "/learn/ai-mind-map-generator-explained",                  label: "How AI mind map generators work" },
       { to: "/learn/mind-mapping-for-students",                        label: "Mind mapping for students" },
       { to: "/learn/mind-map-vs-flowchart-vs-concept-map",             label: "Mind map vs flowchart vs concept map" },
+      // Added Feb 2026 — was previously a "ghost" article (lived in
+      // articles.js + /learn but unreachable from any footer). Free
+      // internal-link equity now flowing from every public page.
+      { to: "/learn/notion-alternative-for-mind-mapping-2026",         label: "Notion alternative for mind mapping" },
     ],
   },
   {

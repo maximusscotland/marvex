@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
+import RelatedReads from "@/components/RelatedReads";
 import { getCompetitor, COMPETITOR_SLUGS } from "@/lib/competitors";
 import usePageMeta from "@/lib/usePageMeta";
 
@@ -375,6 +376,17 @@ export default function VsPage() {
           ))}
         </div>
       </footer>
+      {/* Cross-link to the two other competitor pages so visitors
+          shopping for a Heptabase alternative naturally see the
+          Mapify and Notion comparisons too. Plus 2 contextually-
+          related learn articles. */}
+      <RelatedReads kind="competitor" currentSlug={competitor.slug} limit={3} />
+      <RelatedReads
+        kind="article"
+        currentSlug=""
+        limit={3}
+        title="Further reading"
+      />
       <SiteLinksFooter />
     </div>
   );

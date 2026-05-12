@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
+import RelatedReads from "@/components/RelatedReads";
 import References, { MIND_MAPPING_REFERENCES } from "@/components/References";
 import usePageMeta from "@/lib/usePageMeta";
 
@@ -347,6 +348,12 @@ export default function PdfToMindMap() {
       </section>
 
       <References items={MIND_MAPPING_REFERENCES} />
+      {/* "Compare alternatives" strip — surfaces the three /vs/*
+          comparison pages so pillar-page visitors who are still
+          shopping can see how Marvex stacks up. Three competitors
+          isn't pressure tactics; it's transparent shopping help and
+          good for SEO (descriptive anchor text inbound to /vs/*). */}
+      <RelatedReads kind="competitor" currentSlug="" limit={3} title="How does Marvex compare?" />
       <SiteLinksFooter />
     </div>
   );

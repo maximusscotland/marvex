@@ -9,6 +9,8 @@ import Pricing from "@/pages/Pricing";
 import Privacy from "@/pages/Privacy";
 import Terms from "@/pages/Terms";
 import Learn from "@/pages/Learn";
+import MiniCourseOverview from "@/pages/MiniCourseOverview";
+import MiniCourseLesson from "@/pages/MiniCourseLesson";
 import Press from "@/pages/Press";
 import Redeem from "@/pages/Redeem";
 import PdfToMindMap from "@/pages/PdfToMindMap";
@@ -176,6 +178,9 @@ export default function App() {
           <Route path="/terms" element={<Terms />} />
           <Route path="/learn" element={<Learn />} />
           <Route path="/learn/:slug" element={<LearnSlugRouter />} />
+          {/* Mini-course — multi-lesson long-form course (Course schema). */}
+          <Route path="/mini-course/teaching-with-mind-maps" element={<MiniCourseOverview />} />
+          <Route path="/mini-course/teaching-with-mind-maps/lesson/:lessonSlug" element={<MiniCourseLesson />} />
           <Route path="/share/:slug" element={<SharedMap />} />
           <Route path="/download" element={<Download />} />
           <Route path="/tools" element={<Tools />} />

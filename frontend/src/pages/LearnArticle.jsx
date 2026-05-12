@@ -3,6 +3,7 @@ import { Link, useParams, Navigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Clock, Calendar, ExternalLink } from "lucide-react";
 import Logo from "@/components/Logo";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
+import RelatedReads from "@/components/RelatedReads";
 import References, { MIND_MAPPING_REFERENCES } from "@/components/References";
 import { getArticle, ARTICLES } from "@/lib/articles";
 import usePageMeta from "@/lib/usePageMeta";
@@ -283,6 +284,10 @@ export default function LearnArticle() {
           academic-flavoured one (most are). The references appear above
           the standard SiteLinksFooter. */}
       <References items={MIND_MAPPING_REFERENCES} />
+      {/* Related reads — three sibling articles, filtered to never
+          link back to this one.  Lifts pages-per-session AND
+          distributes link-equity across the topic cluster. */}
+      <RelatedReads kind="article" currentSlug={article.slug} limit={3} />
       <SiteLinksFooter />
     </div>
   );

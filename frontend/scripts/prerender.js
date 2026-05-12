@@ -81,6 +81,13 @@ const MARKETING_ROUTES = [
   "/learn/mind-mapping-for-students",
   "/learn/mind-map-vs-flowchart-vs-concept-map",
   "/learn/notion-alternative-for-mind-mapping-2026",
+  // Mini-course (Course schema + 5 lessons) — added Feb 2026
+  "/mini-course/teaching-with-mind-maps",
+  "/mini-course/teaching-with-mind-maps/lesson/why-mind-maps-work-in-class",
+  "/mini-course/teaching-with-mind-maps/lesson/build-your-first-topic-map",
+  "/mini-course/teaching-with-mind-maps/lesson/one-click-resources",
+  "/mini-course/teaching-with-mind-maps/lesson/map-to-timeline",
+  "/mini-course/teaching-with-mind-maps/lesson/assessment-and-revision",
   // Competitor comparison pages
   "/vs/heptabase",
   "/vs/mapify",
