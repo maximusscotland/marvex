@@ -43,10 +43,35 @@ export function initSentry() {
     beforeSend: (event, hint) => {
       const err = hint?.originalException;
       const msg = (err && (err.message || String(err))) || "";
-      // Throw away noise that's not actionable.
+      // ---- 1. Throw away noise that's not actionable ----
       if (
         /AbortError|NetworkError|Failed to fetch|Load failed|ChunkLoadError/i.test(msg)
       ) return null;
+      // ---- 2. Browser-extension DOM mutation crashes ----
+      // `NotFoundError: Failed to execute 'removeChild' / 'insertBefore'
+      // on 'Node': The node to be removed/inserted is not a child of
+      // this node.`  This is the classic React vs Google Translate /
+      // Grammarly / Edge Translate / LastPass conflict — the extension
+      // swaps text nodes inside the React tree and React then can't
+      // reconcile the DOM.  Not a bug in our code, not actionable.
+      // Studio/Timeline/PdfReader already opt out via translate="no";
+      // any remaining occurrence is from a different extension we
+      // can't control. Drop it.
+      if (
+        /NotFoundError.*removeChild.*not a child|NotFoundError.*insertBefore.*not a child/i.test(msg)
+      ) return null;
+      // ---- 3. ResizeObserver loop spam ----
+      // Chrome emits "ResizeObserver loop limit exceeded" / "...loop
+      // completed with undelivered notifications" for benign layout
+      // thrash. The W3C even acknowledges this is harmless. Silence.
+      if (/ResizeObserver loop/i.test(msg)) return null;
+      // ---- 4. Only report from production-like environments ----
+      // Dev / preview events pollute the dashboard and lead us to
+      // chase bugs that only affect engineers, not paying users.
+      // (`environment` is set at init() from REACT_APP_SENTRY_ENV.)
+      if (event.environment && /^(local|development|preview)$/i.test(event.environment)) {
+        return null;
+      }
       return event;
     },
   });
