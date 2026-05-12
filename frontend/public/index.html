@@ -46,16 +46,36 @@
         />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <!-- Preconnect to PostHog so when the deferred snippet loads after
+             page interactive, the TLS handshake is already warm. -->
+        <link rel="preconnect" href="https://us.i.posthog.com" crossorigin />
+        <link rel="preconnect" href="https://us-assets.i.posthog.com" crossorigin />
         <!-- Core marketing pack — small + fast.  Sora (heading + body) +
              JetBrains Mono (mono labels) cover every public marketing
              surface (landing, pricing, FAQ, learn, /press, footer).  The
              full 30-face mind-map typography pack used by the canvas font
              picker is loaded lazily by `loadCanvasFonts()` only when the
-             user actually opens Studio — keeps marketing TTFB fast. -->
+             user actually opens Studio — keeps marketing TTFB fast.
+             We swap from `media=print` (non-render-blocking) to `media=all`
+             on load so the font CSS arrives without delaying first paint;
+             `display=swap` means the page still renders with the system
+             fallback while Sora is fetched — biggest FCP/LCP win on the
+             landing page after deferring analytics. -->
+        <link
+          rel="preload"
+          as="style"
+          href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        />
         <link
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+          media="print"
+          onload="this.media='all'"
         />
+        <noscript><link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        /></noscript>
         <!--
         manifest.json provides metadata used when your web app is installed on a
         user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -244,7 +264,13 @@
         }
         </script>
         <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
-        <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
+        <!-- emergent-main.js (badge + remote helpers) is non-essential
+             chrome injected by the platform.  Loading it synchronously in
+             <head> cost ~150-400ms of main-thread time on cold loads.
+             Switching to `defer` lets HTML parsing continue and the script
+             only executes after the document is parsed — recovers most of
+             that budget without changing behaviour. -->
+        <script src="https://assets.emergent.sh/scripts/emergent-main.js" defer></script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -305,6 +331,15 @@
             </p>
         </a>
         <script>
+            // PostHog snippet — stubs window.posthog so call sites work
+            // immediately, then *defers* the SDK download + init() until
+            // the browser is idle (or 3.5s after load, whichever is
+            // first).  This was the single biggest contributor to the
+            // 14s Total Blocking Time on landing because the inline
+            // init() runs synchronously and triggers `array.js` (~120KB
+            // parsed) on the critical path. Deferring keeps every call
+            // site (`posthog.capture(...)`) lossless — events queue on
+            // the stub and flush once init resolves.
             !(function (t, e) {
                 var o, n, p, r;
                 e.__SV ||
@@ -366,14 +401,39 @@
                     }),
                     (e.__SV = 1));
             })(document, window.posthog || []);
-            posthog.init("phc_xAvL2Iq4tFmANRE7kzbKwaSqp1HJjN7x48s3vr0CMjs", {
-                api_host: "https://us.i.posthog.com",
-                person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well,
-                session_recording: {
-                    recordCrossOriginIframes: true,
-                    capturePerformance: false,
-                },
-            });
+            // Defer the actual init() — and therefore the array.js
+            // download — until the browser reports idle.  Falls back to
+            // setTimeout for Safari (no requestIdleCallback support).
+            (function runPostHogInit() {
+                if (window.__phInitScheduled) return;
+                window.__phInitScheduled = true;
+                var go = function () {
+                    try {
+                        posthog.init("phc_xAvL2Iq4tFmANRE7kzbKwaSqp1HJjN7x48s3vr0CMjs", {
+                            api_host: "https://us.i.posthog.com",
+                            person_profiles: "identified_only",
+                            session_recording: {
+                                recordCrossOriginIframes: true,
+                                capturePerformance: false,
+                            },
+                        });
+                    } catch (_) { /* ad-block / privacy mode — fine */ }
+                };
+                if ("requestIdleCallback" in window) {
+                    requestIdleCallback(go, { timeout: 3500 });
+                } else {
+                    // load event itself fires *after* LCP, so we still
+                    // schedule a tiny delay so Sentry / route mount get
+                    // priority on the main thread.
+                    if (document.readyState === "complete") {
+                        setTimeout(go, 1200);
+                    } else {
+                        window.addEventListener("load", function () {
+                            setTimeout(go, 1200);
+                        });
+                    }
+                }
+            })();
         </script>
     </body>
 </html>

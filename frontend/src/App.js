@@ -1,6 +1,6 @@
 import "@/App.css";
 import "@/i18n";
-import { useEffect, lazy, Suspense } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { BrowserRouter, HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { getTutorial } from "@/lib/tutorials";
@@ -76,7 +76,12 @@ function BlogSlugRedirect() {
 import AccessGate from "@/components/AccessGate";
 import MaintenanceMode from "@/components/MaintenanceMode";
 import OfflineBanner from "@/components/OfflineBanner";
-import MikeyChat from "@/components/MikeyChat";
+// MikeyChat is the floating "Ask the Prof" tutor — a heavy component
+// (axios + markdown renderer + draggable launcher + chat panel) that is
+// never above the fold and never needed in the first 2-3 seconds. Code-
+// split it AND delay its mount until the browser is idle so it can't
+// inflate LCP/TBT on the landing page. See LazyMikey below.
+const MikeyChat = lazy(() => import("@/components/MikeyChat"));
 import NavShortcuts from "@/components/NavShortcuts";
 import AnalyticsRouterListener from "@/components/AnalyticsRouterListener";
 import ReferralCapture from "@/components/ReferralCapture";
@@ -90,6 +95,33 @@ import { Toaster } from "@/components/ui/sonner";
 const RouteFallback = () => (
   <div className="min-h-screen cosmic-bg" data-testid="route-loading" />
 );
+
+// Mount MikeyChat only after the browser reports idle (or 2.5s after
+// first paint, whichever is first).  The Prof launcher is a "secondary"
+// affordance — never the LCP candidate and never critical for the user's
+// first action — so deferring its hydration keeps TBT / INP low without
+// any visible regression. Returns null on the first render pass, then
+// hydrates the real component.
+function DeferredMikey() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    const start = () => { if (!cancelled) setReady(true); };
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(start, { timeout: 2500 });
+      return () => { cancelled = true; try { window.cancelIdleCallback(id); } catch { /* ignore */ } };
+    }
+    const id = window.setTimeout(start, 1800);
+    return () => { cancelled = true; window.clearTimeout(id); };
+  }, []);
+  if (!ready) return null;
+  return (
+    <Suspense fallback={null}>
+      <MikeyChat />
+    </Suspense>
+  );
+}
 
 // BrowserRouter relies on the HTML5 history API, which is broken when the
 // Electron wrapper loads this bundle from file:// (the offline fallback).
@@ -127,8 +159,9 @@ export default function App() {
           <OfflineBanner />
           {/* Floating "Ask the Prof" tutor — bottom-left launcher, side-panel
               chat. Available on every route so visitors can ask "how do I
-              do X?" without leaving the page they're on. */}
-          <MikeyChat />
+              do X?" without leaving the page they're on.  Hydrated post-
+              idle so it never inflates landing-page LCP / TBT. */}
+          <DeferredMikey />
         <Suspense fallback={<RouteFallback />}>
         <Routes>
           {/* PUBLIC marketing & legal — fully open so the URL is shareable */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, lazy, Suspense, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
@@ -16,16 +16,21 @@ import {
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import CinematicTeaser from "@/components/CinematicTeaser";
-import LandingMindMap from "@/components/LandingMindMap";
-import PressTestimonials from "@/components/PressTestimonials";
-import SiteLinksFooter from "@/components/SiteLinksFooter";
+// Below-the-fold sections are code-split + lazy-mounted via an
+// IntersectionObserver (see <Defer />). On the landing page these
+// account for ~60% of the rendered DOM nodes and pulled in axios /
+// recharts-style helpers transitively; deferring them is the biggest
+// remaining LCP / TBT win after the analytics-script defer.
+const LandingMindMap     = lazy(() => import("@/components/LandingMindMap"));
+const PressTestimonials  = lazy(() => import("@/components/PressTestimonials"));
+const SiteLinksFooter    = lazy(() => import("@/components/SiteLinksFooter"));
+const SEOContent         = lazy(() => import("@/components/SEOContent"));
+const LandingFaq         = lazy(() => import("@/components/LandingFaq"));
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import LinksMenu from "@/components/LinksMenu";
 import SocialProofStrip from "@/components/SocialProofStrip";
 import ScrollReveal from "@/components/ScrollReveal";
-import SEOContent from "@/components/SEOContent";
 import AccessCodeBox from "@/components/AccessCodeBox";
-import LandingFaq from "@/components/LandingFaq";
 import ThemeToggle from "@/components/ThemeToggle";
 import usePageMeta from "@/lib/usePageMeta";
 import { track } from "@/lib/posthog";
@@ -76,6 +81,44 @@ const Step = ({ n, title, body }) => (
   </div>
 );
 
+/**
+ * Defer — renders a sentinel placeholder until it scrolls within
+ * `rootMargin` of the viewport, then mounts the real children inside a
+ * Suspense boundary.  Used to hold off rendering (and downloading the
+ * code chunks for) below-the-fold landing-page sections so they don't
+ * pay the LCP / TBT cost.
+ *
+ * Props:
+ *   - rootMargin: how far ahead of the viewport to start mounting
+ *     (default 600px so transitions feel native, not pop-in).
+ *   - minHeight: the reserved placeholder height — prevents CLS.
+ */
+function Defer({ children, rootMargin = "600px", minHeight = 240, testid }) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("IntersectionObserver" in window)) { setVisible(true); return; }
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) { setVisible(true); io.disconnect(); }
+        });
+      },
+      { rootMargin }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [rootMargin]);
+  return (
+    <div ref={ref} data-testid={testid} style={{ minHeight: visible ? undefined : minHeight }}>
+      {visible ? <Suspense fallback={null}>{children}</Suspense> : null}
+    </div>
+  );
+}
+
 export default function Landing() {
   const { t } = useTranslation();
   const [testimonials, setTestimonials] = useState([]);
@@ -92,14 +135,26 @@ export default function Landing() {
   });
 
   useEffect(() => {
-    fetch(TESTIMONIALS_API)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data && Array.isArray(data.testimonials)) {
-          setTestimonials(data.testimonials);
-        }
-      })
-      .catch(() => { /* silent — keeps personas as fallback */ });
+    // Defer the testimonials API call until the browser is idle so it
+    // never competes with hero-image / font fetches during the LCP
+    // window.  Falls back to setTimeout for Safari.
+    const run = () => {
+      fetch(TESTIMONIALS_API)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (data && Array.isArray(data.testimonials)) {
+            setTestimonials(data.testimonials);
+          }
+        })
+        .catch(() => { /* silent — keeps personas as fallback */ });
+    };
+    if (typeof window === "undefined") return;
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(run, { timeout: 3000 });
+      return () => { try { window.cancelIdleCallback(id); } catch { /* ignore */ } };
+    }
+    const id = window.setTimeout(run, 1500);
+    return () => window.clearTimeout(id);
   }, []);
 
   const showRealTestimonials = testimonials.length >= MIN_TESTIMONIALS_TO_SWAP;
@@ -437,7 +492,7 @@ export default function Landing() {
       <section className="relative z-20 px-6 lg:px-12 pt-16 pb-24 hidden md:block">
         <div className="max-w-6xl mx-auto">
           <div className="relative h-[460px] lg:h-[560px] w-full">
-            <OrbitVisual />
+            <Defer testid="defer-orbit" minHeight={560} rootMargin="400px"><OrbitVisual /></Defer>
           </div>
         </div>
       </section>
@@ -593,19 +648,19 @@ export default function Landing() {
           the rationale. Sits between the bottom CTA and the footer so it
           never gets in the way of the "Open Studio" decision but is fully
           discoverable to crawlers and curious readers. */}
-      <SEOContent />
+      <Defer testid="defer-seo-content" minHeight={400}><SEOContent /></Defer>
 
       {/* FAQ — categorised; sits after SEOContent so the page reads:
           hero → personas → features → how → access codes → desktop CTA →
           SEO copy → objection handling → footer. Pricing carries the
           canonical JSON-LD schema; this block is purely for human readers. */}
-      <LandingFaq />
+      <Defer testid="defer-faq" minHeight={400}><LandingFaq /></Defer>
 
       {/* PRESS TESTIMONIALS — only renders when admin has curated at least one
           published quote. Sits after FAQ so visitors who've already vetted us
           via objection-handling get a final social-proof nudge before the
           footer + bottom CTAs land. */}
-      <PressTestimonials limit={6} />
+      <Defer testid="defer-press" minHeight={200}><PressTestimonials limit={6} /></Defer>
 
       {/* FROM OUR RESEARCH BLOG — top-3 /learn articles surfaced on
           Landing for two-fer SEO benefit: (a) every home-page visitor
@@ -690,7 +745,7 @@ export default function Landing() {
           every internal link spreads link-equity from the home page (which
           earns the most external backlinks) outward to the rest of the
           site. */}
-      <SiteLinksFooter />
+      <Defer testid="defer-sitelinks" minHeight={300}><SiteLinksFooter /></Defer>
 
       {/* FOOTER */}
       <footer className="relative z-20 px-6 lg:px-12 py-10 border-t border-white/5">

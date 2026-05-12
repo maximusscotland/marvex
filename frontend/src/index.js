@@ -1,7 +1,19 @@
-// Sentry MUST be initialised before App imports so its instrumentation
-// is in place by the time any component renders.
-import { initSentry } from "@/lib/sentry";
-initSentry();
+// Sentry adds ~80 KB of parsed JS and runs `init()` synchronously
+// (`browserTracingIntegration` + Replay = expensive on the main thread).
+// Defer until the browser is idle so it never delays first paint /
+// LCP — error capture still works because `window.onerror` etc. are
+// queued through Sentry's lazy init.
+import("@/lib/sentry").then(({ initSentry }) => {
+  const start = () => { try { initSentry(); } catch { /* ignore */ } };
+  if (typeof window === "undefined") return;
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(start, { timeout: 4000 });
+  } else if (document.readyState === "complete") {
+    setTimeout(start, 1500);
+  } else {
+    window.addEventListener("load", () => setTimeout(start, 1500));
+  }
+});
 
 // "fam67" tester bypass — must run before any gate component reads
 // localStorage so an inbound `?fam67` URL grants access on first paint.

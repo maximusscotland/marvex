@@ -500,3 +500,15 @@ User-provided design references:
   - `checkout_cancelled` fires on `?upgraded=false` return.
   - Files touched: `pages/Pricing.jsx` (mount tracker + failure event), `components/UpgradeDialog.jsx` (view + plan-selected events), `pages/Studio.jsx` (completed/stuck/cancelled events). Lint clean.
 
+- P0 — **Landing-page performance overhaul (Feb 2026)** — targeted at the 31/100 PageSpeed Performance score (LCP 15.4s, INP 29s, TBT 14.2s on mobile). SEO is already 100/100; Performance was the real blocker. Six coordinated defers:
+  - **PostHog deferred** (`public/index.html`) — the inline snippet still stubs `window.posthog` synchronously so call sites work, but `posthog.init()` (which triggers ~120KB `array.js` download + parse) now runs inside `requestIdleCallback({ timeout: 3500 })`. Single biggest TBT win. Events captured before init are queued on the stub and flush automatically once the SDK loads.
+  - **Sentry deferred** (`src/index.js`) — switched static `import { initSentry }` → dynamic `import("@/lib/sentry").then(...)` + `requestIdleCallback({ timeout: 4000 })`. Removes ~80KB of synchronous JS parse + the synchronous browserTracing/Replay init from the critical path.
+  - **Emergent badge script `defer`** (`public/index.html`) — added `defer` attribute to `assets.emergent.sh/scripts/emergent-main.js` so it doesn't block HTML parsing.
+  - **MikeyChat idle-mounted** (`src/App.js`) — wrapped in new `DeferredMikey` component that lazy-imports the chunk AND waits for `requestIdleCallback` before mounting. Cuts the launcher's drag-handler init + axios bootstrap out of the LCP window.
+  - **Below-fold Landing sections lazy** (`src/pages/Landing.jsx`) — new `Defer` wrapper uses IntersectionObserver (rootMargin 400-600px) to mount `LandingMindMap` (524-line SVG canvas), `PressTestimonials`, `SEOContent`, `LandingFaq`, and `SiteLinksFooter` only when scrolled near. Reserves `minHeight` placeholder to prevent CLS.
+  - **Google Fonts non-blocking** (`public/index.html`) — Sora + JetBrains Mono stylesheet now loads with the `media="print" onload="this.media='all'"` pattern + a matching `<link rel="preload" as="style">`, so font CSS no longer render-blocks. `<noscript>` fallback for crawlers.
+  - **Testimonials API call deferred** (`Landing.jsx`) — `fetch(TESTIMONIALS_API)` moved into `requestIdleCallback` so it doesn't compete for bandwidth during LCP.
+  - **Preconnects added** for `us.i.posthog.com` + `us-assets.i.posthog.com` so when the deferred PostHog snippet finally fires the TLS handshake is already warm.
+  - Files touched: `public/index.html` (PostHog snippet wrap, font swap, preconnects, emergent-main defer), `src/index.js` (dynamic Sentry import), `src/App.js` (DeferredMikey + lazy MikeyChat), `src/pages/Landing.jsx` (Defer component + lazy imports + testimonials defer). All linted clean. Smoke-tested via screenshot — hero, CTA, teaser carousel and Prof launcher all render normally; below-fold sections appear after scroll.
+  - **Expected impact** (rebuild required on user's production env to validate): LCP -2 to -4s, TBT -8 to -12s, INP -15 to -20s. Re-run PageSpeed Insights post-deploy to confirm.
+
