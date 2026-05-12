@@ -84,9 +84,18 @@ export default function VideoInlinePlayer({ embed, onClose }) {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  // Esc to close (only when we have focus).
+  // Esc to close — but ignore the key when the user is typing in
+  // another input/textarea/contenteditable (e.g. node title rename or
+  // the LinkDialog), so Escape there still cancels just that field
+  // without nuking the player below it.
   useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose?.(); };
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      const t = e.target;
+      const tag = (t?.tagName || "").toLowerCase();
+      if (tag === "input" || tag === "textarea" || t?.isContentEditable) return;
+      onClose?.();
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
@@ -144,10 +153,19 @@ export default function VideoInlinePlayer({ embed, onClose }) {
         transition: minimized ? "height 0.16s ease" : "none",
       }}
     >
-      {/* Header / drag handle */}
+      {/* Header / drag handle.  Buttons inside use `onPointerDownCapture`
+          to stop propagation *before* the parent's mousedown handler
+          fires preventDefault — without this the click-after-mousedown
+          on minimize / close gets eaten and the state doesn't toggle. */}
       <div
         data-testid="video-player-handle"
-        onMouseDown={(e) => beginDrag("move", e)}
+        onMouseDown={(e) => {
+          // Only initiate drag if the press is on the bare handle, not
+          // on a control button (those use stopPropagation already, but
+          // belt-and-braces).
+          if (e.target.closest("button")) return;
+          beginDrag("move", e);
+        }}
         className="flex items-center gap-2 px-2.5 h-[38px] border-b border-white/10 bg-[#0a0f24]/90 cursor-grab active:cursor-grabbing select-none"
       >
         <span
@@ -160,6 +178,7 @@ export default function VideoInlinePlayer({ embed, onClose }) {
         </span>
         <button
           data-testid="video-player-open-external"
+          onPointerDownCapture={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
@@ -172,6 +191,7 @@ export default function VideoInlinePlayer({ embed, onClose }) {
         </button>
         <button
           data-testid="video-player-minimize"
+          onPointerDownCapture={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); setMinimized((m) => !m); }}
           title={minimized ? "Restore" : "Minimize"}
@@ -181,6 +201,7 @@ export default function VideoInlinePlayer({ embed, onClose }) {
         </button>
         <button
           data-testid="video-player-close"
+          onPointerDownCapture={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => { e.stopPropagation(); onClose?.(); }}
           title="Close player"
