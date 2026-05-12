@@ -561,8 +561,13 @@ export default function Pricing() {
               data-testid={`pricing-faq-item-${f.id}`}
               className="rounded-xl border border-white/10 bg-white/[0.02] p-5 hover:border-cyan-400/30 transition group"
             >
-              <summary className="cursor-pointer flex items-center justify-between gap-4 font-semibold text-white text-[15px]">
-                <span>{f.q}</span>
+              <summary className="cursor-pointer flex items-center justify-between gap-4 font-semibold text-white text-[15px] list-none">
+                {/* h3 — sits under the section's h2 ("Frequently asked")
+                    so every question is a discoverable heading. Pairs
+                    with the FAQPage JSON-LD above to give Google both
+                    the structured data AND the semantic outline it
+                    expects for rich-result eligibility. */}
+                <h3 className="font-semibold text-white text-[15px] m-0">{f.q}</h3>
                 <span className="mono text-[14px] text-cyan-300/60 group-open:rotate-45 transition-transform shrink-0">+</span>
               </summary>
               <p className="text-[#a4b4d8] text-[14px] leading-relaxed mt-3 whitespace-pre-line">{f.a}</p>
@@ -574,7 +579,9 @@ export default function Pricing() {
       {/* Final CTA */}
       <section className="max-w-4xl mx-auto px-6 lg:px-12 pb-24 text-center">
         <div className="rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/10 via-violet-500/5 to-fuchsia-500/10 p-10">
-          <h3 className="text-2xl font-bold mb-3">Still thinking?</h3>
+          {/* h4 (not h3) — questions above now own h3 on this page, so
+              demoting the CTA keeps the outline well-formed for SEO. */}
+          <h4 className="text-2xl font-bold mb-3">Still thinking?</h4>
           <p className="text-[#a4b4d8] mb-6 max-w-xl mx-auto">
             The free tier is real — map a PDF, see what it does, decide later. Every feature is accessible; Pro just removes the ceiling.
           </p>

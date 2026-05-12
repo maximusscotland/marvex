@@ -82,9 +82,14 @@ export default function LandingFaq() {
         <div className="space-y-10">
           {visible.map((g) => (
             <div key={g.category} data-testid={`landing-faq-group-${g.category.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`}>
-              <div className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-3">
+              {/* Category headers are semantic <h3> — h2 (section title) →
+                  h3 (category) → h4 (individual question) forms a clean
+                  outline that crawlers + screen-readers + Sentry's auto-
+                  heading-rank checks all understand.  Visual size is
+                  unchanged (Tailwind classes do the styling). */}
+              <h3 className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/80 mb-3">
                 {g.category}
-              </div>
+              </h3>
               <div className="space-y-2">
                 {g.items.map((f) => (
                   <details
@@ -93,8 +98,12 @@ export default function LandingFaq() {
                     data-testid={`landing-faq-item-${f.id}`}
                     className="rounded-xl border border-white/10 bg-white/[0.02] p-5 hover:border-cyan-400/30 transition group"
                   >
-                    <summary className="cursor-pointer flex items-center justify-between gap-4 font-semibold text-white text-[15px]">
-                      <span>{f.q}</span>
+                    <summary className="cursor-pointer flex items-center justify-between gap-4 font-semibold text-white text-[15px] list-none">
+                      {/* h4 = the question itself.  Marked-up as a heading
+                          so search engines can extract every Q as a
+                          standalone entity in addition to the JSON-LD on
+                          /pricing.  Visual styling kept inline-flush. */}
+                      <h4 className="font-semibold text-white text-[15px] m-0">{f.q}</h4>
                       <span className="mono text-[14px] text-cyan-300/60 group-open:rotate-45 transition-transform shrink-0">+</span>
                     </summary>
                     <p className="text-[#a4b4d8] text-[14px] leading-relaxed mt-3 whitespace-pre-line">

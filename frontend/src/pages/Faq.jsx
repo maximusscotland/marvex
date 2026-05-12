@@ -250,7 +250,13 @@ export default function Faq() {
                         className="w-full flex items-start justify-between gap-3 px-5 py-4 text-left"
                         data-testid={`faq-toggle-${group.id}-${i}`}
                       >
-                        <span className="text-[15px] font-medium text-white leading-snug">{it.q}</span>
+                        {/* Each question is a proper <h3> — sits under the
+                            section's <h2> ("Getting started" etc) so the
+                            page outline is h1 → h2 → h3, the structure
+                            search-engine SEO audits and accessibility
+                            scanners both expect.  Visually identical to
+                            the prior <span> (same Tailwind classes). */}
+                        <h3 className="text-[15px] font-medium text-white leading-snug m-0">{it.q}</h3>
                         <span className="shrink-0 text-cyan-300/80 mt-0.5">
                           {isOpen ? <Minus size={16} /> : <Plus size={16} />}
                         </span>
@@ -269,7 +275,9 @@ export default function Faq() {
         </div>
 
         <div className="mt-16 rounded-2xl border border-cyan-400/25 bg-cyan-500/[0.04] p-6 text-center">
-          <h3 className="text-xl font-semibold mb-2">Still have a question?</h3>
+          {/* Demoted from <h3> → <h4> since the question-level headings
+              above now own h3; keeps the page outline well-formed. */}
+          <h4 className="text-xl font-semibold mb-2">Still have a question?</h4>
           <p className="text-[14px] text-[#a4b4d8] mb-4">
             We respond to every email within 1 business day.
           </p>
