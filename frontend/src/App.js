@@ -48,6 +48,7 @@ const AffiliateResources  = lazy(() => import("@/pages/AffiliateResources"));
 const Galaxy              = lazy(() => import("@/pages/Galaxy"));
 const ReportBug           = lazy(() => import("@/pages/ReportBug"));
 const Faq                 = lazy(() => import("@/pages/Faq"));
+const Founders            = lazy(() => import("@/pages/Founders"));
 const Contact             = lazy(() => import("@/pages/Contact"));
 const AuthMagic           = lazy(() => import("@/pages/AuthMagic"));
 const SignIn              = lazy(() => import("@/pages/SignIn"));
@@ -194,6 +195,7 @@ export default function App() {
           <Route path="/pdf-to-mind-map" element={<PdfToMindMap />} />
           <Route path="/report-bug" element={<ReportBug />} />
           <Route path="/faq" element={<Faq />} />
+          <Route path="/founders" element={<Founders />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/auth/magic" element={<AuthMagic />} />
           <Route path="/signin" element={<SignIn />} />

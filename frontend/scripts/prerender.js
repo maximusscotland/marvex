@@ -73,6 +73,7 @@ const MARKETING_ROUTES = [
   "/terms",
   "/download",
   "/pdf-to-mind-map",
+  "/founders",
   "/learn",
   // Long-form SEO articles (one chunk = one URL we want crawlers to index)
   "/learn/how-to-turn-pdf-into-mind-map",

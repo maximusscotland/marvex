@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { Users } from "lucide-react";
 
 /**
@@ -8,6 +9,11 @@ import { Users } from "lucide-react";
  * $200 lifetime tier and create gentle urgency without fake scarcity.
  * Decorative cosmic avatar dots signal "people use this" without
  * claiming a specific count.
+ *
+ * The badge itself is a <Link> to /founders — the dedicated sales page
+ * that lays out the four pillars of the Founder tier (vote, future
+ * add-ons free, surprises, numbered badge). That keeps the hero clean
+ * (no extra CTA) while giving the curious a single click to convert.
  */
 
 export default function SocialProofStrip() {
@@ -31,12 +37,16 @@ export default function SocialProofStrip() {
           />
         ))}
       </div>
-      <div className="flex items-center gap-1.5">
-        <Users size={13} className="text-cyan-300/80" />
-        <span className="mono text-[11px] uppercase tracking-[0.18em] text-cyan-300/80">
+      <Link
+        to="/founders"
+        data-testid="landing-founders-link"
+        className="flex items-center gap-1.5 rounded-full px-2 py-1 -mx-2 -my-1 transition hover:bg-amber-400/[0.07] hover:ring-1 hover:ring-amber-300/30"
+      >
+        <Users size={13} className="text-cyan-300/80 group-hover:text-amber-300 transition" />
+        <span className="mono text-[11px] uppercase tracking-[0.18em] text-cyan-300/80 hover:text-amber-200 underline decoration-cyan-400/30 hover:decoration-amber-300/60 underline-offset-4 transition">
           Founder spots still available
         </span>
-      </div>
+      </Link>
     </div>
   );
 }
