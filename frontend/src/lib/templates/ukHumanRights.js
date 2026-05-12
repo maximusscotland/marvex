@@ -14,14 +14,14 @@
  *   • Branch colours: blue (`#22d3ee`-ish) for absolute rights, amber
  *     (`#fbbf24`-ish) for qualified, fuchsia for the central Article
  *     14 modifier.  Marvex's render layer reads `fill` if present.
- *   • Landmark cases sit as second-level nodes under each Article and
+ *   • Landmark cases sit as second-level elements under each Article and
  *     reference the case + year + court so teachers can drop the case
  *     PDF onto them later.
  *   • Resource link slots are stubbed with the canonical free
  *     authority for each Article — teachers replace these with their
  *     own preferred resources but the defaults are all classroom-safe
  *     (legislation.gov.uk, Liberty, EHRC).
- *   • Every node has a `summary` that doubles as the teacher's
+ *   • Every element has a `summary` that doubles as the teacher's
  *     speaking-note when the map is presented in class — visible in
  *     the Studio summary panel without cluttering the canvas itself.
  */
@@ -225,7 +225,7 @@ export const UK_HUMAN_RIGHTS_TEMPLATE = {
       ],
     }),
 
-    // ─── Public authority obligation (foundational node) ─────────────
+    // ─── Public authority obligation (foundational element) ─────────────
     node("pao", "Public authority obligation (s.6 HRA)", {
       summary: "Section 6 makes it unlawful for a public authority to act incompatibly with a Convention right. Covers courts, police, local councils, schools and any body 'exercising functions of a public nature'. Rights are enforceable against public authorities — not private individuals (vertical effect, not horizontal).",
       children: [

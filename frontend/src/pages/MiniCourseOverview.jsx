@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Clock, GraduationCap, CheckCircle2, Link2, CalendarDays, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, GraduationCap, CheckCircle2, Link2, CalendarDays, Sparkles, Baby, Users } from "lucide-react";
 import Logo from "@/components/Logo";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
 import RelatedReads from "@/components/RelatedReads";
@@ -9,6 +9,7 @@ import { COURSE, LESSONS } from "@/lib/miniCourse";
 import usePageMeta from "@/lib/usePageMeta";
 
 const SITE = "https://marvex.app";
+const LEVEL_KEY = "marvex.course.level.v1";
 
 /**
  * /mini-course/teaching-with-mind-maps — overview / landing page for the
@@ -67,6 +68,25 @@ function CourseJsonLd() {
 }
 
 export default function MiniCourseOverview() {
+  // Visitor's chosen audience track — "secondary" (full course) or
+  // "primary" (simplified KS1/KS2 adaptation).  Persists in
+  // localStorage so the choice carries across lessons.  We read once
+  // synchronously on mount to avoid a UI flicker on a SPA reload.
+  const [level, setLevel] = useState(() => {
+    if (typeof window === "undefined") return "secondary";
+    try {
+      const v = localStorage.getItem(LEVEL_KEY);
+      return v === "primary" ? "primary" : "secondary";
+    } catch { return "secondary"; }
+  });
+  const isPrimary = level === "primary";
+  const adapt = isPrimary && COURSE.primaryEd ? COURSE.primaryEd : COURSE;
+
+  const handleLevel = (next) => {
+    setLevel(next);
+    try { localStorage.setItem(LEVEL_KEY, next); } catch { /* ignore */ }
+  };
+
   usePageMeta({
     title: COURSE.metaTitle,
     description: COURSE.description,
@@ -94,16 +114,56 @@ export default function MiniCourseOverview() {
         <div className="max-w-4xl mx-auto">
           <div className="mono text-[10px] uppercase tracking-[0.3em] text-fuchsia-300/80 mb-4 flex items-center gap-2">
             <GraduationCap size={13} className="text-fuchsia-300/80" />
-            Mini-course · {totalLessons} lessons · ~{COURSE.minutesTotal} min
+            Mini-course · {totalLessons} lessons · ~{adapt.minutesTotal || COURSE.minutesTotal} min
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.05] mb-6">
             {COURSE.title}
           </h1>
+
+          {/* Audience track selector — first thing visitors see under
+              the H1.  Defaults to Secondary/Higher Ed.  Picking
+              Primary swaps lesson summaries, audience text, time
+              estimates and (on each lesson page) shows an adaptation
+              tip box. Selection persists in localStorage. */}
+          <div className="mb-7" data-testid="course-level-selector">
+            <div className="mono text-[10px] uppercase tracking-[0.22em] text-cyan-300/70 mb-2">
+              I teach:
+            </div>
+            <div className="inline-flex rounded-full border border-white/10 bg-white/[0.02] p-1">
+              <button
+                type="button"
+                onClick={() => handleLevel("secondary")}
+                data-testid="course-level-secondary"
+                aria-pressed={!isPrimary}
+                className={`px-4 py-1.5 rounded-full text-[12px] font-medium transition flex items-center gap-1.5 ${
+                  !isPrimary
+                    ? "bg-cyan-400/15 border border-cyan-300/60 text-cyan-100"
+                    : "border border-transparent text-[#8794b8] hover:text-cyan-200"
+                }`}
+              >
+                <Users size={12} /> Secondary &amp; Higher Ed
+              </button>
+              <button
+                type="button"
+                onClick={() => handleLevel("primary")}
+                data-testid="course-level-primary"
+                aria-pressed={isPrimary}
+                className={`px-4 py-1.5 rounded-full text-[12px] font-medium transition flex items-center gap-1.5 ${
+                  isPrimary
+                    ? "bg-fuchsia-400/15 border border-fuchsia-300/60 text-fuchsia-100"
+                    : "border border-transparent text-[#8794b8] hover:text-fuchsia-200"
+                }`}
+              >
+                <Baby size={12} /> Primary Ed (simplified)
+              </button>
+            </div>
+          </div>
+
           <p className="text-lg text-[#a4b4d8] leading-relaxed mb-3">
-            {COURSE.description}
+            {adapt.description || COURSE.description}
           </p>
           <p className="text-[13px] mono uppercase tracking-[0.22em] text-cyan-300/80 mb-10">
-            For: {COURSE.audience}
+            For: {adapt.audience || COURSE.audience}
           </p>
 
           <div className="rounded-2xl border border-cyan-400/25 bg-cyan-500/[0.04] p-6 mb-12">
@@ -111,7 +171,7 @@ export default function MiniCourseOverview() {
               By the end of the course you'll have:
             </div>
             <p className="text-[15px] text-[#dbe5ff] leading-relaxed">
-              {COURSE.outcome}
+              {adapt.outcome || COURSE.outcome}
             </p>
           </div>
 
@@ -123,10 +183,10 @@ export default function MiniCourseOverview() {
             <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
               <div className="flex items-center gap-2 mb-2">
                 <Link2 size={14} className="text-cyan-300/80" />
-                <h3 className="text-[15px] font-semibold text-white m-0">One-click resources on every node</h3>
+                <h3 className="text-[15px] font-semibold text-white m-0">One-click resources on every element</h3>
               </div>
               <p className="text-[13px] text-[#a4b4d8] leading-relaxed">
-                Stop telling students "see Smith 2019" and start attaching the actual PDF, YouTube clip, or slide deck to the relevant node. One shared map URL replaces a VLE page, an email of links and a folder of files.
+                Stop telling students "see Smith 2019" and start attaching the actual PDF, YouTube clip, or slide deck to the relevant element. One shared map URL replaces a VLE page, an email of links and a folder of files.
               </p>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/[0.02] p-5">
@@ -135,41 +195,45 @@ export default function MiniCourseOverview() {
                 <h3 className="text-[15px] font-semibold text-white m-0">Map → Timeline = a delivery plan</h3>
               </div>
               <p className="text-[13px] text-[#a4b4d8] leading-relaxed">
-                A topic map answers "what". A timeline answers "when". Pull nodes from your map onto Marvex's Timeline Studio and your conceptual overview becomes a class-by-class teaching plan students can revisit during revision.
+                A topic map answers "what". A timeline answers "when". Pull elements from your map onto Marvex's Timeline Studio and your conceptual overview becomes a class-by-class teaching plan students can revisit during revision.
               </p>
             </div>
           </div>
 
           <h2 className="text-2xl font-bold mb-6">The {totalLessons === 6 ? "six" : totalLessons === 5 ? "five" : totalLessons} lessons</h2>
           <ol className="space-y-3 mb-12">
-            {LESSONS.map((l) => (
-              <li key={l.slug}>
-                <Link
-                  to={`/mini-course/${COURSE.slug}/lesson/${l.slug}`}
-                  data-testid={`course-lesson-tile-${l.slug}`}
-                  className="block rounded-xl border border-white/10 bg-white/[0.02] p-5 hover:border-cyan-400/40 hover:bg-white/[0.04] transition group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full grid place-items-center mono text-[12px] text-cyan-300 shrink-0"
-                         style={{ background: "rgba(0,240,255,0.06)", border: "1px solid rgba(0,240,255,0.4)" }}>
-                      {String(l.order).padStart(2, "0")}
+            {LESSONS.map((l) => {
+              const summary = isPrimary && l.primaryEd?.summary ? l.primaryEd.summary : l.description;
+              const minutes = isPrimary && l.primaryEd?.minutesRead ? l.primaryEd.minutesRead : l.minutesRead;
+              return (
+                <li key={l.slug}>
+                  <Link
+                    to={`/mini-course/${COURSE.slug}/lesson/${l.slug}`}
+                    data-testid={`course-lesson-tile-${l.slug}`}
+                    className="block rounded-xl border border-white/10 bg-white/[0.02] p-5 hover:border-cyan-400/40 hover:bg-white/[0.04] transition group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full grid place-items-center mono text-[12px] text-cyan-300 shrink-0"
+                           style={{ background: "rgba(0,240,255,0.06)", border: "1px solid rgba(0,240,255,0.4)" }}>
+                        {String(l.order).padStart(2, "0")}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[16px] font-semibold text-white group-hover:text-cyan-100 transition mb-1 m-0">
+                          {l.title}
+                        </h3>
+                        <p className="text-[13px] text-[#8794b8] leading-snug line-clamp-2">
+                          {summary}
+                        </p>
+                      </div>
+                      <div className="text-[11px] mono uppercase tracking-[0.18em] text-[#7a87ad] shrink-0 hidden sm:flex items-center gap-1.5">
+                        <Clock size={11} /> {minutes}m
+                      </div>
+                      <ArrowRight size={16} className="text-cyan-300/60 group-hover:text-cyan-200 transition shrink-0" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-[16px] font-semibold text-white group-hover:text-cyan-100 transition mb-1 m-0">
-                        {l.title}
-                      </h3>
-                      <p className="text-[13px] text-[#8794b8] leading-snug line-clamp-2">
-                        {l.description}
-                      </p>
-                    </div>
-                    <div className="text-[11px] mono uppercase tracking-[0.18em] text-[#7a87ad] shrink-0 hidden sm:flex items-center gap-1.5">
-                      <Clock size={11} /> {l.minutesRead}m
-                    </div>
-                    <ArrowRight size={16} className="text-cyan-300/60 group-hover:text-cyan-200 transition shrink-0" />
-                  </div>
-                </Link>
-              </li>
-            ))}
+                  </Link>
+                </li>
+              );
+            })}
           </ol>
 
           <div className="rounded-2xl border border-fuchsia-400/25 bg-gradient-to-br from-fuchsia-500/[0.08] via-cyan-500/[0.04] to-transparent p-8 text-center">

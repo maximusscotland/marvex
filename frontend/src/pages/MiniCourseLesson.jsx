@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Clock, CheckCircle2, BookOpen, GraduationCap, Download } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, CheckCircle2, BookOpen, GraduationCap, Download, Baby } from "lucide-react";
 import Logo from "@/components/Logo";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
 import { COURSE, LESSONS, LESSON_BY_SLUG } from "@/lib/miniCourse";
@@ -15,6 +15,7 @@ import * as CourseMaps from "@/lib/courseMaps";
 
 const SITE = "https://marvex.app";
 const COURSE_BASE = `/mini-course/${COURSE.slug}`;
+const LEVEL_KEY = "marvex.course.level.v1";
 
 /**
  * /mini-course/<course-slug>/lesson/<lesson-slug>
@@ -108,6 +109,29 @@ function LessonJsonLd({ lesson }) {
 export default function MiniCourseLesson() {
   const { lessonSlug } = useParams();
   const lesson = useMemo(() => LESSON_BY_SLUG[lessonSlug], [lessonSlug]);
+  // Read the saved Primary/Secondary track set on the overview page.
+  // Falls back to "secondary".  Re-reads on each route change so that
+  // visitors who flip the toggle and then deep-link to a lesson see
+  // the right view.
+  const [level, setLevel] = useState(() => {
+    if (typeof window === "undefined") return "secondary";
+    try {
+      const v = localStorage.getItem(LEVEL_KEY);
+      return v === "primary" ? "primary" : "secondary";
+    } catch { return "secondary"; }
+  });
+  useEffect(() => {
+    // Listen for cross-tab + same-tab updates of the level toggle.
+    const onStorage = (e) => {
+      if (e.key === LEVEL_KEY) setLevel(e.newValue === "primary" ? "primary" : "secondary");
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+  const isPrimary = level === "primary";
+  const minutesRead = isPrimary && lesson?.primaryEd?.minutesRead
+    ? lesson.primaryEd.minutesRead
+    : lesson?.minutesRead;
 
   usePageMeta({
     title: lesson?.metaTitle || `${lesson?.title} — Marvex Studio`,
@@ -175,7 +199,15 @@ export default function MiniCourseLesson() {
               <span>Lesson {String(lesson.order).padStart(2, "0")} of {LESSONS.length}</span>
               <span className="text-fuchsia-300/30">·</span>
               <Clock size={11} />
-              <span>{lesson.minutesRead}-min read</span>
+              <span>{minutesRead}-min read</span>
+              {isPrimary && (
+                <>
+                  <span className="text-fuchsia-300/30">·</span>
+                  <span className="inline-flex items-center gap-1 text-fuchsia-300">
+                    <Baby size={11} /> Primary Ed
+                  </span>
+                </>
+              )}
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.1] mb-5">
               {lesson.title}
@@ -183,6 +215,20 @@ export default function MiniCourseLesson() {
             <p className="text-lg text-[#a4b4d8] leading-relaxed mb-8">
               {lesson.description}
             </p>
+
+            {isPrimary && lesson.primaryEd?.tip && (
+              <div
+                data-testid="lesson-primary-callout"
+                className="rounded-2xl border border-fuchsia-400/30 bg-fuchsia-500/[0.05] p-5 mb-8"
+              >
+                <div className="mono text-[10px] uppercase tracking-[0.3em] text-fuchsia-300/90 mb-2 flex items-center gap-2">
+                  <Baby size={12} /> Primary-Ed adaptation
+                </div>
+                <p className="text-[14px] text-[#f7e1ff] leading-relaxed">
+                  {renderInline(lesson.primaryEd.tip)}
+                </p>
+              </div>
+            )}
 
             {lesson.tldr && (
               <div className="rounded-2xl border border-cyan-400/25 bg-cyan-500/[0.04] p-5 mb-10">
@@ -247,7 +293,7 @@ export default function MiniCourseLesson() {
                         Download the full UK Human Rights Act mind map
                       </p>
                       <p className="text-[13px] text-[#a4b4d8] leading-relaxed mb-4">
-                        Includes the central question, all eleven branches with colour-coded absolute / qualified rights, every landmark case, public-authority obligation node, and pre-attached gov.uk source links. Open it in Marvex Studio, customise for your class, and share with one click.
+                        Includes the central question, all eleven branches with colour-coded absolute / qualified rights, every landmark case, public-authority obligation element, and pre-attached gov.uk source links. Open it in Marvex Studio, customise for your class, and share with one click.
                       </p>
                       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
                         <button

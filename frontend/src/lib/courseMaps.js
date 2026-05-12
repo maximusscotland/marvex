@@ -7,7 +7,7 @@
  * while they read.
  *
  * Pillar 1 (Lesson 3) leans on the `link` / `videoLink` props to draw
- * the resource badges on nodes — same visual that appears on real
+ * the resource badges on elements — same visual that appears on real
  * maps in Studio.
  *
  * Pillar 2 (Lesson 4) ships TWO views of the same content: a mind-map
@@ -61,7 +61,7 @@ export const MAP_TOPIC_OVERVIEW = {
   ],
 };
 
-// Lesson 3 — same map with resource badges visible on every node.
+// Lesson 3 — same map with resource badges visible on every element.
 export const MAP_ONE_CLICK_RESOURCES = {
   title: "Why is photosynthesis the engine of life?",
   children: [
