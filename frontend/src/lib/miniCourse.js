@@ -46,6 +46,7 @@ export const LESSONS = [
   {
     slug: "why-mind-maps-work-in-class",
     order: 1,
+    visualAfter: { kind: "map", id: "MAP_WHY_WORKS", caption: "Lesson 1 example — a map illustrating why mind-maps outperform linear notes." },
     title: "Why mind maps work in class (the cognitive-science basics)",
     metaTitle: "Why mind maps work in teaching — the cognitive-science evidence",
     description:
@@ -107,6 +108,7 @@ export const LESSONS = [
   {
     slug: "build-your-first-topic-map",
     order: 2,
+    visualAfter: { kind: "map", id: "MAP_TOPIC_OVERVIEW", caption: "Lesson 2 example — a topic-overview map with a question at the centre and three colour-coded categories. Five main branches, ten supporting nodes." },
     title: "Building a topic-overview map your students will actually use",
     metaTitle: "How to build a teaching mind map your class will actually use",
     description:
@@ -181,6 +183,7 @@ export const LESSONS = [
   {
     slug: "one-click-resources",
     order: 3,
+    visualAfter: { kind: "map", id: "MAP_ONE_CLICK_RESOURCES", caption: "Lesson 3 example — same topic map as Lesson 2, now with one-click resource badges. Cyan ↗ = PDF / link. Purple ▶ = video. Every node carries the underlying source." },
     title: "Every resource, one click away: turning a map into a study hub",
     metaTitle: "One-click resources in your teaching mind map — Marvex Studio",
     description:
@@ -253,6 +256,7 @@ export const LESSONS = [
   {
     slug: "map-to-timeline",
     order: 4,
+    visualAfter: { kind: "map-and-timeline", mapId: "MAP_TOPIC_OVERVIEW", timelineId: "TIMELINE_DELIVERY_PLAN", caption: "Lesson 4 — the same content rendered TWICE. Above: the topic-overview map (the 'what'). Below: the same nodes pulled onto Timeline Studio as a six-week delivery plan (the 'when')." },
     title: "From map to timeline: turning concepts into an implementation plan",
     metaTitle: "Mind map to timeline: turn a topic overview into a teaching plan",
     description:
@@ -323,6 +327,7 @@ export const LESSONS = [
   {
     slug: "assessment-and-revision",
     order: 5,
+    visualAfter: { kind: "map", id: "MAP_BLIND_RECALL", caption: "Lesson 5 example — the same Lesson 2 topic map with labels masked. Students see only the structure (branch positions and colour groups) and must recall each node's content from spatial cues alone. Studio's 'Mask labels' mode (View menu) does this in one click." },
     title: "Assessment and revision: closing the loop",
     metaTitle: "Mind-map-based assessment and revision techniques for teachers",
     description:
@@ -384,6 +389,7 @@ export const LESSONS = [
   {
     slug: "worked-example-uk-human-rights",
     order: 6,
+    visualAfter: { kind: "map", id: "MAP_UK_HUMAN_RIGHTS_PREVIEW", caption: "Lesson 6 — preview of the UK Human Rights Act 1998 teaching map (first six branches of twelve shown). Cyan = absolute rights; amber = qualified. Download the full template at the bottom of this lesson." },
     title: "Worked example: a UK Human Rights mind map (and how to teach it)",
     metaTitle: "UK Human Rights mind map — a worked teaching example | Marvex",
     description:

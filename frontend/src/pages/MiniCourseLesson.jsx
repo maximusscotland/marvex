@@ -9,6 +9,9 @@ import usePageMeta from "@/lib/usePageMeta";
 import { encodeMmap } from "@/lib/mapFile";
 import { UK_HUMAN_RIGHTS_TEMPLATE } from "@/lib/templates/ukHumanRights";
 import { track } from "@/lib/posthog";
+import MiniMap from "@/components/MiniMap";
+import MiniTimeline from "@/components/MiniTimeline";
+import * as CourseMaps from "@/lib/courseMaps";
 
 const SITE = "https://marvex.app";
 const COURSE_BASE = `/mini-course/${COURSE.slug}`;
@@ -185,6 +188,32 @@ export default function MiniCourseLesson() {
               <div className="rounded-2xl border border-cyan-400/25 bg-cyan-500/[0.04] p-5 mb-10">
                 <div className="mono text-[10px] uppercase tracking-[0.3em] text-cyan-300/80 mb-2">TL;DR</div>
                 <p className="text-[14px] text-[#cfdaf3] leading-relaxed">{lesson.tldr}</p>
+              </div>
+            )}
+
+            {/* Visual illustration — every lesson ships at least one
+                concrete map / timeline so visitors *see* the artefact
+                we're describing, not just read about it.  See
+                lib/courseMaps.js for the per-lesson data. */}
+            {lesson.visualAfter?.kind === "map" && CourseMaps[lesson.visualAfter.id] && (
+              <MiniMap
+                map={CourseMaps[lesson.visualAfter.id]}
+                caption={lesson.visualAfter.caption}
+                testid={`lesson-visual-${lesson.slug}`}
+              />
+            )}
+            {lesson.visualAfter?.kind === "map-and-timeline" && (
+              <div data-testid={`lesson-visual-${lesson.slug}`}>
+                <MiniMap
+                  map={CourseMaps[lesson.visualAfter.mapId]}
+                  caption="The 'what' — topic-overview map"
+                  testid={`lesson-visual-map-${lesson.slug}`}
+                />
+                <MiniTimeline
+                  timeline={CourseMaps[lesson.visualAfter.timelineId]}
+                  caption={lesson.visualAfter.caption}
+                  testid={`lesson-visual-timeline-${lesson.slug}`}
+                />
               </div>
             )}
 
