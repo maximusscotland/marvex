@@ -278,7 +278,21 @@ export default function Landing() {
             <span className="gradient-text">{t("landing.heroTitleB")}</span>
           </ScrollReveal>
 
-          <ScrollReveal as="p" delay={240} className="mt-8 max-w-2xl text-xl sm:text-2xl font-semibold text-white leading-snug">
+          {/* OPENING PARAGRAPH — restored Feb 2026. This is the long-form
+              brand introduction that used to sit immediately under the
+              hero title. The A/B/C subheadline test below it provides
+              the punchy positioning line; this paragraph carries the
+              "what + why" sales copy that visitors expect (infinite
+              canvas, AI extraction, local-first). i18n keys are
+              preserved across all 10 locales. */}
+          <ScrollReveal as="p" delay={240} className="mt-8 max-w-2xl text-lg text-[#a4b4d8] leading-relaxed">
+            <span className="font-semibold tracking-wide"><span className="gradient-text">{t("landing.heroLeadBrand")}</span></span>{" "}
+            {t("landing.heroLead")}
+            {" "}
+            <span className="text-xl sm:text-2xl font-bold text-white">{t("landing.heroZeroCloud")}</span>
+          </ScrollReveal>
+
+          <ScrollReveal as="p" delay={320} className="mt-6 max-w-2xl text-xl sm:text-2xl font-semibold text-white leading-snug">
             {heroSubheadline}
           </ScrollReveal>
 
