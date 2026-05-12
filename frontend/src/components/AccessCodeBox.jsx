@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { KeyRound, Sparkles, ArrowRight } from "lucide-react";
+import { apiErrorMessage } from "@/lib/apiError";
 
 const API = `${process.env.REACT_APP_BACKEND_URL || ""}/api`;
 const STORAGE_KEY = "mindmapper.unlocked.v1";
@@ -57,8 +58,9 @@ export default function AccessCodeBox({ ctaHref = "/app", className = "", varian
       setRedeemed({ tier: r.data.tier, label: r.data.label });
     } catch (err) {
       // Backend already returns a friendly 404 message. Show it but with a
-      // graceful fallback in case of network error.
-      const msg = err?.response?.data?.detail || "Something went wrong. Please try again in a moment.";
+      // graceful fallback in case of network error.  Use apiErrorMessage
+      // so a 422 (validation array) doesn't crash React when rendered.
+      const msg = apiErrorMessage(err, "Something went wrong. Please try again in a moment.");
       setError(msg);
     } finally {
       setSubmitting(false);

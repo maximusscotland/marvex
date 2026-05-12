@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight, Sparkles, CheckCircle2, AlertCircle, Loader2, Mic, Newspaper, Video, Rss, BookOpen, Copy, Quote } from "lucide-react";
 import usePageMeta from "@/lib/usePageMeta";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
+import { apiErrorMessage } from "@/lib/apiError";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -67,7 +68,7 @@ export default function Press() {
       setResult(r.data);
       toast.success(r.data?.auto_approved ? "Approved — check your inbox" : "Application received");
     } catch (e) {
-      const msg = e?.response?.data?.detail || e.message || "Application failed";
+      const msg = apiErrorMessage(e, "Application failed");
       setError(msg);
       toast.error(msg);
     } finally {

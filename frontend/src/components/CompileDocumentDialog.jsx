@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { X, FileText, Printer, Copy, Sparkles, Loader2, ScrollText, ListTree } from "lucide-react";
 import { compileDocument } from "@/lib/api";
 import { getApiKey, getResearchConfig } from "@/lib/settings";
+import { apiErrorMessage } from "@/lib/apiError";
 
 /**
  * CompileDocumentDialog — converts a (sub)tree from the studio into a
@@ -80,7 +81,7 @@ export default function CompileDocumentDialog({
       setMeta({ word_count: res.word_count, model_used: res.model_used });
       toast.success(`Compiled (${res.word_count} words)`);
     } catch (e) {
-      const msg = e?.response?.data?.detail || e.message || "Compile failed";
+      const msg = apiErrorMessage(e, "Compile failed");
       setError(msg);
       toast.error(msg);
     } finally {

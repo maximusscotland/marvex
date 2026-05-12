@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { ArrowLeft, Sparkles, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { apiErrorMessage } from "@/lib/apiError";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -79,7 +80,11 @@ export default function Redeem() {
           : "Redeemed — Pro is active";
       toast.success(ok);
     } catch (e) {
-      const msg = e?.response?.data?.detail || e.message || "Redemption failed";
+      // FastAPI 422 → `detail` is an ARRAY of Pydantic error objects
+      // ({type, loc, msg, input, url}).  apiErrorMessage flattens
+      // every shape to a string so React never tries to render an
+      // object — see Sentry JAVASCRIPT-REACT-9 (10 May 2026).
+      const msg = apiErrorMessage(e, "Redemption failed");
       setError(msg);
       toast.error(msg);
     } finally {

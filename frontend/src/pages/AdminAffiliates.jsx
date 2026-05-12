@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
 import { ArrowLeft, ShieldCheck, CheckCircle2, AlertCircle } from "lucide-react";
+import { apiErrorMessage } from "@/lib/apiError";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -32,7 +33,7 @@ export default function AdminAffiliates() {
       const r = await axios.get(`${API}/admin/affiliates`, { withCredentials: true });
       setRows(r.data?.affiliates || []);
     } catch (e) {
-      setError(e?.response?.data?.detail || e.message);
+      setError(apiErrorMessage(e));
     } finally {
       setLoading(false);
     }

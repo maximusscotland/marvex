@@ -5,6 +5,7 @@ import { getSharedMap } from "@/lib/api";
 import MindMapCanvas from "@/components/MindMapCanvas";
 import Logo from "@/components/Logo";
 import { upsertMeta } from "@/lib/usePageMeta";
+import { apiErrorMessage } from "@/lib/apiError";
 
 /**
  * Public read-only viewer for a shared map. Zero auth required.
@@ -65,8 +66,7 @@ export default function SharedMap() {
       .then((d) => { if (!cancelled) setData(d); })
       .catch((err) => {
         if (cancelled) return;
-        const detail = err?.response?.data?.detail;
-        setError(detail || err?.message || "Could not load shared map");
+        setError(apiErrorMessage(err, "Could not load shared map"));
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };

@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import QRCode from "qrcode";
 import { ArrowLeft, ShieldCheck, Trash2, AlertCircle, Plus, Lock, UserPlus, Ticket, Copy, Ban, QrCode, Download, X } from "lucide-react";
+import { apiErrorMessage } from "@/lib/apiError";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -48,7 +49,7 @@ export default function AdminFamily() {
       setData(r.data || { static: [], dynamic: [] });
       setInvites(ri.data?.invites || []);
     } catch (e) {
-      setError(e?.response?.data?.detail || e.message);
+      setError(apiErrorMessage(e));
     } finally {
       setLoading(false);
     }

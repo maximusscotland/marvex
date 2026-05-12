@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
+import { apiErrorMessage } from "@/lib/apiError";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -49,7 +50,7 @@ export default function AuthCallback() {
         window.history.replaceState({}, "", dest);
         navigate(dest, { replace: true });
       } catch (e) {
-        setError(e?.response?.data?.detail || "Sign-in failed");
+        setError(apiErrorMessage(e, "Sign-in failed"));
       }
     })();
   }, [navigate]);
