@@ -72,6 +72,7 @@ def _build_smtp_message(
     html: str,
     reply_to: Optional[str],
     attachments: Optional[List[Path]],
+    text: Optional[str] = None,
 ) -> EmailMessage:
     msg = EmailMessage()
     msg["From"] = _sender_address()
@@ -92,8 +93,10 @@ def _build_smtp_message(
     msg["Sender"] = sender
     # Plain-text alternative — make it substantive, not a placeholder.
     # Outlook penalises emails whose plain-text part is shorter than ~5x
-    # the HTML's word count would suggest.
-    msg.set_content(_plain_text_fallback())
+    # the HTML's word count would suggest.  Caller-supplied `text` wins
+    # for transactional emails (magic links, receipts) so the plain part
+    # actually matches the HTML; otherwise we use the waitlist boilerplate.
+    msg.set_content(text or _plain_text_fallback())
     msg.add_alternative(html, subtype="html")
     for path in attachments or []:
         try:
@@ -149,6 +152,7 @@ async def _send_via_smtp(
     html: str,
     reply_to: Optional[str],
     attachments: Optional[List[Path]],
+    text: Optional[str] = None,
 ) -> Dict[str, Any]:
     try:
         import aiosmtplib  # type: ignore
@@ -161,7 +165,7 @@ async def _send_via_smtp(
     password = os.environ["SMTP_PASSWORD"]
     msg = _build_smtp_message(
         to=to, subject=subject, html=html,
-        reply_to=reply_to, attachments=attachments,
+        reply_to=reply_to, attachments=attachments, text=text,
     )
 
     # Port 465 = implicit SSL; port 587 = STARTTLS upgrade.
@@ -211,6 +215,7 @@ async def _send_via_resend(
     html: str,
     reply_to: Optional[str],
     attachments: Optional[List[Path]],
+    text: Optional[str] = None,
 ) -> Dict[str, Any]:
     try:
         import resend  # type: ignore
@@ -224,6 +229,11 @@ async def _send_via_resend(
         "subject": subject,
         "html": html,
     }
+    if text:
+        # Resend supports a `text` field for the plain-text alternative.
+        # Including it improves deliverability (matches the HTML) and is
+        # what mail clients show when HTML is blocked.
+        params["text"] = text
     if reply_to:
         params["reply_to"] = [reply_to]
     encoded = []
@@ -254,6 +264,7 @@ async def send_email(
     *,
     attachments: Optional[List[Path]] = None,
     reply_to: Optional[str] = None,
+    text: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Send via whichever backend is configured. Never raises.
 
@@ -264,6 +275,12 @@ async def send_email(
          when Resend isn't configured OR when Resend rejects the
          request (e.g. domain not verified, key revoked, rate-limited).
 
+    `text` (optional) is the plaintext alternative shown when a mail
+    client can't render HTML.  When omitted we fall back to a generic
+    waitlist-style boilerplate so the HTML/text parity check passes —
+    callers sending transactional emails (magic links, receipts, etc.)
+    should always supply a faithful plaintext version.
+
     The fall-back chain is essential during launch week: Resend's
     domain-verification check can flag "unverified" while DNS is still
     propagating, and we never want a signup to silently fail to email.
@@ -273,6 +290,7 @@ async def send_email(
             to=to, subject=subject, html=html,
             reply_to=reply_to or _sender_email_only(),
             attachments=attachments,
+            text=text,
         )
         if result.get("ok"):
             return result
@@ -286,6 +304,7 @@ async def send_email(
                 to=to, subject=subject, html=html,
                 reply_to=reply_to or _sender_email_only(),
                 attachments=attachments,
+                text=text,
             )
             smtp_result["fallback_from"] = "resend"
             smtp_result["resend_error"] = result.get("error")
@@ -297,6 +316,7 @@ async def send_email(
             to=to, subject=subject, html=html,
             reply_to=reply_to or _sender_email_only(),
             attachments=attachments,
+            text=text,
         )
     logger.info("no email backend configured — skipping send to %s", to)
     return {"ok": False, "skipped": True, "reason": "no email backend configured"}
