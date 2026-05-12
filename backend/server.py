@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
+import ssl
 import io
 import json
 import asyncio
@@ -225,6 +226,85 @@ async def root():
 @api_router.get("/health", response_model=HealthResponse)
 async def health():
     return HealthResponse(status="ok", service="marvex")
+
+
+@api_router.get("/health/email")
+async def health_email():
+    """Email-stack health probe.
+
+    Reports which backends are configured and whether each one
+    authenticates against the provider — no real mail is sent.
+
+    Why this exists: SMTPAuthenticationError surfaced in Sentry on
+    8 May 2026 because production SMTP creds were rejected by the
+    provider, and the failure only became visible when a real user
+    submitted a bug report.  Hitting this endpoint catches the same
+    misconfig in 30 seconds without waiting for a real user.
+    """
+    out: Dict[str, Any] = {"resend": {"configured": False}, "smtp": {"configured": False}}
+
+    # Resend ----------------------------------------------------------
+    resend_key = os.environ.get("RESEND_API_KEY") or ""
+    if resend_key:
+        out["resend"]["configured"] = True
+        try:
+            # /api-keys requires only the bearer token — perfect for
+            # an auth check that doesn't burn send quota.
+            import aiohttp  # type: ignore
+            async with aiohttp.ClientSession() as s:
+                async with s.get(
+                    "https://api.resend.com/api-keys",
+                    headers={"Authorization": f"Bearer {resend_key}"},
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as r:
+                    out["resend"]["auth_status"] = r.status
+                    out["resend"]["auth_ok"] = r.status == 200
+                    if r.status != 200:
+                        try:
+                            out["resend"]["error"] = (await r.json()).get("message")
+                        except Exception:
+                            out["resend"]["error"] = await r.text()
+        except Exception as e:  # noqa: BLE001
+            out["resend"]["auth_ok"] = False
+            out["resend"]["error"] = f"probe failed: {e!s}"
+
+    # SMTP ------------------------------------------------------------
+    smtp_host = os.environ.get("SMTP_HOST") or ""
+    smtp_user = os.environ.get("SMTP_USERNAME") or ""
+    smtp_pass = os.environ.get("SMTP_PASSWORD") or ""
+    if smtp_host and smtp_user and smtp_pass:
+        out["smtp"]["configured"] = True
+        out["smtp"]["host"] = smtp_host
+        out["smtp"]["user"] = smtp_user
+        try:
+            import aiosmtplib  # type: ignore
+            port = int(os.environ.get("SMTP_PORT", "465"))
+            use_tls = port == 465
+            start_tls = port in (587, 25)
+            client = aiosmtplib.SMTP(
+                hostname=smtp_host, port=port, use_tls=use_tls,
+                start_tls=start_tls, timeout=15,
+                tls_context=ssl.create_default_context() if use_tls or start_tls else None,
+            )
+            await client.connect()
+            try:
+                await client.login(smtp_user, smtp_pass)
+                out["smtp"]["auth_ok"] = True
+            finally:
+                try:
+                    await client.quit()
+                except Exception:
+                    pass
+        except Exception as e:  # noqa: BLE001
+            out["smtp"]["auth_ok"] = False
+            out["smtp"]["error"] = str(e)
+
+    overall_ok = (
+        (out["resend"].get("configured") and out["resend"].get("auth_ok"))
+        or (out["smtp"].get("configured") and out["smtp"].get("auth_ok"))
+    )
+    out["overall_ok"] = bool(overall_ok)
+    return out
 
 
 # ----------- Heuristic PDF parser (ZERO API cost) -----------
