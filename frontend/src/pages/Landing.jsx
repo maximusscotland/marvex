@@ -175,6 +175,14 @@ export default function Landing() {
     { id: "C", text: "The studio for visual thinkers who want to own their own tools." },
   ];
   const [heroVariant] = useState(() => {
+    // Build-time prerender (scripts/prerender.js) sets `window.__PRERENDER__`
+    // before any script runs.  Force variant A in that case so the
+    // crawler-visible HTML is deterministic — React hydrates with the
+    // same value, then the regular A/B/C swap kicks in if the visitor
+    // doesn't already have a cached choice.
+    if (typeof window !== "undefined" && window.__PRERENDER__) {
+      return HERO_VARIANTS[0];
+    }
     try {
       const cached = sessionStorage.getItem("marvex.landing.hero.variant.v1");
       if (cached) {
