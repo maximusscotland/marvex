@@ -58,31 +58,34 @@ PLANS = {
         "interval_days": 30,
         "lifetime": False,
         # Resolved at runtime from env (`STRIPE_PRICE_LITE`) so live vs
-        # test Stripe accounts don't need code changes. The hardcoded
-        # value below is a historical fallback for legacy deploys —
-        # production should set the env var explicitly.
-        "stripe_price_id": (os.environ.get("STRIPE_PRICE_LITE") or "price_1TU4aFFMFVPFiUPV1DaOKldX").strip(),
+        # test Stripe accounts don't need code changes.  Empty string
+        # when unset → callers fall back to the dynamic-amount path,
+        # which Stripe accepts in both modes.  We deliberately do NOT
+        # ship a hardcoded test-mode fallback ID here — that previously
+        # masked missing live-mode config and caused "No such price"
+        # errors on production checkouts (Sentry 8 May 2026).
+        "stripe_price_id": (os.environ.get("STRIPE_PRICE_LITE") or "").strip(),
     },
     "monthly": {
         "label": "Pro Monthly",
         "amount": 15.00,
         "interval_days": 30,
         "lifetime": False,
-        "stripe_price_id": (os.environ.get("STRIPE_PRICE_MONTHLY") or "price_1TPKM2FMFVPFiUPVmPktXtLS").strip(),
+        "stripe_price_id": (os.environ.get("STRIPE_PRICE_MONTHLY") or "").strip(),
     },
     "annual": {
         "label": "Pro Annual",
         "amount": 150.00,
         "interval_days": 365,
         "lifetime": False,
-        "stripe_price_id": (os.environ.get("STRIPE_PRICE_ANNUAL") or "price_1TQ7XDFMFVPFiUPVs3gc0sHA").strip(),
+        "stripe_price_id": (os.environ.get("STRIPE_PRICE_ANNUAL") or "").strip(),
     },
     "lifetime": {
         "label": "Pro Lifetime",
         "amount": 200.00,
         "interval_days": 0,
         "lifetime": True,
-        "stripe_price_id": (os.environ.get("STRIPE_PRICE_LIFETIME") or "price_1TQ7XDFMFVPFiUPVG8YEHLF2").strip(),
+        "stripe_price_id": (os.environ.get("STRIPE_PRICE_LIFETIME") or "").strip(),
     },
 }
 
@@ -105,7 +108,7 @@ ADDONS = {
     "premium_uk_law": {
         "label": "Law Pack Add-on",
         "amount": 10.00,
-        "stripe_price_id": (os.environ.get("STRIPE_PRICE_LAW_PACK") or "price_1TSZlfFMFVPFiUPVoFZQbWMS").strip(),
+        "stripe_price_id": (os.environ.get("STRIPE_PRICE_LAW_PACK") or "").strip(),
         "description": "Full BAILII case-law search, statute cross-references, and LexisNexis BYOK proxy",
     },
 }
@@ -490,19 +493,42 @@ def make_router(db: AsyncIOMotorDatabase, current_user_dep) -> APIRouter:
             raise HTTPException(status_code=400, detail="Invalid plan")
         plan = PLANS[payload.plan]
         plan_price_id = (plan.get("stripe_price_id") or "").strip()
-        if not plan_price_id:
-            raise HTTPException(status_code=500, detail="Plan price not configured")
 
         origin = payload.origin_url.rstrip("/")
         success_url = f"{origin}/app?upgraded=true&session_id={{CHECKOUT_SESSION_ID}}"
         cancel_url = f"{origin}/pricing?upgraded=false"
 
+        # Build the line item.  Prefer the named Stripe Price ID when it's
+        # configured for live mode (cleaner receipts, reporting links to
+        # the Product).  Otherwise fall back to a dynamic `price_data`
+        # line item so checkout still works without us pre-creating a
+        # Price in Stripe — same fall-through the authenticated /create-
+        # checkout path uses.  This is what stopped the "No such price"
+        # Sentry error after we removed the hardcoded test-mode fallbacks
+        # in PLANS (8 May 2026).
+        mode = "payment" if plan.get("lifetime") else "subscription"
+        if plan_price_id:
+            line_item = {"price": plan_price_id, "quantity": 1}
+        else:
+            price_data = {
+                "currency": "usd",
+                "product_data": {"name": plan.get("label") or payload.plan},
+                "unit_amount": _plan_amount_cents(payload.plan),
+            }
+            # Subscriptions need a `recurring` block; one-off payments
+            # (lifetime) must NOT include it.
+            if mode == "subscription":
+                interval_days = int(plan.get("interval_days") or 30)
+                price_data["recurring"] = {
+                    "interval": "year" if interval_days >= 365 else "month",
+                }
+            line_item = {"price_data": price_data, "quantity": 1}
+
         try:
             stripe_sdk.api_key = STRIPE_API_KEY
-            mode = "payment" if plan.get("lifetime") else "subscription"
             session = stripe_sdk.checkout.Session.create(
                 mode=mode,
-                line_items=[{"price": plan_price_id, "quantity": 1}],
+                line_items=[line_item],
                 success_url=success_url,
                 cancel_url=cancel_url,
                 # Tell Stripe to collect a customer record so we get
