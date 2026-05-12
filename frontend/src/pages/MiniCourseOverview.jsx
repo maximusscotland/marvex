@@ -140,7 +140,7 @@ export default function MiniCourseOverview() {
             </div>
           </div>
 
-          <h2 className="text-2xl font-bold mb-6">The five lessons</h2>
+          <h2 className="text-2xl font-bold mb-6">The {totalLessons === 6 ? "six" : totalLessons === 5 ? "five" : totalLessons} lessons</h2>
           <ol className="space-y-3 mb-12">
             {LESSONS.map((l) => (
               <li key={l.slug}>

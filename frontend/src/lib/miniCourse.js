@@ -33,9 +33,9 @@ export const COURSE = {
   title: "Effective teaching with mind maps",
   metaTitle: "Mini-course: Effective teaching with mind maps — Marvex Studio",
   description:
-    "A 5-lesson, ~45-minute mini-course for teachers, tutors and academic coaches. Use mind maps + one-click resources + visual timelines to make your subject material click, faster.",
+    "A 6-lesson, ~55-minute mini-course for teachers, tutors and academic coaches. Use mind maps + one-click resources + visual timelines to make your subject material click, faster. Includes a fully-worked UK Human Rights teaching example.",
   audience: "Teachers · K-12 tutors · University TAs · Workshop facilitators",
-  minutesTotal: 45,
+  minutesTotal: 55,
   updatedAt: "2026-02-12",
   outcome:
     "By the end of this course you'll have a working topic-overview map for one of your own subjects, every resource your students need attached in one click, and a class-by-class timeline pulled directly from that map.",
@@ -363,7 +363,7 @@ export const LESSONS = [
         ],
       },
     ],
-    next: null,
+    next: "worked-example-uk-human-rights",
     faq: [
       {
         q: "What's the best way to start using mind-maps in a class that's already mid-term?",
@@ -376,6 +376,118 @@ export const LESSONS = [
       {
         q: "Is there a free tier that supports this workflow?",
         a: "Yes. The Marvex Free tier handles three maps with up to 30 nodes each — enough for one topic-overview map plus two sub-maps. Pro tier ($15/mo or $150/yr) lifts every limit, adds the inline video player, and unlocks the desktop app for larger files. Founder tier ($200 lifetime) is for teachers who want a permanent licence with no subscription friction.",
+      },
+    ],
+  },
+
+  // ─── Lesson 6 (★ Worked example) ───────────────────────────────────────
+  {
+    slug: "worked-example-uk-human-rights",
+    order: 6,
+    title: "Worked example: a UK Human Rights mind map (and how to teach it)",
+    metaTitle: "UK Human Rights mind map — a worked teaching example | Marvex",
+    description:
+      "A fully-worked teaching mind map for the Human Rights Act 1998, suitable for GCSE Citizenship, A-level Law, A-level Politics and PSHE. Includes the central question, branch structure per Article, recommended resources, timeline schedule, and assessment ideas.",
+    keywords:
+      "Human Rights Act mind map, HRA 1998 teaching resource, Citizenship Studies mind map, A-level Law human rights, ECHR teaching",
+    minutesRead: 10,
+    tldr:
+      "You've learned the method (lessons 1-5). This lesson applies it end-to-end on a real UK curriculum topic: the Human Rights Act 1998. Central question: 'Whose human rights does the HRA 1998 actually protect?'. Eleven main branches (one per right), one node per Article with a one-click resource attached (gov.uk, Liberty, BBC Bitesize, landmark-case PDF). Map → Timeline gives you a six-week delivery plan across Citizenship / Law / Politics. Assessment: students extend the map with one post-2020 case per right.",
+    sections: [
+      {
+        heading: "Why this topic is a perfect demo",
+        paragraphs: [
+          "Human Rights under the HRA 1998 is on the GCSE Citizenship Studies specification, the A-level Law specification, A-level Politics, and most PSHE 'rights and responsibilities' schemes of work. It's also genuinely difficult to teach well: students struggle to remember 16 rights, to distinguish absolute from qualified rights, and to connect abstract Articles to concrete cases.",
+          "Mind-mapping fixes all three of those problems at once. Each right gets a fixed spatial position so students recall it by location. Absolute vs qualified rights get colour-coded so the distinction becomes pre-attentive. And every Article carries a one-click resource — usually a landmark case PDF — so the abstract becomes concrete with no friction.",
+          "This lesson walks through the actual map. You can copy the structure exactly, or adapt it to your students' level (GCSE-light to A-level-heavy).",
+        ],
+      },
+      {
+        heading: "The central question",
+        paragraphs: [
+          "Following the rule from Lesson 2 — a question, not a noun — put this at the centre of the map:",
+          "**'Whose human rights does the HRA 1998 actually protect, and against whom?'**",
+          "This framing forces students to remember two non-obvious facts: that the rights belong to *everyone in the UK* (not just citizens), and that they protect against *public authorities* specifically — not other private individuals. Both points are easy to test and frequently confused.",
+        ],
+      },
+      {
+        heading: "The eleven main branches",
+        paragraphs: [
+          "Each first-level branch is one of the rights protected by the Act. Use two colour groups: blue for **absolute rights** (the state can never restrict them, even in war or emergency) and amber for **qualified rights** (which can be restricted in narrow, lawful, proportionate circumstances). The visual contrast does the teaching work — students see absolute vs qualified at a glance and never confuse them.",
+          "**Article 2 — Right to life (absolute).** Sub-nodes: 'state must investigate deaths in custody', 'right not to be killed unlawfully by the state', 'protection extends to known threats to life'. Landmark case: *Osman v UK (1998)* — duty to act on credible threats.",
+          "**Article 3 — Freedom from torture, inhuman or degrading treatment (absolute).** Sub-nodes: 'no derogation, even in wartime', 'covers inhuman or degrading treatment, not only torture', 'applies in care, detention and immigration settings'. Landmark case: *Ireland v UK (1978)* — the 'five techniques'.",
+          "**Article 5 — Right to liberty and security (qualified).** Sub-nodes: 'arrest only on reasonable suspicion', 'right to be told why you're arrested', 'right to a prompt hearing', 'compensation for unlawful detention'. Landmark case: *A & Others v Home Secretary (2004)* — indefinite detention of foreign terror suspects ruled unlawful.",
+          "**Article 6 — Right to a fair trial (qualified).** Sub-nodes: 'public hearing', 'independent court', 'presumption of innocence', 'right to legal representation', 'reasonable time'. Landmark case: *Saunders v UK (1996)* — self-incrimination.",
+          "**Article 8 — Respect for private and family life (qualified).** Sub-nodes: 'privacy', 'home', 'correspondence', 'family life'. Most-litigated Article in the UK. Landmark case: *Campbell v MGN (2004)* — celebrity privacy and the press.",
+          "**Article 9 — Freedom of thought, belief and religion (qualified for manifestation, absolute for the belief itself).** Sub-nodes: 'right to hold a belief = absolute', 'right to manifest a belief = qualified', 'no compulsion to adopt a religion'. Landmark case: *R (Williamson) v SS for Education (2005)* — corporal punishment in religious schools.",
+          "**Article 10 — Freedom of expression (qualified).** Sub-nodes: 'extends to offensive ideas', 'press freedom', 'restrictions must be proportionate', 'higher protection for political speech'. Landmark case: *Handyside v UK (1976)* — 'expression covers ideas that offend, shock or disturb'.",
+          "**Article 11 — Freedom of assembly and association (qualified).** Sub-nodes: 'peaceful protest', 'right to join a union', 'right to NOT join'. Landmark case: *DPP v Ziegler (2021)* — proportionality test for obstruction-of-highway protests.",
+          "**Article 12 — Right to marry (qualified).** Sub-nodes: 'right to marry someone of the opposite or same sex', 'state may regulate the formalities', 'right to found a family'. Landmark case: *Goodwin v UK (2002)* — recognition of acquired gender.",
+          "**Article 14 — Protection from discrimination (modifier, not standalone).** Sub-nodes: 'only operates in conjunction with another Article', 'covers sex, race, religion, language, political opinion, national or social origin, association with a minority, property, birth, or other status'. Landmark case: *Ghaidan v Godin-Mendoza (2004)* — same-sex partner tenancy rights.",
+          "**Protocol 1, Article 1 — Protection of property (qualified).** Sub-nodes: 'peaceful enjoyment', 'state can interfere only in the public interest', 'compensation usually required'. Landmark case: *James v UK (1986)* — leasehold reform.",
+          "Optional further branches for A-level depth: Article 4 (slavery, absolute), Article 7 (no retrospective punishment), Protocol 1 Article 2 (education), Protocol 1 Article 3 (free elections), Protocol 13 (abolition of the death penalty in all circumstances). These bring the count to the full sixteen rights students sometimes see cited.",
+        ],
+      },
+      {
+        heading: "One-click resources — what to attach (★ Lesson 3 in action)",
+        paragraphs: [
+          "Every Article-level node should carry at least one resource. Here's a tested set, all free to attach:",
+          "**The Act itself** — link the central question node to the [Human Rights Act 1998 on legislation.gov.uk](https://www.legislation.gov.uk/ukpga/1998/42/contents). Authoritative, free, no paywall.",
+          "**Plain-English explainer** — Liberty's [Human Rights Explained guide](https://www.libertyhumanrights.org.uk/issue/human-rights-act/) is the best plain-English overview for GCSE. Attach a PDF copy to the central node.",
+          "**BBC Bitesize** — for GCSE Citizenship, the [Bitesize Human Rights revision page](https://www.bbc.co.uk/bitesize/topics/zw7gk2p) is paste-perfect for the 'further reading' badge.",
+          "**Landmark cases** — for each Article, attach the case PDF (judgment) or a 2-3 page case summary. The Liberty 'Library' and the European Court of Human Rights (HUDOC) database both host free, redistributable summaries. Drop the PDF on the Article node and students click once to read.",
+          "**Video walk-throughs** — search for 'Article 8 ECHR' (or similar) on YouTube; the Liberty channel and the LawTeacher channel both have 4-6 minute explainers per Article. Paste the URL on the node and Marvex's inline player handles the rest — students watch without leaving the map.",
+          "**Equality and Human Rights Commission (EHRC)** — the EHRC has free, classroom-ready briefings on every Article. Their [resources hub](https://www.equalityhumanrights.com/en/human-rights/human-rights-act) is the right link for the 'official body' node off the central question.",
+        ],
+      },
+      {
+        heading: "Map → Timeline: a 6-week delivery plan (★ Lesson 4 in action)",
+        paragraphs: [
+          "From the finished map, generate a timeline (Studio → New Timeline from this map). Schedule the rights across six weeks the way most teachers do for a half-term Citizenship or Law block:",
+          "**Week 1** — Introduction + Article 2 (life) + Article 3 (torture). Why these are absolute and what 'absolute' means. Discussion: should anything be absolute?",
+          "**Week 2** — Article 5 (liberty) + Article 6 (fair trial). Connect to UK criminal procedure — police caution, custody time limits, jury trial.",
+          "**Week 3** — Article 8 (private life) + Article 14 (discrimination). The 'modifier' Article 14 only makes sense paired with another, so teach it alongside Article 8 where it most often arises.",
+          "**Week 4** — Articles 9, 10, 11 (thought/expression/assembly). The 'freedoms' cluster. Big debates: hate speech, protest law, religious symbols at school.",
+          "**Week 5** — Article 12 (marry) + Protocol 1 Article 1 (property). Quieter Articles but important for evidencing the breadth of the Act.",
+          "**Week 6** — Synthesis: public bodies, derogation, the European Convention vs the Act, and the proposed Bill of Rights debate. End with the extension assessment (next section).",
+          "Save this timeline. Share it with students at the start of the half-term as a roadmap, share it again at the end as a revision scaffold.",
+        ],
+      },
+      {
+        heading: "Assessment: students extend the map (★ Lesson 5 in action)",
+        paragraphs: [
+          "Following the technique from Lesson 5, ask each student to **add one post-2020 case to any three Articles** of their choice. They must (a) name the case, (b) summarise the rights issue in one sentence, (c) attach a source (Liberty article, BBC News piece, judgment PDF) to the new node.",
+          "This is a stiff assessment in a small package. It tests engagement with primary sources, current-affairs awareness (cases must be recent), case-summary skill (one-sentence digest of a judgment), and judgement (was the case actually a Human Rights Act case?).",
+          "Mark by diffing each student's map against your original. Marvex's 'Compare with original' button highlights the three new nodes; you check the source, the summary, and the categorisation. ~5 minutes per student.",
+          "Common student additions you should expect: *DPP v Ziegler* (2021, Article 11), *Begum* (2021, Article 8 — though arguably not HRA-bound), *Re P* (Northern Ireland abortion cases), various COVID-lockdown challenges, and HMP-prisoner-voting cases. Be ready to push back when a case is not actually an HRA case — that's the most common substantive error.",
+        ],
+      },
+      {
+        heading: "Where to take it next",
+        paragraphs: [
+          "For A-level Politics, extend the map with a sub-branch on **the Bill of Rights debate** — the Conservative proposals (2022-2024), the Labour position, and the broader 'should we leave the ECHR?' question. Each becomes its own node with a resource attached.",
+          "For A-level Law, link this map to a sister map on **judicial review** — most HRA challenges come via judicial review, and the procedural mechanics are usually taught separately even though they're inseparable in practice.",
+          "For GCSE Citizenship, link to the **child-specific rights map** (United Nations Convention on the Rights of the Child) — the UNCRC sits alongside the HRA and is the more commonly-tested instrument for under-18 protection. A separate map keeps each topic clean while the linking node connects them.",
+        ],
+      },
+    ],
+    next: null,
+    faq: [
+      {
+        q: "Can I download or share this Human Rights map directly without rebuilding it?",
+        a: "Yes — Marvex Studio ships with a 'UK Human Rights Act (teacher template)' under New map → Templates. It contains the eleven-branch structure described above with placeholder resource nodes, ready for you to attach your preferred PDFs and videos. Edit one node, share the whole map with your students.",
+      },
+      {
+        q: "Is this map suitable for primary school?",
+        a: "The full eleven-branch structure is too dense for under-11s. For primary, use a simplified four-branch version: 'Safety' (Articles 2, 3, 5), 'Fairness' (Articles 6, 14), 'Freedoms' (Articles 9, 10, 11) and 'Privacy and Family' (Articles 8, 12). Each branch carries a one-sentence definition and one age-appropriate example. Save it as a separate template.",
+      },
+      {
+        q: "How do I keep the cases up-to-date year on year?",
+        a: "Mark each landmark-case node with the case year in its label, e.g. 'Osman v UK (1998)'. Each summer, scan the most recent term's Supreme Court and ECHR judgments via the [BAILII free-text search](https://www.bailii.org/) and add any landmark rulings as new nodes off the relevant Article. Most years there are 2-4 substantial additions to make. Takes ~30 minutes once a year and keeps the map fresh.",
+      },
+      {
+        q: "Where does Article 4 (slavery) and Article 7 (no retrospective punishment) sit in the map?",
+        a: "Both are valid Articles of the Act, just less frequently taught at GCSE/A-level. Add them as supplementary branches off the central question once the main eleven are taught, ideally during the Week 6 synthesis session. Articles 4 and 7 are particularly useful for stretching the strongest students — Article 7 in particular sparks excellent debates about *ex post facto* law.",
       },
     ],
   },

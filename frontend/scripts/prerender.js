@@ -88,6 +88,7 @@ const MARKETING_ROUTES = [
   "/mini-course/teaching-with-mind-maps/lesson/one-click-resources",
   "/mini-course/teaching-with-mind-maps/lesson/map-to-timeline",
   "/mini-course/teaching-with-mind-maps/lesson/assessment-and-revision",
+  "/mini-course/teaching-with-mind-maps/lesson/worked-example-uk-human-rights",
   // Competitor comparison pages
   "/vs/heptabase",
   "/vs/mapify",
