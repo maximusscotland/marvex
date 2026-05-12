@@ -1,11 +1,14 @@
 /* eslint-disable react/prop-types */
 import React, { useEffect, useMemo } from "react";
 import { Link, useParams, Navigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Clock, CheckCircle2, BookOpen, GraduationCap } from "lucide-react";
+import { ArrowLeft, ArrowRight, Clock, CheckCircle2, BookOpen, GraduationCap, Download } from "lucide-react";
 import Logo from "@/components/Logo";
 import SiteLinksFooter from "@/components/SiteLinksFooter";
 import { COURSE, LESSONS, LESSON_BY_SLUG } from "@/lib/miniCourse";
 import usePageMeta from "@/lib/usePageMeta";
+import { encodeMmap } from "@/lib/mapFile";
+import { UK_HUMAN_RIGHTS_TEMPLATE } from "@/lib/templates/ukHumanRights";
+import { track } from "@/lib/posthog";
 
 const SITE = "https://marvex.app";
 const COURSE_BASE = `/mini-course/${COURSE.slug}`;
@@ -199,6 +202,64 @@ export default function MiniCourseLesson() {
                 </section>
               ))}
             </div>
+
+            {lesson.slug === "worked-example-uk-human-rights" && (
+              <section className="mt-12" data-testid="lesson-template-download">
+                <div className="rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/[0.06] via-fuchsia-500/[0.03] to-transparent p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl grid place-items-center bg-cyan-400/10 border border-cyan-300/40 shrink-0">
+                      <Download size={20} className="text-cyan-200" />
+                    </div>
+                    <div className="flex-1">
+                      <h2 className="mono text-[10px] uppercase tracking-[0.3em] text-fuchsia-300/80 mb-2 m-0">
+                        Skip the typing — grab the template
+                      </h2>
+                      <p className="text-[15px] font-semibold text-white mb-2">
+                        Download the full UK Human Rights Act mind map
+                      </p>
+                      <p className="text-[13px] text-[#a4b4d8] leading-relaxed mb-4">
+                        Includes the central question, all eleven branches with colour-coded absolute / qualified rights, every landmark case, public-authority obligation node, and pre-attached gov.uk source links. Open it in Marvex Studio, customise for your class, and share with one click.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                        <button
+                          type="button"
+                          data-testid="download-hr-template"
+                          onClick={() => {
+                            try {
+                              const buf = encodeMmap(UK_HUMAN_RIGHTS_TEMPLATE);
+                              const blob = new Blob([buf], { type: "application/octet-stream" });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement("a");
+                              a.href = url;
+                              a.download = "uk-human-rights-act-1998.mmap";
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                              URL.revokeObjectURL(url);
+                              try {
+                                track("course_template_downloaded", {
+                                  template: "uk-human-rights",
+                                  lesson: lesson.slug,
+                                });
+                              } catch { /* posthog unavailable — fine */ }
+                            } catch (e) {
+                              // eslint-disable-next-line no-console
+                              console.error("[template-download] failed", e);
+                            }
+                          }}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-cyan-400/15 border border-cyan-300/60 text-cyan-100 hover:bg-cyan-400/25 transition font-medium text-[14px]"
+                        >
+                          <Download size={14} /> Download .mmap template
+                        </button>
+                        <span className="text-[12px] text-[#7a87ad]">
+                          Then open it in <Link to="/app" className="text-cyan-300 hover:text-cyan-200 underline underline-offset-4">Marvex Studio</Link> · File → Open
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
 
             {lesson.faq?.length > 0 && (
               <section className="mt-14">
