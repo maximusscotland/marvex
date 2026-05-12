@@ -470,7 +470,7 @@ export default function PdfReader() {
   // ---------- Reader view (file loaded) ----------
   const fileInputAdd = () => fileInputRef.current?.click();
   return (
-    <div className="min-h-screen bg-[#03040a] text-[#cfdaf3]">
+    <div translate="no" className="notranslate min-h-screen bg-[#03040a] text-[#cfdaf3]">
       <MobileNav />
       <ReaderHeader
         navigate={navigate}

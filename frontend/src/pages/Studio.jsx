@@ -1098,7 +1098,19 @@ export default function Studio({ mode = "mindmap" }) {
     tourOpen || researchOpen || shareCardOpen || paletteOpen || todoOpen;
 
   return (
-    <div data-testid="studio-page" className="h-screen w-screen overflow-hidden flex bg-[#03040a] text-white">
+    <div
+      data-testid="studio-page"
+      // `translate="no"` + `notranslate` class = the official Google /
+      // Microsoft Edge translation extension opt-out.  Stops the
+      // extension from mutating text nodes inside the React tree,
+      // which causes the spurious
+      //   "NotFoundError: Failed to execute 'removeChild' on 'Node'…"
+      // crashes that have shown up in Sentry on /app since launch.
+      // We only opt out on interactive app routes — marketing pages
+      // stay translatable so we don't kneecap international SEO.
+      translate="no"
+      className="notranslate h-screen w-screen overflow-hidden flex bg-[#03040a] text-white"
+    >
       {/* Subscription-health banner (fixed top strip via portal — only renders
           when past-due / cancel-at-period-end / renews-soon). */}
       <SubscriptionBanner fixed />

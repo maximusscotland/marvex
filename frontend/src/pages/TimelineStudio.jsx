@@ -248,7 +248,7 @@ export default function TimelineStudio() {
   }
 
   return (
-    <div className="min-h-screen cosmic-bg text-white flex flex-col">
+    <div translate="no" className="notranslate min-h-screen cosmic-bg text-white flex flex-col">
       {/* Header */}
       <header className="px-5 py-3 border-b border-white/8 bg-[#03040a]/80 backdrop-blur-md flex items-center justify-between">
         <div className="flex items-center gap-3">
