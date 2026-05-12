@@ -23,6 +23,36 @@ const SITE = "https://marvex.app";
 
 const FAQ_GROUPS = [
   {
+    id: "pdf",
+    title: "PDF to mind map",
+    items: [
+      {
+        q: "Can I convert a scanned (image-based) PDF into a mind map?",
+        a: "Yes, with one caveat. If the scan has an OCR text layer (most modern scans do), Marvex extracts the text and builds the mind map normally. Pure image scans with no text layer need a free OCR pass first (Adobe Acrobat, macOS Preview, or PDF24 online) and then Marvex treats them like any other PDF. Native OCR ships in v0.3. Start with the [PDF to mind map walkthrough](/learn/how-to-turn-pdf-into-mind-map) or [open the studio](/app).",
+      },
+      {
+        q: "Is there a page limit when converting a PDF to a mind map?",
+        a: "**Free tier**: up to 25 pages per PDF and 30 elements per map. **Pro Lite ($9/mo)**: up to 80 pages and 200 elements. **Pro ($15/mo) and Lifetime**: unlimited pages and elements. The [desktop app](/download) handles PDFs up to 200 MB; the web app caps at 25 MB to keep parsing snappy. Compare tiers on the [pricing page](/pricing).",
+      },
+      {
+        q: "Can I convert a whole textbook into a study mind map?",
+        a: "Yes — it's one of the most loved workflows. Use AI Analysis with Claude Sonnet 4.5 or GPT-4o and you get a chapter-by-chapter map with concepts, definitions, and relationships in 60–120 seconds. Then right-click any element to ask the AI for an example, a simpler explanation, or a counter-argument. See the [mind mapping for students guide](/learn/mind-mapping-for-students) and the free [Teaching with Mind Maps mini-course](/mini-course/teaching-with-mind-maps).",
+      },
+      {
+        q: "What types of PDFs convert best into a mind map?",
+        a: "Anything with a clear hierarchy: academic papers, textbook chapters, legal judgments, white papers, technical docs, and meeting minutes. **Quick Outline** follows the heading tree directly so structured PDFs map perfectly. For dense prose without headings (interview transcripts, novels) switch to **AI Analysis** — it infers structure semantically. The [best PDF mind map tools roundup](/learn/best-pdf-mind-map-tools-2026) shows where Marvex outperforms competitors on each PDF type.",
+      },
+      {
+        q: "Do I need to upload my PDF to the cloud to convert it?",
+        a: "No — the PDF stays on your device throughout. Quick Outline runs entirely in your browser. AI Analysis sends the extracted text to your AI provider (OpenAI / Anthropic / Google) using **your** own API key — Marvex servers never see the file or the AI request body. Full detail in the [privacy policy](/privacy) and on the canonical [PDF to mind map page](/pdf-to-mind-map).",
+      },
+      {
+        q: "What are some practical real-world uses for Marvex Studio mind maps and Timeline Studio?",
+        a: "Marvex isn't just for academic essays — three patterns we see daily:\n\n**(1) Household finances on a timeline.** Drop your monthly outgoings (mortgage / rent, council tax, utilities, subscriptions, insurance renewals) onto [Timeline Studio](/timeline). You instantly see which week of the year is tight and when the next big payment lands. It beats a spreadsheet because the *shape* of the year is visual — you spot pinch points before they hit.\n\n**(2) Criminal investigation & legal case prep.** Investigators, paralegals and solicitors map suspects, witness statements, exhibits, and forensic findings into a mind map, then drop the same elements onto a parallel timeline to spot inconsistencies in alibis or sequence-of-events disputes. Pair with the [Law Pack add-on](/pricing) for BAILII full-text case-law search and you have a one-canvas case file.\n\n**(3) Household emergency contact map.** One mind map per home: car insurance, breakdown cover, GP surgery, emergency plumber, gas-safe engineer, locksmith, electrician, the neighbour with the spare key, boiler model + service date, fuse-box location. Print as PDF and stick it on the fridge or share a .mmap file with a house-sitter. When the boiler dies at 2am, you reach the right person in 10 seconds instead of 10 minutes of panic-Googling.\n\nMore examples in [mind mapping for students](/learn/mind-mapping-for-students), or just [open the studio and start mapping](/app).",
+      },
+    ],
+  },
+  {
     id: "general",
     title: "Getting started",
     items: [
@@ -50,7 +80,7 @@ const FAQ_GROUPS = [
     items: [
       {
         q: "Can I cancel anytime?",
-        a: "Yes. Click your avatar in Studio → \"Manage subscription\" → \"Cancel plan\" (this opens the Stripe Customer Portal). Your plan stays active until the end of the billing period — no early-termination fees, no clawbacks on existing maps.",
+        a: "Yes. Click your avatar in Studio → \"Manage subscription\" → \"Cancel plan\" (this opens the Stripe Customer Portal). Your plan stays active until the end of the billing period — no early-termination fees, no clawbacks on existing maps. See the [pricing page](/pricing) or [contact us](/contact) if Stripe's portal misbehaves.",
       },
       {
         q: "Do you offer refunds?",
@@ -58,11 +88,11 @@ const FAQ_GROUPS = [
       },
       {
         q: "What happens to my maps if I downgrade?",
-        a: "All your existing maps stay — they're stored in your browser/desktop, not on our servers. You'll lose access to NEW Pro features (AI Analysis on new maps, cloud sync, larger map limits) but every map you've already created stays fully editable and exportable.",
+        a: "All your existing maps stay — they're stored in your browser/desktop, not on our servers. You'll lose access to NEW Pro features (AI Analysis on new maps, cloud sync, larger map limits) but every map you've already created stays fully editable and exportable. Compare what each tier unlocks on the [pricing page](/pricing).",
       },
       {
         q: "Is the lifetime plan really lifetime?",
-        a: "Yes — pay once, use forever. \"Lifetime\" means as long as Marvex Studio exists as a product (we're committed to a minimum 5-year support window even if a corporate acquirer ever steps in). Lifetime includes all future feature updates at no extra cost.",
+        a: "Yes — pay once, use forever. \"Lifetime\" means as long as Marvex Studio exists as a product (we're committed to a minimum 5-year support window even if a corporate acquirer ever steps in). Lifetime includes all future feature updates at no extra cost. See [Lifetime on the pricing page](/pricing) or [download the desktop apps](/download) that come with it.",
       },
       {
         q: "Do you have student / education discounts?",
@@ -84,11 +114,11 @@ const FAQ_GROUPS = [
       },
       {
         q: "How much does AI Analysis typically cost per map?",
-        a: "A 20-page research paper analysed with GPT-4o costs roughly **$0.02–$0.05** per map. Claude Sonnet 4.5 is similar. Gemini 3 Flash is cheaper (~$0.005). For comparison, you could run AI Analysis on **300 papers** for the cost of a single Heptabase month.",
+        a: "A 20-page research paper analysed with GPT-4o costs roughly **$0.02–$0.05** per map. Claude Sonnet 4.5 is similar. Gemini 3 Flash is cheaper (~$0.005). For comparison, you could run AI Analysis on **300 papers** for the cost of a single Heptabase month — read the [Marvex vs Heptabase breakdown](/vs/heptabase) and the deeper [AI mind map generator explainer](/learn/ai-mind-map-generator-explained).",
       },
       {
         q: "Does Marvex see my AI key?",
-        a: "No. Your API key lives in your browser's localStorage (or your desktop app's encrypted keychain) and the API call goes **directly** from your machine to OpenAI / Anthropic / Google. Marvex servers never see the key, the request body, or the response. We literally cannot bill you for AI usage we never observe.",
+        a: "No. Your API key lives in your browser's localStorage (or your desktop app's encrypted keychain) and the API call goes **directly** from your machine to OpenAI / Anthropic / Google. Marvex servers never see the key, the request body, or the response. We literally cannot bill you for AI usage we never observe. Full detail in the [privacy policy](/privacy) and the canonical [PDF to mind map](/pdf-to-mind-map) workflow.",
       },
     ],
   },
@@ -163,7 +193,7 @@ const renderInline = (text) => {
 
 export default function Faq() {
   const [open, setOpen] = useState(() => new Set([
-    "general:0", "billing:0", "ai:0", "privacy:0", "support:0",
+    "pdf:0", "general:0", "billing:0", "ai:0", "privacy:0", "support:0",
   ]));
   const toggle = (key) => setOpen((s) => {
     const next = new Set(s);

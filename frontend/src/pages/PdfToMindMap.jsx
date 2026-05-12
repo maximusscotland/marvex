@@ -96,6 +96,31 @@ export default function PdfToMindMap() {
             name: "What's the difference between Marvex Studio and other AI mind map generators?",
             acceptedAnswer: { "@type": "Answer", text: "Marvex Studio is local-first (your data never leaves your device by default) and uses Bring-Your-Own-Key AI — you pay your AI provider directly with no markup. Competitors typically lock you into their cloud and charge per generation." },
           },
+          {
+            "@type": "Question",
+            name: "Can I convert a scanned (image-based) PDF into a mind map?",
+            acceptedAnswer: { "@type": "Answer", text: "Yes, with one caveat. If the scanned PDF has an OCR text layer (most modern scans do), Marvex extracts text and builds the mind map normally. If it's a pure image scan with no text layer, run it through a free OCR tool first (Adobe Acrobat, Preview on macOS, or PDF24 online), then drop the OCR'd version into Marvex. Native OCR ships in v0.3." },
+          },
+          {
+            "@type": "Question",
+            name: "Is there a page or size limit for PDF mind mapping?",
+            acceptedAnswer: { "@type": "Answer", text: "Free tier: up to 25 pages per PDF and 30 elements per map. Pro Lite ($9/mo): up to 80 pages and 200 elements. Pro ($15/mo) and Lifetime: unlimited pages and elements. The desktop app handles PDFs up to 200 MB; the web app caps at 25 MB to keep parsing snappy." },
+          },
+          {
+            "@type": "Question",
+            name: "What types of PDFs convert best into a mind map?",
+            acceptedAnswer: { "@type": "Answer", text: "Anything with a clear hierarchical structure — academic papers, textbook chapters, legal judgments, white papers, technical documentation, and meeting minutes. Quick Outline excels at these because it follows the heading tree directly. For dense prose with no headings (interview transcripts, novels), AI Analysis works better because it infers structure semantically." },
+          },
+          {
+            "@type": "Question",
+            name: "Do I need to upload my PDF to the cloud to convert it?",
+            acceptedAnswer: { "@type": "Answer", text: "No. The PDF stays on your device throughout. Quick Outline runs entirely in your browser. AI Analysis sends the extracted text to your AI provider (OpenAI / Anthropic / Google) using your own API key — Marvex servers never see the file or the AI request." },
+          },
+          {
+            "@type": "Question",
+            name: "Can I convert a textbook into a study mind map?",
+            acceptedAnswer: { "@type": "Answer", text: "Yes — that's one of the most popular workflows. Drop a textbook PDF in, pick AI Analysis with Claude Sonnet 4.5 or GPT-4o, and within 60–120 seconds you get a chapter-by-chapter map with key concepts, definitions, and relationships extracted. Right-click any element to ask the AI for examples, simpler explanations, or counter-arguments." },
+          },
         ],
       },
     ]);
@@ -111,7 +136,7 @@ export default function PdfToMindMap() {
           <span className="mono text-[11px] uppercase tracking-[0.22em]">marvex</span>
         </Link>
         <Link to="/app" data-testid="ptm-launch-nav" className="cta-ghost text-[13px]">
-          Try free <ArrowRight size={14} />
+          Open the PDF to mind map maker <ArrowRight size={14} />
         </Link>
       </header>
 
@@ -159,7 +184,7 @@ export default function PdfToMindMap() {
         </h2>
         <div className="space-y-5">
           {[
-            { n: 1, icon: Upload, title: "Open Marvex Studio", body: <>Go to <Link to="/app" className="text-cyan-300 hover:underline">marvex.app/app</Link> and click <strong>Try Free</strong>. No account required.</> },
+            { n: 1, icon: Upload, title: "Open Marvex Studio", body: <>Go to <Link to="/app" className="text-cyan-300 hover:underline">marvex.app/app</Link> and click <strong>Convert a PDF to a mind map</strong>. No account required.</> },
             { n: 2, icon: FileText, title: "Drop your PDF", body: "Drag any PDF onto the canvas, or click the upload button. The file stays on your device — Marvex Studio never uploads it to our servers." },
             { n: 3, icon: Brain, title: "Pick the AI engine", body: <>Choose <strong>Quick Outline</strong> (free, structural parse) or <strong>AI Analysis</strong> (uses your own Claude / OpenAI / Gemini API key for semantic mapping).</> },
             { n: 4, icon: Sparkles, title: "Watch the mind map appear", body: "In 30–60 seconds the AI extracts every concept, theme, and relationship into an interactive mind map you can zoom, edit, and export." },
@@ -241,19 +266,79 @@ export default function PdfToMindMap() {
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-10">Common questions.</h2>
         <div className="space-y-4">
           {[
-            { q: "Is the PDF to mind map converter free?", a: "Yes — the free tier converts PDFs using Quick Outline (no AI cost). For semantic AI mind maps, bring your own Claude / OpenAI / Gemini API key — we never charge you for AI usage." },
-            { q: "Do I need to sign up to convert a PDF to a mind map?", a: "No. Marvex Studio is local-first — you can convert PDFs directly in your browser without an account, and your maps stay on your device." },
-            { q: "How long does PDF to mind map conversion take?", a: "Typically 30–60 seconds for a 20-page paper. Larger documents or AI Analysis mode can take up to 2 minutes." },
-            { q: "What's the difference between Marvex and other AI mind map generators?", a: "Marvex Studio is local-first (data never leaves your device by default) and uses Bring-Your-Own-Key AI — you pay your AI provider directly with no markup. Most alternatives lock you into their cloud and charge per generation." },
-            { q: "Can I edit the mind map after the AI generates it?", a: "Absolutely. Every element, branch, and connector is fully editable. Drag, merge, split, rename, add notes, link to files, and export to PDF / PNG / SVG / Markdown / .mmap." },
-            { q: "Does Marvex Studio work offline?", a: "Yes. Open a previously-loaded mind map without an internet connection. AI Analysis requires connectivity (because it calls your AI provider's API), but Quick Outline and editing are fully offline." },
+            {
+              q: "Is the PDF to mind map converter free?",
+              a: (
+                <>Yes — the free tier converts PDFs using Quick Outline (no AI cost). For semantic AI mind maps, bring your own Claude / OpenAI / Gemini API key — we never charge you for AI usage. See the full breakdown on the <Link to="/pricing" className="text-cyan-300 hover:underline">pricing page</Link> or read <Link to="/learn/how-to-turn-pdf-into-mind-map" className="text-cyan-300 hover:underline">the 5-step PDF-to-mind-map walkthrough</Link>.</>
+              ),
+            },
+            {
+              q: "Do I need to sign up to convert a PDF to a mind map?",
+              a: (
+                <>No. Marvex Studio is local-first — you can convert PDFs directly in your browser without an account, and your maps stay on your device. <Link to="/app" className="text-cyan-300 hover:underline">Open the studio</Link> or compare against <Link to="/vs/heptabase" className="text-cyan-300 hover:underline">Heptabase</Link> and <Link to="/vs/mapify" className="text-cyan-300 hover:underline">Mapify</Link> which both require accounts.</>
+              ),
+            },
+            {
+              q: "How long does PDF to mind map conversion take?",
+              a: (
+                <>Typically 30–60 seconds for a 20-page paper. Larger documents or AI Analysis mode can take up to 2 minutes. The <Link to="/download" className="text-cyan-300 hover:underline">desktop app</Link> is noticeably faster on 100+ page PDFs because it skips the browser sandbox.</>
+              ),
+            },
+            {
+              q: "What's the difference between Marvex and other AI mind map generators?",
+              a: (
+                <>Marvex Studio is local-first (data never leaves your device by default) and uses Bring-Your-Own-Key AI — you pay your AI provider directly with no markup. Most alternatives lock you into their cloud and charge per generation. See the deep-dive comparisons: <Link to="/vs/mapify" className="text-cyan-300 hover:underline">Marvex vs Mapify</Link>, <Link to="/vs/heptabase" className="text-cyan-300 hover:underline">Marvex vs Heptabase</Link>, and <Link to="/learn/best-pdf-mind-map-tools-2026" className="text-cyan-300 hover:underline">best PDF mind map tools in 2026</Link>.</>
+              ),
+            },
+            {
+              q: "Can I edit the mind map after the AI generates it?",
+              a: (
+                <>Absolutely. Every element, branch, and connector is fully editable. Drag, merge, split, rename, add notes, link to files, and export to PDF / PNG / SVG / Markdown / .mmap. The <Link to="/learn/ai-mind-map-generator-explained" className="text-cyan-300 hover:underline">AI mind map generator explainer</Link> covers how to refactor an auto-generated map into something publication-ready.</>
+              ),
+            },
+            {
+              q: "Does Marvex Studio work offline?",
+              a: (
+                <>Yes. Open a previously-loaded mind map without an internet connection. AI Analysis requires connectivity (because it calls your AI provider's API), but Quick Outline and editing are fully offline. The <Link to="/download" className="text-cyan-300 hover:underline">Mac / Windows / Linux desktop app</Link> is the better choice if you spend most of your week offline.</>
+              ),
+            },
+            {
+              q: "Can I convert a scanned (image-based) PDF into a mind map?",
+              a: (
+                <>Yes, with one caveat. If your scanned PDF has an OCR text layer (most modern scans do), Marvex extracts text and builds the mind map normally. If it's a pure image scan with no text layer, run it through a free OCR tool first — Adobe Acrobat, Preview on macOS, or PDF24 online — then drop the OCR'd version into <Link to="/app" className="text-cyan-300 hover:underline">the studio</Link>. Native OCR ships in v0.3.</>
+              ),
+            },
+            {
+              q: "Is there a page or size limit for PDF mind mapping?",
+              a: (
+                <>Free tier: up to 25 pages per PDF and 30 elements per map. <Link to="/pricing" className="text-cyan-300 hover:underline">Pro Lite ($9/mo)</Link>: up to 80 pages and 200 elements. <Link to="/pricing" className="text-cyan-300 hover:underline">Pro ($15/mo) and Lifetime</Link>: unlimited pages and elements. The <Link to="/download" className="text-cyan-300 hover:underline">desktop app</Link> handles PDFs up to 200 MB; the web app caps at 25 MB to keep parsing snappy.</>
+              ),
+            },
+            {
+              q: "What types of PDFs convert best into a mind map?",
+              a: (
+                <>Anything with a clear hierarchical structure — academic papers, textbook chapters, legal judgments, white papers, technical documentation, and meeting minutes. Quick Outline excels at these because it follows the heading tree directly. For dense prose with no headings (interview transcripts, novels), AI Analysis works better because it infers structure semantically. The <Link to="/learn/mind-mapping-for-students" className="text-cyan-300 hover:underline">mind mapping for students guide</Link> walks through the exact settings to use on academic papers.</>
+              ),
+            },
+            {
+              q: "Do I need to upload my PDF to the cloud to convert it?",
+              a: (
+                <>No. The PDF stays on your device throughout. Quick Outline runs entirely in your browser. AI Analysis sends the extracted text to your AI provider (OpenAI / Anthropic / Google) using <em>your</em> own API key — Marvex servers never see the file or the AI request. Read the <Link to="/privacy" className="text-cyan-300 hover:underline">full privacy policy</Link> and the <Link to="/faq" className="text-cyan-300 hover:underline">BYOK explainer in the FAQ</Link>.</>
+              ),
+            },
+            {
+              q: "Can I convert a textbook into a study mind map?",
+              a: (
+                <>Yes — that's one of the most popular workflows. Drop a textbook PDF in, pick AI Analysis with Claude Sonnet 4.5 or GPT-4o, and within 60–120 seconds you get a chapter-by-chapter map with key concepts, definitions, and relationships extracted. Right-click any element to ask the AI for examples, simpler explanations, or counter-arguments. Teachers should also see the free <Link to="/mini-course/teaching-with-mind-maps" className="text-cyan-300 hover:underline">"Teaching with Mind Maps" mini-course</Link>.</>
+              ),
+            },
           ].map((f, i) => (
             <details key={i} className="group rounded-xl border border-white/10 bg-white/[0.02] p-5" data-testid={`ptm-faq-${i}`}>
               <summary className="cursor-pointer text-[15px] font-semibold text-white list-none flex items-center justify-between">
                 {f.q}
                 <span className="text-cyan-300 mono text-lg group-open:rotate-45 transition-transform">+</span>
               </summary>
-              <p className="text-[13px] text-[#9aa7c7] leading-relaxed mt-3">{f.a}</p>
+              <div className="text-[13px] text-[#9aa7c7] leading-relaxed mt-3">{f.a}</div>
             </details>
           ))}
         </div>
@@ -336,7 +421,7 @@ export default function PdfToMindMap() {
           Free tier. No signup. Your data stays on your device. The fastest mind map maker for PDFs.
         </p>
         <Link to="/app" data-testid="ptm-cta-bottom" className="cta-pill">
-          Try Marvex Studio free <ArrowRight size={14} />
+          Turn a PDF into a mind map free <ArrowRight size={14} />
         </Link>
         <div className="mt-8 flex items-center justify-center gap-5 text-[12px] text-[#7a87ad]">
           <Link to="/learn" className="hover:text-cyan-300 transition">Learn</Link>

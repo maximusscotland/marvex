@@ -7,6 +7,7 @@ import Logo from "@/components/Logo";
 import ThemeToggle from "@/components/ThemeToggle";
 import FaqJsonLd from "@/components/FaqJsonLd";
 import { FAQ_FLAT } from "@/lib/faqs";
+import renderInline from "@/lib/renderInline";
 import { useExperiment } from "@/lib/featureFlags";
 import { track } from "@/lib/posthog";
 import usePageMeta from "@/lib/usePageMeta";
@@ -570,7 +571,7 @@ export default function Pricing() {
                 <h3 className="font-semibold text-white text-[15px] m-0">{f.q}</h3>
                 <span className="mono text-[14px] text-cyan-300/60 group-open:rotate-45 transition-transform shrink-0">+</span>
               </summary>
-              <p className="text-[#a4b4d8] text-[14px] leading-relaxed mt-3 whitespace-pre-line">{f.a}</p>
+              <p className="text-[#a4b4d8] text-[14px] leading-relaxed mt-3 whitespace-pre-line">{renderInline(f.a)}</p>
             </details>
           ))}
         </div>

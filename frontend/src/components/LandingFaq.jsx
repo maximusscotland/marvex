@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { FAQ_GROUPS } from "@/lib/faqs";
+import renderInline from "@/lib/renderInline";
 
 /**
  * Categorised FAQ block for the landing page. Differs from the Pricing FAQ:
@@ -107,7 +108,7 @@ export default function LandingFaq() {
                       <span className="mono text-[14px] text-cyan-300/60 group-open:rotate-45 transition-transform shrink-0">+</span>
                     </summary>
                     <p className="text-[#a4b4d8] text-[14px] leading-relaxed mt-3 whitespace-pre-line">
-                      {f.a}
+                      {renderInline(f.a)}
                     </p>
                   </details>
                 ))}
