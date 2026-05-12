@@ -187,7 +187,13 @@ async def _send_via_smtp(
         logger.info("smtp send OK → %s (host=%s:%s)", to, host, port)
         return {"ok": True, "backend": "smtp"}
     except Exception as e:
-        logger.exception("smtp send failed → %s", to)
+        # Already handled — caller gets {ok: False} and falls back to
+        # the next backend (or returns gracefully).  Demoting from
+        # `logger.exception` (ERROR, auto-captured by Sentry) to
+        # `logger.warning` (breadcrumb only) keeps Sentry uncluttered
+        # by every transient SMTP-auth glitch while the stack trace
+        # still lands in logs via `exc_info=True` for debugging.
+        logger.warning("smtp send failed (handled) → %s: %s", to, e, exc_info=True)
         return {"ok": False, "backend": "smtp", "error": str(e)}
 
 
@@ -249,7 +255,10 @@ async def _send_via_resend(
         email_id = resp.get("id") if isinstance(resp, dict) else None
         return {"ok": True, "backend": "resend", "id": email_id}
     except Exception as e:
-        logger.exception("resend send failed → %s", to)
+        # Handled — caller decides whether to fall back to SMTP. Demoted
+        # to warning so Sentry's LoggingIntegration doesn't auto-create
+        # an issue for every transient Resend failure.
+        logger.warning("resend send failed (handled) → %s: %s", to, e, exc_info=True)
         return {"ok": False, "backend": "resend", "error": str(e)}
 
 
