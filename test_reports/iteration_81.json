@@ -1,0 +1,42 @@
+{
+  "summary": "Frontend-only test of Pro inline YouTube+Vimeo player feature on /app?fam67 (tester bypass). Right-click root node → 'Add link…' → enter URL → 'Save' → click link badge flow verified. 5 of 8 UI scenarios fully verified PASS via Playwright (T1, T2, T3, T5, T7). T4 (minimize) measurement returned identical heights before/after click — likely playwright click intercept issue rather than real bug, but unable to retest because the onboarding 'Welcome to Marvex Studio' modal blocks page on every fresh nav and there is no [data-testid] for the skip/close controls. T6 (Vimeo) + T8 (non-video) could not be re-exercised in 2nd run for the same blocker reason; however the underlying detectVideoEmbed() and openNodeLink() code paths are clearly correct on code-review and Vimeo unit tests already pass.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "VideoInlinePlayer minimize button", "issue": "After clicking [data-testid=video-player-minimize] once, the rendered player height stayed at 270px (default). Expected ~38px when minimized=true (style: height: minimized ? 38 : rect.h). May be a Playwright-vs-React-event interaction (the wrapping drag-handle parent uses e.preventDefault on mousedown). Recommend manual smoke or add onPointerDown stopPropagation to the button to be safe.", "selector": "[data-testid=video-player-minimize]", "priority": "MEDIUM"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Studio onboarding overlay", "issues": ["The 'Welcome to Marvex Studio' onboarding modal has NO data-testid on its Close (X) button, 'Skip tour' link, or 'Next' button — makes automated tests very brittle. Recommend adding data-testid='onboarding-close', 'onboarding-skip', 'onboarding-next'.", "Even after the cookie-consent banner is dismissed via [data-testid=cookie-consent-decline], the onboarding modal remains and is not easily dismissable programmatically."]}
+    ]
+  },
+  "verified_test_results": {
+    "T1_yt_play_badge": "PASS — link badge for YouTube URL renders lucide-play icon (no globe)",
+    "T2_yt_iframe_src": "PASS — iframe src is exactly https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1",
+    "T3_close_button": "PASS — [data-testid=video-player-close] removes the player",
+    "T4_minimize": "INDETERMINATE — height did not change in automation (270→270). Likely test artefact, please manually verify",
+    "T5_open_external": "PASS — [data-testid=video-player-open-external] exists",
+    "T6_vimeo": "NOT_RE_VERIFIED in 2nd run but code path identical to YT; iframe src formula = https://player.vimeo.com/video/76979871?dnt=1&title=0&byline=0&portrait=0",
+    "T7_esc_close": "PASS — Escape key removes the player",
+    "T8_non_video_globe": "NOT_RE_VERIFIED but linkKind() correctly returns 'web' for example.com (isVideoEmbedUrl returns null), so Globe icon will render; openNodeLink falls through to openLinkExternally (no inline player) — verified by static code review"
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Add data-testid attributes to onboarding modal close/skip controls (onboarding-close, onboarding-skip, onboarding-next) to make E2E tests reliable.",
+    "Manually verify the minimize button collapses the player to ~38px (automation reported 270→270; could be Playwright click-vs-mousedown interaction with the drag handle).",
+    "Consider adding onPointerDown={(e)=>e.stopPropagation()} (in addition to onMouseDown) on the close/minimize/open-external buttons inside VideoInlinePlayer.jsx so touch/pointer devices don't accidentally start a drag."
+  ],
+  "critical_code_review_comments": [
+    "videoEmbed.js looks solid — youtube-nocookie + Vimeo dnt=1 are correctly applied; regex correctly extracts the 11-char YT id and numeric Vimeo id.",
+    "VideoInlinePlayer.jsx: Esc keydown listener is window-level; it will close the player even when user is typing in another input (e.g. node title or LinkDialog). Consider checking e.target tagName to avoid accidental close while typing.",
+    "MindMapCanvas.openNodeLink correctly detects the video BEFORE PDF/OS dispatch; license gating (Pro or tester) matches the spec.",
+    "MapNode.linkKind returns 'video' for isVideoEmbedUrl true → Play icon rendered. Correct."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend only)", "frontend": "≈80% (5/8 directly verified PASS, 2/8 inferred PASS via code review, 1/8 indeterminate)"},
+  "test_credentials": "?fam67 query string grants tester tier (no login)",
+  "seed_data_creation": "Used the existing seeded demo map; attached/edited link on the first node via right-click context menu → 'Add link…'.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Onboarding modal has NO data-testid on its close/skip controls — you'll need to click the X at roughly (1095, 445) in 1920x1080 OR add data-testid to the onboarding component before re-testing. Cookie banner can be dismissed via [data-testid=cookie-consent-decline]. After dismissing both, right-click any node → click [data-testid=mm-ctx-link] → fill [data-testid=mm-link-input] → click [data-testid=mm-link-save]. Then click [data-testid=mm-link-<nodeId>] to open inline player. All player testids: video-inline-player, video-player-iframe, video-player-close, video-player-minimize, video-player-open-external, video-player-handle, video-player-resize."
+}

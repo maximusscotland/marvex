@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react";
-import { Mail, File as FileIcon, Globe } from "lucide-react";
+import { Mail, File as FileIcon, Globe, Play } from "lucide-react";
 
 import {
   DEFAULT_FILL,
@@ -12,12 +12,14 @@ import { sizeOf } from "@/components/mindmap/lib/tree";
 import ShapeSvg from "@/components/mindmap/render/ShapeSvg";
 import NodeChrome from "@/components/mindmap/render/NodeChrome";
 import { getIconConfig } from "@/components/IconPicker";
+import { isVideoEmbedUrl } from "@/lib/videoEmbed";
 
 const linkKind = (link) => {
   if (!link) return "";
   if (/^data:/i.test(link)) return "file";
   if (/^mailto:/i.test(link)) return "email";
   if (/^file:/i.test(link)) return "file";
+  if (isVideoEmbedUrl(link)) return "video";
   return "web";
 };
 
@@ -220,6 +222,8 @@ export default function MapNode({
             <Mail size={11} />
           ) : linkKind(node.link) === "file" ? (
             <FileIcon size={11} />
+          ) : linkKind(node.link) === "video" ? (
+            <Play size={11} />
           ) : (
             <Globe size={11} />
           )}

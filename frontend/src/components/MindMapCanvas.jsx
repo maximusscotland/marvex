@@ -21,6 +21,8 @@ import useExportHandlers from "@/components/mindmap/hooks/useExportHandlers";
 import IconPicker from "@/components/IconPicker";
 import BookmarkPickerModal from "@/components/BookmarkPickerModal";
 import { openLink as openLinkExternally } from "@/lib/openLink";
+import { detectVideoEmbed } from "@/lib/videoEmbed";
+import VideoInlinePlayer from "@/components/mindmap/render/VideoInlinePlayer";
 import { useNavigate } from "react-router-dom";
 import { blankTimeline, saveTimeline } from "@/lib/timelineStorage";
 import TimelineCreateDialog from "@/components/timeline/TimelineCreateDialog";
@@ -176,6 +178,11 @@ export default function MindMapCanvas({
 
   // Link editor dialog (node linking)
   const [linkDialog, setLinkDialog] = useState(null); // { nodeId, initial }
+  // Inline video player — { provider, videoId, embedUrl, originalUrl,
+  // label } when a Pro user clicks a YouTube / Vimeo node link, otherwise
+  // null.  Single global instance per canvas so swapping videos reuses
+  // the same draggable window.
+  const [videoEmbed, setVideoEmbed] = useState(null);
   const [iconPickerNode, setIconPickerNode] = useState(null); // nodeId | null
   // Bookmark picker modal. When open, we know which nodeId was right-clicked
   // so we can attach the picked bookmark (url + title) as that node's link.
@@ -452,7 +459,31 @@ export default function MindMapCanvas({
   const openNodeLink = (node) => {
     if (!node?.link) return;
     try {
-      // Routes by type:
+      // 1. Video URLs (YouTube + Vimeo) → inline player for Pro users.
+      //    Free users get the usual new-tab fallback and a one-shot
+      //    upgrade nudge so they know what they're missing.  We detect
+      //    BEFORE the PDF / OS dispatch so e.g. a youtu.be link never
+      //    accidentally falls through to "open in default browser".
+      const video = detectVideoEmbed(node.link);
+      if (video) {
+        const isPro = license?.active && !license?.isLite;
+        if (isPro || license?.tier === "tester") {
+          setVideoEmbed({
+            ...video,
+            label: node.linkLabel || node.title || "",
+          });
+          return;
+        }
+        // Free / Lite tier — open externally and surface a soft prompt.
+        toast.info("Inline video player is a Pro feature — opening in a new tab.", {
+          action: onUpgrade
+            ? { label: "Upgrade", onClick: () => onUpgrade() }
+            : undefined,
+        });
+        window.open(video.originalUrl, "_blank", "noopener,noreferrer");
+        return;
+      }
+      // 2. Routes by type:
       //   • PDF (http or data:)  → internal Reader (/read?src=…)
       //   • Audio / video / docs → OS default app via shell.openPath
       //   • Websites             → user's default browser
@@ -1494,6 +1525,16 @@ export default function MindMapCanvas({
         onCreate={handleCreateTimelineFromWizard}
         onClose={() => setTlCreateOpen(false)}
       />
+      {/* Inline YouTube / Vimeo player.  Pro-only.  Renders only when
+          `videoEmbed` is set (after a Pro user clicks a video-link node
+          badge). Single floating, draggable, resizable instance — Esc
+          or the × button closes it. */}
+      {videoEmbed && (
+        <VideoInlinePlayer
+          embed={videoEmbed}
+          onClose={() => setVideoEmbed(null)}
+        />
+      )}
     </div>
   );
 }
