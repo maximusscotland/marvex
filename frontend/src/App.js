@@ -76,12 +76,12 @@ function BlogSlugRedirect() {
 import AccessGate from "@/components/AccessGate";
 import MaintenanceMode from "@/components/MaintenanceMode";
 import OfflineBanner from "@/components/OfflineBanner";
-// MikeyChat is the floating "Ask the Prof" tutor — a heavy component
+// ProfChat is the floating "Ask the Prof" tutor — a heavy component
 // (axios + markdown renderer + draggable launcher + chat panel) that is
 // never above the fold and never needed in the first 2-3 seconds. Code-
 // split it AND delay its mount until the browser is idle so it can't
 // inflate LCP/TBT on the landing page. See LazyMikey below.
-const MikeyChat = lazy(() => import("@/components/MikeyChat"));
+const ProfChat = lazy(() => import("@/components/ProfChat"));
 import NavShortcuts from "@/components/NavShortcuts";
 import AnalyticsRouterListener from "@/components/AnalyticsRouterListener";
 import ReferralCapture from "@/components/ReferralCapture";
@@ -96,7 +96,7 @@ const RouteFallback = () => (
   <div className="min-h-screen cosmic-bg" data-testid="route-loading" />
 );
 
-// Mount MikeyChat only after the browser reports idle (or 2.5s after
+// Mount ProfChat only after the browser reports idle (or 2.5s after
 // first paint, whichever is first).  The Prof launcher is a "secondary"
 // affordance — never the LCP candidate and never critical for the user's
 // first action — so deferring its hydration keeps TBT / INP low without
@@ -118,7 +118,7 @@ function DeferredMikey() {
   if (!ready) return null;
   return (
     <Suspense fallback={null}>
-      <MikeyChat />
+      <ProfChat />
     </Suspense>
   );
 }

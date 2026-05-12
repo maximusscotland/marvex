@@ -56,7 +56,7 @@ const clampPos = (p) => {
 };
 
 /**
- * MikeyChat — floating "Ask Mikey" tutor.
+ * ProfChat — floating "Ask the Prof" tutor.
  *
  * Layout:
  *   - Always-visible launcher pill in the bottom-LEFT (avoids the
@@ -157,7 +157,7 @@ const RenderReply = ({ text }) => {
   );
 };
 
-export default function MikeyChat() {
+export default function ProfChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
