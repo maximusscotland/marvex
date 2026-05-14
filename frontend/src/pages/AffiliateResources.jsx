@@ -47,6 +47,15 @@ const BANNERS = [
     use: "Blog post header / sidebar",
   },
   {
+    id: "billboard",
+    label: "Billboard",
+    size: "970 × 250",
+    width: 970,
+    height: 250,
+    layout: "billboard",
+    use: "Premium publisher slot / newsletter feature",
+  },
+  {
     id: "rectangle",
     label: "Medium rectangle",
     size: "300 × 250",
@@ -110,6 +119,26 @@ const Cell = ({ v }) => {
 // (or the bare site URL if they're not signed in / not an affiliate yet).
 // ---------------------------------------------------------------------------
 const SNIPPETS = [
+  {
+    id: "students-money",
+    icon: FileText,
+    label: "Students — how to make money with Marvex",
+    body: `Make money from your study material — yes, really.
+
+You already build mind-maps for your course revision. Marvex lets you turn that habit into income.
+
+How it works (the 5-minute version):
+
+1. Sign up for the affiliate program at marvex.app/affiliate — free, no quota, no follower count required.
+2. You get a unique referral link. Anyone who buys Marvex through it gets 25% off, you earn 5% commission on every invoice they pay (recurring — for as long as they stay subscribed).
+3. Share the link wherever your subject group hangs out: WhatsApp study chats, Discord servers, your Linktree, the description of a TikTok where you flash your revision map, the citations section of an essay you publish on Substack / Medium / Notion.
+4. Pair the link with the share-image generator (built into your dashboard) — it bakes your link into a 1200×630 card you can post on Instagram / X / LinkedIn.
+5. Get paid quarterly via Wise or PayPal. No minimum until $50; no fees deducted from your end.
+
+Real numbers: every 10 friends you sign up at the $15/mo Pro plan earns you $7.50/mo recurring, forever. 100 sign-ups = $75/mo on autopilot. And every classmate you refer is also getting a tool that actually makes their degree easier — so you're not selling snake oil, you're sharing something they'd thank you for anyway.
+
+Start your link here: {{LINK}}`,
+  },
   {
     id: "tweet-short",
     icon: Twitter,
@@ -203,7 +232,64 @@ function drawBanner(ctx, { width, height, layout, refLink }) {
   ctx.fillRect(0, 0, width, height);
 
   // Layout-specific text & link
-  if (layout === "row") {
+  if (layout === "billboard") {
+    // 970 × 250 — IAB billboard. Mid-density: two-line headline on the
+    // left, bigger CTA pill + link on the right. Avoids the wrap-overflow
+    // the generic "stack" layout produces when height is short relative
+    // to width (250 / 970 ≈ 0.26).
+    const pad = 36;
+
+    // Eyebrow
+    ctx.fillStyle = "#00f0ff";
+    ctx.font = "bold 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.fillText("MARVEX  ·  THE ULTIMATE RESEARCH LAB", pad, pad + 4);
+
+    // Headline (two lines, kept under ~640px wide so CTA fits on the right)
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "900 44px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.fillText("Drop a PDF.", pad, pad + 56);
+    ctx.fillStyle = "#00f0ff";
+    ctx.fillText("Get a mind-map in 60s.", pad, pad + 102);
+
+    // Sub-line
+    ctx.fillStyle = "#a4b4d8";
+    ctx.font = "15px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.fillText("BYOK AI · local-first · desktop + web · 25% off first invoice", pad, pad + 134);
+
+    // Link strip (bottom-left)
+    ctx.strokeStyle = "rgba(0,240,255,0.3)";
+    ctx.beginPath();
+    ctx.moveTo(pad, height - pad - 22);
+    ctx.lineTo(width - pad - 200, height - pad - 22);
+    ctx.stroke();
+    ctx.fillStyle = "#00f0ff";
+    ctx.font = "bold 13px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.fillText(refLink.replace(/^https?:\/\//, ""), pad, height - pad);
+
+    // CTA pill (right)
+    const pillW = 180;
+    const pillH = 50;
+    const pillX = width - pillW - pad;
+    const pillY = (height - pillH) / 2;
+    ctx.fillStyle = "#00f0ff";
+    roundRect(ctx, pillX, pillY, pillW, pillH, 25);
+    ctx.fillStyle = "#03060f";
+    ctx.font = "bold 16px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("Try it free →", pillX + pillW / 2, pillY + 31);
+    ctx.textAlign = "left";
+
+    // 25% off badge above the pill
+    ctx.fillStyle = "rgba(255,106,213,0.18)";
+    roundRect(ctx, pillX + 30, pillY - 36, pillW - 60, 26, 13);
+    ctx.strokeStyle = "rgba(255,106,213,0.6)";
+    ctx.stroke();
+    ctx.fillStyle = "#ff6ad5";
+    ctx.font = "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("25% OFF FIRST INVOICE", pillX + pillW / 2, pillY - 18);
+    ctx.textAlign = "left";
+  } else if (layout === "row") {
     // 728×90: single-line tagline + CTA pill
     ctx.fillStyle = "#00f0ff";
     ctx.font = "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
